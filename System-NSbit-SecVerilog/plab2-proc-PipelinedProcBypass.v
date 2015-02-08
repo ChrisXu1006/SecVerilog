@@ -187,6 +187,8 @@ module plab2_proc_PipelinedProcBypass
     .clk      (clk),
     .reset    (reset),
 
+    .domain   (sec_domain),
+
     .drop     (imemresp_drop),
 
     .in_msg   (imemresp_msg),
