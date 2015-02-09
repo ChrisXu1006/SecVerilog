@@ -117,11 +117,11 @@ module plab2_proc_PipelinedProcBypassCtrl
 
   // PC Mux select
 
-  localparam pm_x     = 2'dx; // Don't care
-  localparam pm_p     = 2'd0; // Use pc+4
-  localparam pm_b     = 2'd1; // Use branch address
-  localparam pm_j     = 2'd2; // Use jump address (imm)
-  localparam pm_r     = 2'd3; // Use jump address (reg)
+  wire [1:0] pm_x     = 2'dx; // Don't care
+  wire [1:0] pm_p     = 2'd0; // Use pc+4
+  wire [1:0] pm_b     = 2'd1; // Use branch address
+  wire [1:0] pm_j     = 2'd2; // Use jump address (imm)
+  wire [1:0] pm_r     = 2'd3; // Use jump address (reg)
 
   reg  [1:0] {L} j_pc_sel_D;
   wire [1:0] {L} br_pc_sel_X;
@@ -206,98 +206,98 @@ module plab2_proc_PipelinedProcBypassCtrl
 
   // Generic Parameters
 
-  localparam n = 1'd0;
-  localparam y = 1'd1;
+  wire n = 1'd0;
+  wire y = 1'd1;
 
   // Register specifiers
 
-  localparam rx = 5'bx;
-  localparam r0 = 5'd0;
-  localparam rL = 5'd31;
+  wire [4:0] rx = 5'bx;
+  wire [4:0] r0 = 5'd0;
+  wire [4:0] rL = 5'd31;
 
   // Branch type
 
-  localparam br_x     = 3'dx; // Don't care
-  localparam br_none  = 3'd0; // No branch
-  localparam br_bne   = 3'd1; // bne
-  localparam br_beq   = 3'd2; // beq
-  localparam br_bgez  = 3'd3; // bgez
-  localparam br_bgtz  = 3'd4; // bgtz
-  localparam br_blez  = 3'd5; // blez
-  localparam br_bltz  = 3'd6; // bltz
+  wire [2:0] br_x     = 3'dx; // Don't care
+  wire [2:0] br_none  = 3'd0; // No branch
+  wire [2:0] br_bne   = 3'd1; // bne
+  wire [2:0] br_beq   = 3'd2; // beq
+  wire [2:0] br_bgez  = 3'd3; // bgez
+  wire [2:0] br_bgtz  = 3'd4; // bgtz
+  wire [2:0] br_blez  = 3'd5; // blez
+  wire [2:0] br_bltz  = 3'd6; // bltz
 
   // Jump type
 
-  localparam j_x = 2'dx; // Don't care
-  localparam j_n = 2'd0; // No jump
-  localparam j_j = 2'd1; // jump (imm)
-  localparam j_r = 2'd2; // jump (reg)
+  wire [1:0] j_x = 2'dx; // Don't care
+  wire [1:0] j_n = 2'd0; // No jump
+  wire [1:0] j_j = 2'd1; // jump (imm)
+  wire [1:0] j_r = 2'd2; // jump (reg)
 
   // Operand 0 Mux Select
 
-  localparam am_x     = 2'bx; // Don't care
-  localparam am_rdat  = 2'd0; // Use data from register file
-  localparam am_samt  = 2'd1; // Use shift amount from immediate
-  localparam am_16    = 2'd2; // Use constant 16 (for lui)
+  wire [1:0] am_x     = 2'bx; // Don't care
+  wire [1:0] am_rdat  = 2'd0; // Use data from register file
+  wire [1:0] am_samt  = 2'd1; // Use shift amount from immediate
+  wire [1:0] am_16    = 2'd2; // Use constant 16 (for lui)
 
   // Operand 1 Mux Select
 
-  localparam bm_x     = 3'bx; // Don't care
-  localparam bm_rdat  = 3'd0; // Use data from register file
-  localparam bm_si    = 3'd1; // Use sign-extended immediate
-  localparam bm_zi    = 3'd2; // Use zero-extended immediate
-  localparam bm_pc    = 3'd3; // Use PC+4
-  localparam bm_fhst  = 3'd4; // Use from mngr data
+  wire [2:0] bm_x     = 3'bx; // Don't care
+  wire [2:0] bm_rdat  = 3'd0; // Use data from register file
+  wire [2:0] bm_si    = 3'd1; // Use sign-extended immediate
+  wire [2:0] bm_zi    = 3'd2; // Use zero-extended immediate
+  wire [2:0] bm_pc    = 3'd3; // Use PC+4
+  wire [2:0] bm_fhst  = 3'd4; // Use from mngr data
 
   // Bypass path Mux select
 
-  localparam byp_r    = 2'd0; // Use regfile
-  localparam byp_x    = 2'd1; // Bypass from X stage
-  localparam byp_m    = 2'd2; // Bypass from X stage
-  localparam byp_w    = 2'd3; // Bypass from X stage
+  wire [1:0] byp_r    = 2'd0; // Use regfile
+  wire [1:0] byp_x    = 2'd1; // Bypass from X stage
+  wire [1:0] byp_m    = 2'd2; // Bypass from X stage
+  wire [1:0] byp_w    = 2'd3; // Bypass from X stage
 
   // ALU Function
 
-  localparam alu_x    = 4'bx;
-  localparam alu_add  = 4'd0;
-  localparam alu_sub  = 4'd1;
-  localparam alu_sll  = 4'd2;
-  localparam alu_or   = 4'd3;
-  localparam alu_lt   = 4'd4;
-  localparam alu_ltu  = 4'd5;
-  localparam alu_and  = 4'd6;
-  localparam alu_xor  = 4'd7;
-  localparam alu_nor  = 4'd8;
-  localparam alu_srl  = 4'd9;
-  localparam alu_sra  = 4'd10;
-  localparam alu_cp0  = 4'd11;
-  localparam alu_cp1  = 4'd12;
+  wire [3:0] alu_x    = 4'bx;
+  wire [3:0] alu_add  = 4'd0;
+  wire [3:0] alu_sub  = 4'd1;
+  wire [3:0] alu_sll  = 4'd2;
+  wire [3:0] alu_or   = 4'd3;
+  wire [3:0] alu_lt   = 4'd4;
+  wire [3:0] alu_ltu  = 4'd5;
+  wire [3:0] alu_and  = 4'd6;
+  wire [3:0] alu_xor  = 4'd7;
+  wire [3:0] alu_nor  = 4'd8;
+  wire [3:0] alu_srl  = 4'd9;
+  wire [3:0] alu_sra  = 4'd10;
+  wire [3:0] alu_cp0  = 4'd11;
+  wire [3:0] alu_cp1  = 4'd12;
 
   // Memory Request Type
 
-  localparam nr       = 3'd0; // No request
-  localparam ld       = 3'd1; // Load
-  localparam st       = 3'd2; // Store
-  localparam ad       = 3'd3; // amo.add
-  localparam an       = 3'd4; // amo.add
-  localparam ao       = 3'd5; // amo.add
+  wire [2:0] nr       = 3'd0; // No request
+  wire [2:0] ld       = 3'd1; // Load
+  wire [2:0] st       = 3'd2; // Store
+  wire [2:0] ad       = 3'd3; // amo.add
+  wire [2:0] an       = 3'd4; // amo.add
+  wire [2:0] ao       = 3'd5; // amo.add
 
   // Multiply Request Type
 
-  localparam mul_n    = 1'd0; // No multiply
-  localparam mul_m    = 1'd1; // Multiply
+  wire mul_n    = 1'd0; // No multiply
+  wire mul_m    = 1'd1; // Multiply
 
   // Execute Mux Select
 
-  localparam xm_x     = 1'bx; // Don't care
-  localparam xm_a     = 1'b0; // Use ALU output
-  localparam xm_m     = 1'b1; // Use mul unit reponse
+  wire xm_x     = 1'bx; // Don't care
+  wire xm_a     = 1'b0; // Use ALU output
+  wire xm_m     = 1'b1; // Use mul unit reponse
 
   // Writeback Mux Select
 
-  localparam wm_x     = 1'bx; // Don't care
-  localparam wm_a     = 1'b0; // Use ALU output
-  localparam wm_m     = 1'b1; // Use data memory response
+  wire wm_x     = 1'bx; // Don't care
+  wire wm_a     = 1'b0; // Use ALU output
+  wire wm_m     = 1'b1; // Use data memory response
 
   // Instruction Decode
 
@@ -605,7 +605,7 @@ module plab2_proc_PipelinedProcBypassCtrl
     .next_squash ( squash_XM )
   );
 
-  reg [31:0] {L} inst_X;
+  reg [31:0] {Domain domain} inst_X;
   reg [3:0]  {L} alu_fn_X;
   reg        {L} mul_req_type_X;
   reg        {L} ex_result_sel_X;
@@ -737,7 +737,7 @@ module plab2_proc_PipelinedProcBypassCtrl
     .next_squash ( squash_MW )
   );
 
-  reg [31:0] {L} inst_M;
+  reg [31:0] {Domain domain} inst_M;
   reg [2:0]  {L} dmemreq_type_M;
   reg        {L} wb_result_sel_M;
   reg        {L} rf_wen_M;
@@ -804,7 +804,7 @@ module plab2_proc_PipelinedProcBypassCtrl
     .next_squash ( next_squash_W )
   );
 
-  reg [31:0] {L} inst_W;
+  reg [31:0] {Domain domain} inst_W;
   reg        {L} rf_wen_W;
   reg [4:0]  {L} rf_waddr_W;
   reg        {L} stats_en_wen_W;
