@@ -22,7 +22,7 @@ module plab2_proc_PipelinedProcBypass
 )
 (
   input                                       {L} clk,
-  input                                       {L{ reset,
+  input                                       {L} reset,
 
   input										  {L} sec_domain,
 
@@ -52,13 +52,13 @@ module plab2_proc_PipelinedProcBypass
 
   // From mngr streaming port
 
-  input [`PLAB2_PROC_FROM_MNGR_MSG_NBITS-1:0] {L} from_mngr_msg,
+  input [`PLAB2_PROC_FROM_MNGR_MSG_NBITS-1:0] {Domain sec_domain} from_mngr_msg,
   input                                       {L} from_mngr_val,
   output                                      {L} from_mngr_rdy,
 
   // To mngr streaming port
 
-  output [`PLAB2_PROC_TO_MNGR_MSG_NBITS-1:0]  {L} to_mngr_msg,
+  output [`PLAB2_PROC_TO_MNGR_MSG_NBITS-1:0]  {Domain sec_domain} to_mngr_msg,
   output                                      {L} to_mngr_val,
   input                                       {L} to_mngr_rdy,
 
@@ -78,9 +78,15 @@ module plab2_proc_PipelinedProcBypass
   wire [31:0]                               {Domain sec_domain} dmemreq_msg_data;
   wire [creq_type_nbits-1:0]                {Domain sec_domain} dmemreq_msg_type;
   wire [31:0]                               {Domain sec_domain} dmemresp_msg_data;
+  wire [7:0]                                {Domain sec_domain} dmemresp_msg_opaque;
+  wire [creq_type_nbits-1:0]                {Domain sec_domain} dmemresp_msg_type;
+  wire [1:0]                                {Domain sec_domain} dmemresp_msg_len;
 
   wire [31:0]                               {Domain sec_domain} imemreq_msg_addr;
   wire [31:0]                               {Domain sec_domain} imemresp_msg_data;
+  wire [7:0]                                {Domain sec_domain} imemresp_msg_opaque;
+  wire [creq_type_nbits-1:0]                {Domain sec_domain} imemresp_msg_type;
+  wire [1:0]                                {Domain sec_domain} imemresp_msg_len;
 
   // imereq_enq signals coming in from the ctrl unit
   wire [`VC_MEM_REQ_MSG_NBITS(8,32,32)-1:0] {Domain sec_domain} imemreq_enq_msg;
@@ -89,7 +95,7 @@ module plab2_proc_PipelinedProcBypass
 
   // imemresp signals after the dropping unit
 
-  wire [`VC_MEM_RESP_MSG_NBITS(8,32)-1:0] {Domain domain} imemresp_msg_drop;
+  wire [`VC_MEM_RESP_MSG_NBITS(8,32)-1:0] {Domain sec_domain} imemresp_msg_drop;
   wire                                    {L} imemresp_val_drop;
   wire                                    {L} imemresp_rdy_drop;
 
@@ -125,7 +131,7 @@ module plab2_proc_PipelinedProcBypass
 
   // status signals (dpath->ctrl)
 
-  wire [31:0] {L} inst_D;
+  wire [31:0] {Domain sec_domain} inst_D;
   wire        {L} br_cond_zero_X;
   wire        {L} br_cond_neg_X;
   wire        {L} br_cond_eq_X;
@@ -138,6 +144,7 @@ module plab2_proc_PipelinedProcBypass
 
   vc_MemReqMsgPack#(8,32,32) imemreq_msg_pack
   (
+    .domain (sec_domain),
     .type   (`VC_MEM_REQ_MSG_TYPE_READ),
     .opaque (8'b0),
     .addr   (imemreq_msg_addr),
@@ -148,6 +155,7 @@ module plab2_proc_PipelinedProcBypass
 
   vc_MemReqMsgPack#(8,32,32) dmemreq_msg_pack
   (
+    .domain (sec_domain),
     .type   (dmemreq_msg_type),
     .opaque (8'b0),
     .addr   (dmemreq_msg_addr),
@@ -162,25 +170,29 @@ module plab2_proc_PipelinedProcBypass
 
   vc_MemRespMsgUnpack#(8,32) imemresp_msg_unpack
   (
+    .domain (sec_domain),
     .msg    (imemresp_msg),
-    .opaque (),
-    .type   (),
-    .len    (),
+    .opaque (imemresp_msg_opaque),
+    .type   (imemresp_msg_type),
+    .len    (imemresp_msg_len),
     .data   (imemresp_msg_data)
   );
 
   vc_MemRespMsgUnpack#(8,32) dmemresp_msg_unpack
   (
+    .domain (sec_domain),
     .msg    (dmemresp_msg),
-    .opaque (),
-    .type   (),
-    .len    (),
+    .opaque (dmemresp_msg_opaque),
+    .type   (dmemresp_msg_type),
+    .len    (dmemresp_msg_len),
     .data   (dmemresp_msg_data)
   );
 
   //----------------------------------------------------------------------
   // Imem Drop Unit
   //----------------------------------------------------------------------
+
+  wire {L} imemresp_drop;
 
   vc_DropUnit #(`VC_MEM_RESP_MSG_NBITS(8,32)) imem_drop_unit
   (

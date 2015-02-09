@@ -70,7 +70,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   // status signals (dpath->ctrl)
 
-  output [31:0] {L} inst_D,
+  output [31:0] {Domain domain} inst_D,
   output        {L} br_cond_zero_X,
   output        {L} br_cond_neg_X,
   output        {L} br_cond_eq_X,
@@ -167,18 +167,18 @@ module plab2_proc_PipelinedProcBypassDpath
     .q      (inst_D)
   );
 
-  pisa_InstUnpack inst_unpack
-  (
-    .inst     (inst_D),
-    .opcode   (),
-    .rs       (inst_rs_D),
-    .rt       (inst_rt_D),
-    .rd       (inst_rd_D),
-    .shamt    (inst_shamt_D),
-    .func     (),
-    .imm      (inst_imm_D),
-    .target   (inst_target_D)
-  );
+  //pisa_InstUnpack inst_unpack
+  //(
+  //  .inst     (inst_D),
+  //  .opcode   (),
+  //  .rs       (inst_rs_D),
+  //  .rt       (inst_rt_D),
+  //  .rd       (inst_rd_D),
+  //  .shamt    (inst_shamt_D),
+  //  .func     (),
+  //  .imm      (inst_imm_D),
+  //  .target   (inst_target_D)
+  //);
 
   wire [ 4:0] {Domain domain} rf_raddr0_D = inst_rs_D;
   wire [31:0] {Domain domain} rf_rdata0_D;

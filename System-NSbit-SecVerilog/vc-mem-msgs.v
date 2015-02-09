@@ -150,17 +150,18 @@ module vc_MemReqMsgPack
   parameter a = p_addr_nbits,
   parameter d = p_data_nbits
 )(
+  input {L} domain,
   // Input message
 
-  input  [`VC_MEM_REQ_MSG_TYPE_NBITS(o,a,d)-1:0]   type,
-  input  [`VC_MEM_REQ_MSG_OPAQUE_NBITS(o,a,d)-1:0] opaque,
-  input  [`VC_MEM_REQ_MSG_ADDR_NBITS(o,a,d)-1:0]   addr,
-  input  [`VC_MEM_REQ_MSG_LEN_NBITS(o,a,d)-1:0]    len,
-  input  [`VC_MEM_REQ_MSG_DATA_NBITS(o,a,d)-1:0]   data,
+  input  [`VC_MEM_REQ_MSG_TYPE_NBITS(o,a,d)-1:0]   {Domain domain} type,
+  input  [`VC_MEM_REQ_MSG_OPAQUE_NBITS(o,a,d)-1:0] {Domain domain} opaque,
+  input  [`VC_MEM_REQ_MSG_ADDR_NBITS(o,a,d)-1:0]   {Domain domain} addr,
+  input  [`VC_MEM_REQ_MSG_LEN_NBITS(o,a,d)-1:0]    {Domain domain} len,
+  input  [`VC_MEM_REQ_MSG_DATA_NBITS(o,a,d)-1:0]   {Domain domain} data,
 
   // Output bits
 
-  output [`VC_MEM_REQ_MSG_NBITS(o,a,d)-1:0]        msg
+  output [`VC_MEM_REQ_MSG_NBITS(o,a,d)-1:0]        {Domain domain} msg
 );
 
   assign msg[`VC_MEM_REQ_MSG_TYPE_FIELD(o,a,d)]   = type;
@@ -187,17 +188,18 @@ module vc_MemReqMsgUnpack
   parameter d = p_data_nbits
 )(
 
+  input {L} domain,
   // Input bits
 
-  input [`VC_MEM_REQ_MSG_NBITS(o,a,d)-1:0]         msg,
+  input [`VC_MEM_REQ_MSG_NBITS(o,a,d)-1:0]         {Domain domain} msg,
 
   // Output message
 
-  output [`VC_MEM_REQ_MSG_TYPE_NBITS(o,a,d)-1:0]   type,
-  output [`VC_MEM_REQ_MSG_OPAQUE_NBITS(o,a,d)-1:0] opaque,
-  output [`VC_MEM_REQ_MSG_ADDR_NBITS(o,a,d)-1:0]   addr,
-  output [`VC_MEM_REQ_MSG_LEN_NBITS(o,a,d)-1:0]    len,
-  output [`VC_MEM_REQ_MSG_DATA_NBITS(o,a,d)-1:0]   data
+  output [`VC_MEM_REQ_MSG_TYPE_NBITS(o,a,d)-1:0]   {Domain domain} type,
+  output [`VC_MEM_REQ_MSG_OPAQUE_NBITS(o,a,d)-1:0] {Domain domain} opaque,
+  output [`VC_MEM_REQ_MSG_ADDR_NBITS(o,a,d)-1:0]   {Domain domain} addr,
+  output [`VC_MEM_REQ_MSG_LEN_NBITS(o,a,d)-1:0]    {Domain domain} len,
+  output [`VC_MEM_REQ_MSG_DATA_NBITS(o,a,d)-1:0]   {Domain domain} data
 );
 
   assign type   = msg[`VC_MEM_REQ_MSG_TYPE_FIELD(o,a,d)];
@@ -333,16 +335,17 @@ module vc_MemRespMsgPack
   parameter o = p_opaque_nbits,
   parameter d = p_data_nbits
 )(
+  input {L} domain,
   // Input message
 
-  input  [`VC_MEM_RESP_MSG_TYPE_NBITS(o,d)-1:0]   type,
-  input  [`VC_MEM_RESP_MSG_OPAQUE_NBITS(o,d)-1:0] opaque,
-  input  [`VC_MEM_RESP_MSG_LEN_NBITS(o,d)-1:0]    len,
-  input  [`VC_MEM_RESP_MSG_DATA_NBITS(o,d)-1:0]   data,
+  input  [`VC_MEM_RESP_MSG_TYPE_NBITS(o,d)-1:0]   {Domain domain} type,
+  input  [`VC_MEM_RESP_MSG_OPAQUE_NBITS(o,d)-1:0] {Domain domain} opaque,
+  input  [`VC_MEM_RESP_MSG_LEN_NBITS(o,d)-1:0]    {Domain domain} len,
+  input  [`VC_MEM_RESP_MSG_DATA_NBITS(o,d)-1:0]   {Domain domain} data,
 
   // Output bits
 
-  output [`VC_MEM_RESP_MSG_NBITS(o,d)-1:0]        msg
+  output [`VC_MEM_RESP_MSG_NBITS(o,d)-1:0]        {Domain domain} msg
 );
 
   assign msg[`VC_MEM_RESP_MSG_TYPE_FIELD(o,d)]   = type;
@@ -365,17 +368,17 @@ module vc_MemRespMsgUnpack
   parameter o = p_opaque_nbits,
   parameter d = p_data_nbits
 )(
-
+  input {L} domain,
   // Input bits
 
-  input [`VC_MEM_RESP_MSG_NBITS(o,d)-1:0]         msg,
+  input [`VC_MEM_RESP_MSG_NBITS(o,d)-1:0]         {Domain domain} msg,
 
   // Output message
 
-  output [`VC_MEM_RESP_MSG_TYPE_NBITS(o,d)-1:0]   type,
-  output [`VC_MEM_RESP_MSG_OPAQUE_NBITS(o,d)-1:0] opaque,
-  output [`VC_MEM_RESP_MSG_LEN_NBITS(o,d)-1:0]    len,
-  output [`VC_MEM_RESP_MSG_DATA_NBITS(o,d)-1:0]   data
+  output [`VC_MEM_RESP_MSG_TYPE_NBITS(o,d)-1:0]   {Domain domain} type,
+  output [`VC_MEM_RESP_MSG_OPAQUE_NBITS(o,d)-1:0] {Domain domain} opaque,
+  output [`VC_MEM_RESP_MSG_LEN_NBITS(o,d)-1:0]    {Domain domain} len,
+  output [`VC_MEM_RESP_MSG_DATA_NBITS(o,d)-1:0]   {Domain domain} data
 );
 
   assign type   = msg[`VC_MEM_RESP_MSG_TYPE_FIELD(o,d)];

@@ -73,7 +73,7 @@ module plab2_proc_PipelinedProcBypassCtrl
 
   // status signals (dpath->ctrl)
 
-  input [31:0]  {L} inst_D,
+  input [31:0]  {Domain domain} inst_D,
   input         {L} br_cond_zero_X,
   input         {L} br_cond_neg_X,
   input         {L} br_cond_eq_X
@@ -185,18 +185,18 @@ module plab2_proc_PipelinedProcBypassCtrl
   wire   [4:0] {L} inst_rt_D;
   wire   [4:0] {L} inst_rd_D;
 
-  pisa_InstUnpack inst_unpack
-  (
-    .inst     (inst_D),
-    .opcode   (),
-    .rs       (inst_rs_D),
-    .rt       (inst_rt_D),
-    .rd       (inst_rd_D),
-    .shamt    (),
-    .func     (),
-    .imm      (),
-    .target   ()
-  );
+  //pisa_InstUnpack inst_unpack
+  //(
+  //  .inst     (inst_D),
+  //  .opcode   (),
+  //  .rs       (inst_rs_D),
+  //  .rt       (inst_rt_D),
+  //  .rd       (inst_rd_D),
+  //  .shamt    (),
+  //  .func     (),
+  //  .imm      (),
+  //  .target   ()
+  //);
 
   // Shorten register specifier name for table
 
@@ -320,22 +320,22 @@ module plab2_proc_PipelinedProcBypassCtrl
 
   task cs
   (
-    input       {L} cs_val,
-    input [1:0] {L} cs_j_type,
-    input [2:0] {L} cs_br_type,
-    input [1:0] {L} cs_op0_sel,
-    input       {L} cs_rs_en,
-    input [2:0] {L} cs_op1_sel,
-    input       {L} cs_rt_en,
-    input [3:0] {L} cs_alu_fn,
-    input       {L} cs_mul_req_type,
-    input       {L} cs_ex_result_sel,
-    input [2:0] {L} cs_dmemreq_type,
-    input       {L} cs_wb_result_sel,
-    input       {L} cs_rf_wen,
-    input [4:0] {L} cs_rf_waddr,
-    input       {L} cs_mtc,
-    input       {L} cs_mfc
+    input        cs_val,
+    input [1:0]  cs_j_type,
+    input [2:0]  cs_br_type,
+    input [1:0]  cs_op0_sel,
+    input        cs_rs_en,
+    input [2:0]  cs_op1_sel,
+    input        cs_rt_en,
+    input [3:0]  cs_alu_fn,
+    input        cs_mul_req_type,
+    input        cs_ex_result_sel,
+    input [2:0]  cs_dmemreq_type,
+    input        cs_wb_result_sel,
+    input        cs_rf_wen,
+    input [4:0]  cs_rf_waddr,
+    input        cs_mtc,
+    input        cs_mfc
   );
   begin
     inst_val_D       = cs_val;
