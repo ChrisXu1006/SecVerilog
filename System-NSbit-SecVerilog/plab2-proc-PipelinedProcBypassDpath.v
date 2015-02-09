@@ -77,7 +77,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   // stats_en output
 
-  output        {L} stats_en
+  output        {Domain domain} stats_en
 );
 
   localparam c_reset_vector = 32'h1000;
@@ -99,6 +99,7 @@ module plab2_proc_PipelinedProcBypassDpath
   (
     .clk    (clk),
     .reset  (reset),
+    .domain (domain),
     .en     (reg_en_F),
     .d      (pc_plus4_next_F),
     .q      (pc_plus4_F)
@@ -106,12 +107,14 @@ module plab2_proc_PipelinedProcBypassDpath
 
   vc_Incrementer #(32, 4) pc_incr_F
   (
+    .domain (domain),
     .in   (pc_next_F),
     .out  (pc_plus4_next_F)
   );
 
   vc_Mux4 #(32) pc_sel_mux_F
   (
+    .domain(domain),
     .in0  (pc_plus4_F),
     .in1  (br_target_X),
     .in2  (j_target_D),
@@ -128,6 +131,7 @@ module plab2_proc_PipelinedProcBypassDpath
   (
     .clk    (clk),
     .reset  (reset),
+    .domain (domain),
     .en     (reg_en_F),
     .d      (pc_next_F),
     .q      (pc_F)
@@ -153,6 +157,7 @@ module plab2_proc_PipelinedProcBypassDpath
   (
     .clk    (clk),
     .reset  (reset),
+    .domain (domain),
     .en     (reg_en_D),
     .d      (pc_plus4_F),
     .q      (pc_plus4_D)
@@ -162,6 +167,7 @@ module plab2_proc_PipelinedProcBypassDpath
   (
     .clk    (clk),
     .reset  (reset),
+    .domain (domain),
     .en     (reg_en_D),
     .d      (imemresp_msg_data),
     .q      (inst_D)
@@ -189,6 +195,7 @@ module plab2_proc_PipelinedProcBypassDpath
   (
     .clk         (clk),
     .reset       (reset),
+    .domain      (domain),
     .read_addr0  (rf_raddr0_D),
     .read_data0  (rf_rdata0_D),
     .read_addr1  (rf_raddr1_D),
@@ -214,6 +221,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   vc_Mux4 #(32) op0_byp_mux_D
   (
+    .domain(domain),
     .in0  (rf_rdata0_D),
     .in1  (byp_data_X),
     .in2  (byp_data_M),
@@ -224,6 +232,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   vc_Mux3 #(32) op0_sel_mux_D
   (
+    .domain(domain),
     .in0  (op0_byp_out_D),
     .in1  (inst_shamt_zext_D),
     .in2  (32'd16),
@@ -252,6 +261,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   vc_Mux4 #(32) op1_byp_mux_D
   (
+    .domain(domain),
     .in0  (rf_rdata1_D),
     .in1  (byp_data_X),
     .in2  (byp_data_M),
@@ -260,10 +270,11 @@ module plab2_proc_PipelinedProcBypassDpath
     .out  (op1_byp_out_D)
   );
 
-  wire [31:0] mfc_data_D;
+  wire [31:0] {Domain domain} mfc_data_D;
 
   vc_Mux5 #(32) op1_sel_mux_D
   (
+    .domain(domain),
     .in0  (op1_byp_out_D),
     .in1  (inst_imm_sext_D),
     .in2  (inst_imm_zext_D),
@@ -275,6 +286,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   vc_Mux3 #(32) mfc_sel_mux_D
   (
+    .domain(domain),
     .in0  (from_mngr_data),
     .in1  (p_num_cores),
     .in2  (p_core_id),
@@ -286,6 +298,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   plab2_proc_BrTarget br_target_calc_D
   (
+    .domain    (domain),
     .pc_plus4  (pc_plus4_D),
     .imm_sext  (inst_imm_sext_D),
     .br_target (br_target_D)
@@ -293,6 +306,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   plab2_proc_JTarget j_target_calc_D
   (
+    .domain     (domain),
     .pc_plus4   (pc_plus4_D),
     .imm_target (inst_target_D),
     .j_target   (j_target_D)
@@ -312,6 +326,8 @@ module plab2_proc_PipelinedProcBypassDpath
     .clk      (clk),
     .reset    (reset),
 
+    .domain   (domain),
+
     .in_val   (mul_req_val_D),
     .in_rdy   (mul_req_rdy_D),
     .in_msg   (mul_req_msg_D),
@@ -323,6 +339,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   plab1_imul_MulDivReqMsgPack mul_req_msg_pack
   (
+    .domain (domain),
     .func   (`PLAB1_IMUL_MULDIV_REQ_MSG_FUNC_MUL),
     .a      (op0_D),
     .b      (op1_D),
@@ -341,6 +358,7 @@ module plab2_proc_PipelinedProcBypassDpath
   (
     .clk    (clk),
     .reset  (reset),
+    .domain (domain),
     .en     (reg_en_X),
     .d      (op0_D),
     .q      (op0_X)
@@ -350,6 +368,7 @@ module plab2_proc_PipelinedProcBypassDpath
   (
     .clk    (clk),
     .reset  (reset),
+    .domain (domain),
     .en     (reg_en_X),
     .d      (op1_D),
     .q      (op1_X)
@@ -360,6 +379,7 @@ module plab2_proc_PipelinedProcBypassDpath
   (
     .clk    (clk),
     .reset  (reset),
+    .domain (domain),
     .en     (reg_en_X),
     .d      (br_target_D),
     .q      (br_target_X)
@@ -368,6 +388,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   vc_EqComparator #(32) br_cond_eq_comp_X
   (
+    .domain(domain),
     .in0  (op0_X),
     .in1  (op1_X),
     .out  (br_cond_eq_X)
@@ -375,12 +396,14 @@ module plab2_proc_PipelinedProcBypassDpath
 
   vc_ZeroComparator #(32) br_cond_zero_comp_X
   (
+    .domain(domain),
     .in   (op0_X),
     .out  (br_cond_zero_X)
   );
 
   vc_EqComparator #(1) br_cond_neg_comp_X
   (
+    .domain(domain),
     .in0  (op0_X[31]),
     .in1  (1'b1),
     .out  (br_cond_neg_X)
@@ -391,6 +414,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   plab2_proc_Alu alu
   (
+    .domain(domain),
     .in0  (op0_X),
     .in1  (op1_X),
     .fn   (alu_fn_X),
@@ -414,6 +438,7 @@ module plab2_proc_PipelinedProcBypassDpath
   (
     .clk    (clk),
     .reset  (reset),
+    .domain (domain),
     .en     (reg_en_X),
     .d      (dmem_write_data_D),
     .q      (dmem_write_data_X)
@@ -432,6 +457,7 @@ module plab2_proc_PipelinedProcBypassDpath
   (
     .clk    (clk),
     .reset  (reset),
+    .domain (domain),
     .en     (reg_en_M),
     .d      (ex_result_X),
     .q      (ex_result_M)
@@ -463,6 +489,7 @@ module plab2_proc_PipelinedProcBypassDpath
   (
     .clk    (clk),
     .reset  (reset),
+    .domain (domain),
     .en     (reg_en_W),
     .d      (wb_result_M),
     .q      (wb_result_W)
@@ -479,7 +506,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   // note the stats en is full 32-bit here but the outside port is one
   // bit.
-  wire [31:0] {L} stats_en_W;
+  wire [31:0] {Domain domain} stats_en_W;
 
   assign stats_en = | stats_en_W;
 
@@ -487,6 +514,7 @@ module plab2_proc_PipelinedProcBypassDpath
   (
     .clk    (clk),
     .reset  (reset),
+    .domain (domain),
     .en     (stats_en_wen_W),
     .d      (wb_result_W),
     .q      (stats_en_W)

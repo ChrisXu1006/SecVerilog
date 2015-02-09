@@ -63,8 +63,9 @@ module vc_Incrementer
   parameter p_nbits     = 1,
   parameter p_inc_value = 1
 )(
-  input  [p_nbits-1:0] in,
-  output [p_nbits-1:0] out
+  input                {L} domain,
+  input  [p_nbits-1:0] {Domain domain} in,
+  output [p_nbits-1:0] {Domain domain} out
 );
 
   assign out = in + p_inc_value;
@@ -80,8 +81,9 @@ module vc_ZeroExtender
   parameter p_in_nbits  = 1,
   parameter p_out_nbits = 8
 )(
-  input   [p_in_nbits-1:0] in,
-  output [p_out_nbits-1:0] out
+  input                    {L} domain,
+  input   [p_in_nbits-1:0] {Domain domain} in,
+  output [p_out_nbits-1:0] {Domain domain} out
 );
 
   assign out = { {( p_out_nbits - p_in_nbits ){1'b0}}, in };
@@ -98,8 +100,9 @@ module vc_SignExtender
  parameter p_out_nbits = 8
 )
 (
-  input   [p_in_nbits-1:0] in,
-  output [p_out_nbits-1:0] out
+  input                    {L} domain,
+  input   [p_in_nbits-1:0] {Domain domain} in,
+  output [p_out_nbits-1:0] {Domain domain} out
 );
 
   assign out = { {(p_out_nbits-p_in_nbits){in[p_in_nbits-1]}}, in };
@@ -114,8 +117,9 @@ module vc_ZeroComparator
 #(
   parameter p_nbits = 1
 )(
-  input  [p_nbits-1:0] in,
-  output               out
+  input                {L} domain,
+  input  [p_nbits-1:0] {Domain domain} in,
+  output               {L} out
 );
 
   assign out = ( in == {p_nbits{1'b0}} );
@@ -130,9 +134,10 @@ module vc_EqComparator
 #(
   parameter p_nbits = 1
 )(
-  input  [p_nbits-1:0] in0,
-  input  [p_nbits-1:0] in1,
-  output               out
+  input                {L} domain,
+  input  [p_nbits-1:0] {Domain domain} in0,
+  input  [p_nbits-1:0] {Domain domain} in1,
+  output               {L} out
 );
 
   assign out = ( in0 == in1 );

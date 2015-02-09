@@ -49,15 +49,16 @@
 
 module plab1_imul_MulDivReqMsgPack
 (
+  input                                             {L} domain, 
   // Unpacked message
 
-  input [`PLAB1_IMUL_MULDIV_REQ_MSG_FUNC_NBITS-1:0] func,
-  input [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]    a,
-  input [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]    b,
+  input [`PLAB1_IMUL_MULDIV_REQ_MSG_FUNC_NBITS-1:0] {L} func,
+  input [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]    {Domain domain} a,
+  input [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]    {Domain domain} b,
 
   // Packed message
 
-  output [`PLAB1_IMUL_MULDIV_REQ_MSG_NBITS-1:0]     msg
+  output [`PLAB1_IMUL_MULDIV_REQ_MSG_NBITS-1:0]     {Domain domain} msg
 );
 
   assign msg[`PLAB1_IMUL_MULDIV_REQ_MSG_FUNC_FIELD] = func;

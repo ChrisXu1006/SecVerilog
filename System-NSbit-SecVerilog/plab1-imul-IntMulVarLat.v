@@ -368,16 +368,17 @@ endmodule
 
 module plab1_imul_IntMulVarLat
 (
-  input                                         clk,
-  input                                         reset,
+  input                                         {L} clk,
+  input                                         {L} reset,
 
-  input                                         in_val,
-  output                                        in_rdy,
-  input  [`PLAB1_IMUL_MULDIV_REQ_MSG_NBITS-1:0] in_msg,
+  input                                         {L} domain,
+  input                                         {L} in_val,
+  output                                        {L} in_rdy,
+  input  [`PLAB1_IMUL_MULDIV_REQ_MSG_NBITS-1:0] {Domain domain} in_msg,
 
-  output                                        out_val,
-  input                                         out_rdy,
-  output [31:0]                                 out_msg
+  output                                        {L} out_val,
+  input                                         {L} out_rdy,
+  output [31:0]                                 {Domain domain} out_msg
 );
 
   //----------------------------------------------------------------------

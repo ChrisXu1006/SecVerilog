@@ -64,7 +64,7 @@ module plab2_proc_PipelinedProcBypass
 
   // Stats enable output
 
-  output                                      {L} stats_en
+  output                                      {Domain sec_domain} stats_en
 );
 
   localparam creq_nbits = `VC_MEM_REQ_MSG_NBITS(8,32,32);

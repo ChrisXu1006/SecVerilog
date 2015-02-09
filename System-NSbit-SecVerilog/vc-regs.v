@@ -94,14 +94,15 @@ module vc_EnResetReg
   parameter p_nbits       = 1,
   parameter p_reset_value = 0
 )(
-  input                clk,   // Clock input
-  input                reset, // Sync reset input (sampled on rising edge)
-  output [p_nbits-1:0] q,     // Data output
-  input  [p_nbits-1:0] d,     // Data input (sampled on rising clk edge)
-  input                en     // Enable input (sampled on rising clk edge)
+  input                {L} clk,   // Clock input
+  input                {L} reset, // Sync reset input (sampled on rising edge)
+  input                {L} domain, //security level
+  output [p_nbits-1:0] {Domain domain} q,     // Data output
+  input  [p_nbits-1:0] {Domain domain} d,     // Data input (sampled on rising clk edge)
+  input                {L} en     // Enable input (sampled on rising clk edge)
 );
 
-  reg q;
+  reg [p_nbits-1:0]    {Domain domain} q;
 
   always @( posedge clk )
     if ( reset || en )

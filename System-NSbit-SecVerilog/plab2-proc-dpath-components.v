@@ -14,9 +14,10 @@
 
 module plab2_proc_BrTarget
 (
-  input  [31:0] pc_plus4,
-  input  [31:0] imm_sext,
-  output [31:0] br_target
+  input         {L} domain,
+  input  [31:0] {Domain domain} pc_plus4,
+  input  [31:0] {Domain domain} imm_sext,
+  output [31:0] {Domain domain} br_target
 );
 
   assign br_target = pc_plus4 + ( imm_sext << 2 );
@@ -32,9 +33,10 @@ endmodule
 
 module plab2_proc_JTarget
 (
-  input  [31:0] pc_plus4,
-  input  [25:0] imm_target,
-  output [31:0] j_target
+  input         {L} domain,
+  input  [31:0] {Domain domain} pc_plus4,
+  input  [25:0] {Domain domain} imm_target,
+  output [31:0] {Domain domain} j_target
 );
 
   assign j_target = { pc_plus4[31:26], ( imm_target << 2 ) };
@@ -49,18 +51,18 @@ endmodule
 
 module plab2_proc_Regfile
 (
-  input         clk,
-  input         reset,
+  input         {L} clk,
+  input         {L} reset,
 
-  input   [4:0] read_addr0,
-  output [31:0] read_data0,
+  input   [4:0] {Domain domain} read_addr0,
+  output [31:0] {Domain domain} read_data0,
 
-  input   [4:0] read_addr1,
-  output [31:0] read_data1,
+  input   [4:0] {Domain domain} read_addr1,
+  output [31:0] {Domain domain} read_data1,
 
-  input         write_en,
-  input   [4:0] write_addr,
-  input  [31:0] write_data
+  input         {L} write_en,
+  input   [4:0] {Domain domain} write_addr,
+  input  [31:0] {Domain domain} write_data
 );
 
   // these wires are to be hooked up to the actual register file read
@@ -228,10 +230,11 @@ endmodule
 
 module plab2_proc_Alu
 (
-  input  [31:0] in0,
-  input  [31:0] in1,
-  input  [ 3:0] fn,
-  output [31:0] out
+  input         {L} domain,
+  input  [31:0] {Domain domain} in0,
+  input  [31:0] {Domain domain} in1,
+  input  [ 3:0] {Domain domain} fn,
+  output [31:0] {Domain domain} out
 );
 
   // -- Decoder ----------------------------------------------------------
