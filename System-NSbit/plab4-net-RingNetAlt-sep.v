@@ -6,7 +6,7 @@
 `define PLAB4_NET_RING_NET_ALT_SEP
 
 `include "vc-net-msgs.v"
-//`include "vc-param-utils.v"
+`include "vc-param-utils.v"
 `include "vc-queues.v"
 `include "plab4-net-RouterAlt.v"
 `include "plab4-net-demux.v"
@@ -38,28 +38,28 @@ module plab4_net_RingNetAlt_Sep
   
 )
 (
-  input 			{L}	clk,
-  input 			{L}	reset,
+  input clk,
+  input reset,
 
-  input				{L}	in_val_p0,
-  output			{L}	in_rdy_p0,
-  input	 [m-1:0]	{L}	in_msg_control_p0,
-  input  [pd-1:0]	{Domain in1_reqs_domain_p0}in_msg_data_p0,
+  input				in_val_p0,
+  output			in_rdy_p0,
+  input	 [m-1:0]	in_msg_control_p0,
+  input  [pd-1:0	]in_msg_data_p0,
 
-  output			{L}	out_val_p0,
-  input				{L}	out_rdy_p0,
-  output [m-1:0]	{L}	out_msg_control_p0,
-  output [pd-1:0]	{Domain out1_domain_p0}out_msg_data_p0,
+  output			out_val_p0,
+  input				out_rdy_p0,
+  output [m-1:0]	out_msg_control_p0,
+  output [pd-1:0]	out_msg_data_p0,
 
-  input				{L}	in_val_p1,
-  output			{L}	in_rdy_p1,
-  input	 [m-1:0]	{L}	in_msg_control_p1,
-  input  [pd-1:0]	{Domain in1_reqs_domain_p1}in_msg_data_p1,
+  input				in_val_p1,
+  output			in_rdy_p1,
+  input	 [m-1:0]	in_msg_control_p1,
+  input  [pd-1:0	]in_msg_data_p1,
 
-  output			{L}	out_val_p1,
-  input				{L}	out_rdy_p1,
-  output [m-1:0]	{L}	out_msg_control_p1,
-  output [pd-1:0]	{Domain out1_domain_p1}out_msg_data_p1
+  output			out_val_p1,
+  input				out_rdy_p1,
+  output [m-1:0]	out_msg_control_p1,
+  output [pd-1:0]	out_msg_data_p1,
 
 );
 
@@ -69,87 +69,82 @@ module plab4_net_RingNetAlt_Sep
 
   // forward (increasing router id) wires
 
-  wire			{L}	forw_out_val_p0;
-  wire			{L}	forw_out_rdy_p0;
-  wire [m-1:0]	{L}	forw_out_msg_control_p0;
-  wire [pd-1:0]	{Domain out2_domain_p0}	forw_out_msg_data_p0;
+  wire			forw_out_val_p0;
+  wire			forw_out_rdy_p0;
+  wire [m-1:0]	forw_out_msg_control_p0;
+  wire [pd-1:0]	forw_out_msg_data_p0;
 
-  wire			{L}	forw_in_val_d1_p0;
-  wire			{L}	forw_in_rdy_d1_p0;
-  wire [m-1:0]	{L}	forw_in_msg_control_d1_p0;
-  wire [pd-1:0]	{D1}forw_in_msg_data_d1_p0;
+  wire			forw_in_val_d1_p0;
+  wire			forw_in_rdy_d1_p0;
+  wire [m-1:0]	forw_in_msg_control_d1_p0;
+  wire [pd-1:0]	forw_in_msg_data_d1_p0;
 
-  wire			{L}	forw_in_val_d2_p0;
-  wire			{L}	forw_in_rdy_d2_p0;
-  wire [m-1:0]	{L}	forw_in_msg_control_d2_p0;
-  wire [pd-1:0]	{D2}forw_in_msg_data_d2_p0;
+  wire			forw_in_val_d2_p0;
+  wire			forw_in_rdy_d2_p0;
+  wire [m-1:0]	forw_in_msg_control_d2_p0;
+  wire [pd-1:0]	forw_in_msg_data_d2_p0;
 
-  wire			{L}	forw_out_val_p1;
-  wire			{L} forw_out_rdy_p1;
-  wire [m-1:0]	{L} forw_out_msg_control_p1;
-  wire [pd-1:0]	{Domain out2_domain_p1}	forw_out_msg_data_p1;
+  wire			forw_out_val_p1;
+  wire			forw_out_rdy_p1;
+  wire [m-1:0]	forw_out_msg_control_p1;
+  wire [pd-1:0]	forw_out_msg_data_p1;
 
-  wire			{L}	forw_in_val_d1_p1;
-  wire			{L}	forw_in_rdy_d1_p1;
-  wire [m-1:0]	{L}	forw_in_msg_control_d1_p1;
-  wire [pd-1:0]	{D1}forw_in_msg_data_d1_p1;
+  wire			forw_in_val_d1_p1;
+  wire			forw_in_rdy_d1_p1;
+  wire [m-1:0]	forw_in_msg_control_d1_p1;
+  wire [pd-1:0]	forw_in_msg_data_d1_p1;
 
-  wire			{L}	forw_in_val_d2_p1;
-  wire			{L}	forw_in_rdy_d2_p1;
-  wire [m-1:0]	{L}	forw_in_msg_control_d2_p1;
-  wire [pd-1:0]	{D2}forw_in_msg_data_d2_p1;
+  wire			forw_in_val_d2_p1;
+  wire			forw_in_rdy_d2_p1;
+  wire [m-1:0]	forw_in_msg_control_d2_p1;
+  wire [pd-1:0]	forw_in_msg_data_d2_p1;
 
   // backward (decreasing router id) wires
 
-  wire			{L}	backw_out_val_p0;
-  wire			{L}	backw_out_rdy_p0;
-  wire [m-1:0]	{L} backw_out_msg_control_p0;
-  wire [pd-1:0]	{Domain out0_domain_p0}	backw_out_msg_data_p0;
+  wire			backw_out_val_p0;
+  wire			backw_out_rdy_p0;
+  wire [m-1:0]	backw_out_msg_control_p0;
+  wire [pd-1:0]	backw_out_msg_data_p0;
 
-  wire			{L}	backw_in_val_d1_p0;
-  wire			{L}	backw_in_rdy_d1_p0;
-  wire [m-1:0]	{L}	backw_in_msg_control_d1_p0;
-  wire [pd-1:0]	{D1}backw_in_msg_data_d1_p0;
+  wire			backw_in_val_d1_p0;
+  wire			backw_in_rdy_d1_p0;
+  wire [m-1:0]	backw_in_msg_control_d1_p0;
+  wire [pd-1:0]	backw_in_msg_data_d1_p0;
  
-  wire			{L}	backw_in_val_d2_p0;
-  wire			{L}	backw_in_rdy_d2_p0;
-  wire [m-1:0]	{L}	backw_in_msg_control_d2_p0;
-  wire [pd-1:0]	{D2}backw_in_msg_data_d2_p0;
+  wire			backw_in_val_d2_p0;
+  wire			backw_in_rdy_d2_p0;
+  wire [m-1:0]	backw_in_msg_control_d2_p0;
+  wire [pd-1:0]	backw_in_msg_data_d2_p0;
 
-  wire			{L}	backw_out_val_p1;
-  wire			{L}	backw_out_rdy_p1;
-  wire [m-1:0]	{L}	backw_out_msg_control_p1;
-  wire [pd-1:0]	{Domain out0_domain_p1}	backw_out_msg_data_p1;
+  wire			backw_out_val_p1;
+  wire			backw_out_rdy_p1;
+  wire [m-1:0]	backw_out_msg_control_p1;
+  wire [pd-1:0]	backw_out_msg_data_p1;
 
-  wire			{L}	backw_in_val_d1_p1;
-  wire			{L}	backw_in_rdy_d1_p1;
-  wire [m-1:0]	{L}	backw_in_msg_control_d1_p1;
-  wire [pd-1:0]	{D1}backw_in_msg_data_d1_p1;
+  wire			backw_in_val_d1_p1;
+  wire			backw_in_rdy_d1_p1;
+  wire [m-1:0]	backw_in_msg_control_d1_p1;
+  wire [pd-1:0]	backw_in_msg_data_d1_p1;
  
-  wire			{L}	backw_in_val_d2_p1;
-  wire			{L}	backw_in_rdy_d2_p1;
-  wire [m-1:0]	{L}	backw_in_msg_control_d2_p1;
-  wire [pd-1:0]	{D2}backw_in_msg_data_d2_p1;
+  wire			backw_in_val_d2_p1;
+  wire			backw_in_rdy_d2_p1;
+  wire [m-1:0]	backw_in_msg_control_d2_p1;
+  wire [pd-1:0]	backw_in_msg_data_d2_p1;
 
   // domain output signal in each router
 
-  wire			{L}	in1_reqs_domain_p0;
-  wire			{L} in1_reqs_domain_p1;
+  wire			out0_domain_p0;
+  wire			out2_domain_p0;
 
-  wire			{L}	out0_domain_p0;
-  wire			{L}	out1_domain_p0;
-  wire			{L}	out2_domain_p0;
-
-  wire			{L}	out0_domain_p1;
-  wire			{L}	out1_domain_p1;
-  wire			{L}	out2_domain_p1;
+  wire			out0_domain_p1;
+  wire			out2_domain_p1;
   // num free wires for adaptive routing
 
-  wire [1:0]	{L}	num_free_prev_p0;
-  wire [1:0]	{L}	num_free_next_p0;
+  wire [1:0]	num_free_prev_p0;
+  wire [1:0]	num_free_next_p0;
 
-  wire [1:0]	{L}	num_free_prev_p1;
-  wire [1:0]	{L}	num_free_next_p1;
+  wire [1:0]	num_free_prev_p1;
+  wire [1:0]	num_free_next_p1;
 
   //----------------------------------------------------------------------
   // Router generation
@@ -184,7 +179,6 @@ module plab4_net_RingNetAlt_Sep
         .in1_rdy			(in_rdy_p0),
         .in1_msg_control    (in_msg_control_p0),
         .in1_msg_data	    (in_msg_data_p0),
-		.in1_reqs_domain	(in1_reqs_domain_p0),
 
         .in2_val_d1			(backw_in_val_d1_p0),
         .in2_rdy_d1			(backw_in_rdy_d1_p0),
@@ -206,7 +200,6 @@ module plab4_net_RingNetAlt_Sep
         .out1_rdy			(out_rdy_p0),
         .out1_msg_control	(out_msg_control_p0),
         .out1_msg_data		(out_msg_data_p0),
-		.out1_domain		(out1_domain_p0),
 
         .out2_val			(forw_out_val_p0),
         .out2_rdy			(forw_out_rdy_p0),
@@ -248,7 +241,6 @@ module plab4_net_RingNetAlt_Sep
         .in1_rdy			(in_rdy_p1),
         .in1_msg_control    (in_msg_control_p1),
         .in1_msg_data	    (in_msg_data_p1),
-		.in1_reqs_domain	(in1_reqs_domain_p1),
 
         .in2_val_d1			(backw_in_val_d1_p1),
         .in2_rdy_d1			(backw_in_rdy_d1_p1),
@@ -270,7 +262,6 @@ module plab4_net_RingNetAlt_Sep
         .out1_rdy			(out_rdy_p1),
         .out1_msg_control	(out_msg_control_p1),
         .out1_msg_data		(out_msg_data_p1),
-		.out1_domain		(out1_domain_p1),
 
         .out2_val			(forw_out_val_p1),
         .out2_rdy			(forw_out_rdy_p1),
