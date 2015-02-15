@@ -42,6 +42,8 @@ module plab4_net_RouterAlt
   input                        {L}	clk,
   input                        {L}	reset,
 
+  input                        {L}  domain,
+
   input                        {L}	in0_val_d1,
   output                       {L}	in0_rdy_d1,
   input  [c_net_msg_cnbits-1:0]{L}	in0_msg_control_d1,
@@ -55,7 +57,7 @@ module plab4_net_RouterAlt
   input                        {L}	in1_val,
   output                       {L}	in1_rdy,
   input  [c_net_msg_cnbits-1:0]{L}	in1_msg_control,
-  input  [c_net_msg_dnbits-1:0]{Domain in1_reqs_domain}	in1_msg_data,
+  input  [c_net_msg_dnbits-1:0]{Domain domain}	in1_msg_data,
   output					   {L}	in1_reqs_domain,
 
   input                        {L}	in2_val_d1,
