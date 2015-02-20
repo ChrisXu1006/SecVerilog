@@ -170,7 +170,7 @@ module plab4_net_RingNetAlt_Sep
         .clk				(clk),
         .reset				(reset),
 
-        .domain             (0),
+        .domain             (in_domain_p0),
 
         .in0_val_d1			(forw_in_val_d1_p0),
         .in0_rdy_d1			(forw_in_rdy_d1_p0),
@@ -235,7 +235,7 @@ module plab4_net_RingNetAlt_Sep
         .clk				(clk),
         .reset				(reset),
 
-        .domain             (1),
+        .domain             (in_domain_p1),
 
         .in0_val_d1			(forw_in_val_d1_p1),
         .in0_rdy_d1			(forw_in_rdy_d1_p1),
