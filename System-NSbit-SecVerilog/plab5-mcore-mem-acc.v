@@ -50,10 +50,10 @@ module plab5_mcore_mem_acc
 	input							{L} mem_req_rdy,
 
 	// Output of responses
-	output	[resp_cnbits-1:0]	{L} net_resp_control,
-	output	[resp_dnbits-1:0]	{Domain resp_sec_level} net_resp_data,
-	output						{L} net_resp_val,
-	input						{L} net_resp_rdy,
+	output	reg [resp_cnbits-1:0]	{L} net_resp_control,
+	output	reg [resp_dnbits-1:0]	{Domain resp_sec_level} net_resp_data,
+	output	reg 					{L} net_resp_val,
+	input						    {L} net_resp_rdy,
 
 	// Inputs from the memory side
 	input	[resp_cnbits-1:0]	{L} mem_resp_control,
@@ -71,9 +71,13 @@ module plab5_mcore_mem_acc
 	// response correspond to a secure request, and we don't need
 	// to check whether the reponses is secure or not, and directly
 	// pass response signal to network side
-	assign net_resp_control = mem_resp_control;
-	assign net_resp_data	= mem_resp_data;
-	assign net_resp_val		= mem_resp_val;
+
+    reg {L} req_sec_level_pre;
+    reg [resp_cnbits-1:0]   {L} net_resp_control_dump;
+    always @(posedge clk) begin
+        req_sec_level_pre <= req_sec_level;
+        net_resp_control_dump <= {net_req_control[45:42], net_req_control[41:34], net_req_control[1:0]};
+    end
 
 	always @(*) begin
 	
@@ -101,8 +105,27 @@ module plab5_mcore_mem_acc
 			mem_req_val		= net_req_val;
 		end
 		
-		resp_sec_level	= 1'b0;
 	end
+
+    always @(*) begin
+        
+        if ( req_sec_level_pre === 1'bx )
+            net_resp_val = 1'b0;
+
+        else if ( req_sec_level_pre >= mem_sec_level ) begin
+            net_resp_control = mem_resp_control;
+            net_resp_data    = mem_resp_data;
+            net_resp_val     = mem_resp_val;
+            resp_sec_level   = req_sec_level_pre;
+        end
+
+        else if ( req_sec_level_pre < mem_sec_level ) begin
+            net_resp_control = net_resp_control_dump;
+            net_resp_data    = 'hx;
+            net_resp_val     = 1'b1;
+            resp_sec_level   = mem_sec_level;
+        end
+    end
 
 endmodule
 `endif /*PLAB5_MCORE_MEM_ACC_V*/
