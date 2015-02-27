@@ -63,6 +63,7 @@ module plab5_mcore_MemNet_Sep
 	input				mode,
 
 	input	[rq-1:0]	req_in_msg_p0,
+	input				req_in_domain_p0,
 	input				req_in_val_p0,
 	output				req_in_rdy_p0,
 	
@@ -84,6 +85,7 @@ module plab5_mcore_MemNet_Sep
 	output				resp_in_rdy_p0,
 
 	input	[rq-1:0]	req_in_msg_p1,
+	input				req_in_domain_p1,
 	input				req_in_val_p1,
 	output				req_in_rdy_p1,
 	
@@ -156,6 +158,7 @@ module plab5_mcore_MemNet_Sep
       proc_mem_msg_to_net_msg_p0
       (
 		.mode				(mode),
+		.req_domain			(req_in_domain_p0),
         .mem_msg			(req_in_msg_p0),
         .net_msg_control	(req_net_in_msg_control_p0),
         .net_msg_data		(req_net_in_msg_data_p0)
@@ -178,6 +181,7 @@ module plab5_mcore_MemNet_Sep
       proc_mem_msg_to_net_msg_p1
       (
 		.mode				(mode),
+		.req_domain			(req_in_domain_p1),
         .mem_msg			(req_in_msg_p1),
         .net_msg_control	(req_net_in_msg_control_p1),
         .net_msg_data		(req_net_in_msg_data_p1)
@@ -259,7 +263,7 @@ module plab5_mcore_MemNet_Sep
       );
 
 	  assign {resp_out_domain_p0, resp_out_msg_control_p0}
-		= req_out_msg_control_M_p0;
+		= resp_out_msg_control_M_p0;
 
 	  assign resp_out_msg_data_p0 = resp_net_out_msg_data_p0;
 
@@ -272,7 +276,7 @@ module plab5_mcore_MemNet_Sep
       );
 
 	  assign {resp_out_domain_p1, resp_out_msg_control_p1}
-		= req_out_msg_control_M_p1;
+		= resp_out_msg_control_M_p1;
 
 	  assign resp_out_msg_data_p1 = resp_net_out_msg_data_p1;
 
