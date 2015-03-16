@@ -9,12 +9,16 @@
 `include "vc-param-utils.v"
 `include "vc-queues.v"
 `include "plab4-net-RouterAlt.v"
+`include "plab4-net-RouterAlt-Sep.v"
 `include "plab4-net-demux.v"
 
 // macros to calculate previous and next router ids
 
 `define PREV(i_)  ( ( i_ + p_num_ports - 1 ) % p_num_ports )
 `define NEXT(i_)  ( ( i_ + 1 ) % p_num_ports )
+
+// determine use which kind of router module
+`define SEP
 
 module plab4_net_RingNetAlt_Sep
 #(
@@ -59,7 +63,7 @@ module plab4_net_RingNetAlt_Sep
   output			out_val_p1,
   input				out_rdy_p1,
   output [m-1:0]	out_msg_control_p1,
-  output [pd-1:0]	out_msg_data_p1,
+  output [pd-1:0]	out_msg_data_p1
 
 );
 
@@ -150,7 +154,11 @@ module plab4_net_RingNetAlt_Sep
   // Router generation
   //----------------------------------------------------------------------
 
-    plab4_net_RouterAlt
+  `ifdef SEP
+	plab4_net_RouterAlt_Sep
+  `elsif NONSEP
+	plab4_net_RouterAlt
+  `endif
       #(
         .p_payload_cnbits	(p_payload_cnbits),
 		.p_payload_dnbits	(p_payload_dnbits),
@@ -211,8 +219,12 @@ module plab4_net_RingNetAlt_Sep
         .num_free_next (1)
 
       );
-
-	plab4_net_RouterAlt
+	
+	`ifdef SEP
+		plab4_net_RouterAlt_Sep
+	`elsif NONSEP
+		plab4_net_RouterAlt
+	`endif
       #(
         .p_payload_cnbits	(p_payload_cnbits),
 		.p_payload_dnbits	(p_payload_dnbits),
@@ -386,4 +398,4 @@ module plab4_net_RingNetAlt_Sep
 
 endmodule
 
-`endif /* PLAB4_NET_RING_NET_ALT */
+`endif /* PLAB4_NET_RING_NET_ALT_SEP */
