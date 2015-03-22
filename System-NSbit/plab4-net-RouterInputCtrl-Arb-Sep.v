@@ -21,6 +21,9 @@ module plab4_net_RouterInputCtrlArb_Sep
 	parameter c_dest_nbits = $clog2( p_num_routers )
 )
 (
+	
+	input						clk,
+
 	input	[c_dest_nbits-1:0]	dest_d1,
 	input	[c_dest_nbits-1:0]	dest_d2,
 
