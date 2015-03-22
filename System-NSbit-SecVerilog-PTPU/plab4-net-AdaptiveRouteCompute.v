@@ -29,12 +29,13 @@ module plab4_net_AdaptiveRouteCompute
   parameter c_dest_nbits = $clog2( p_num_routers )
 )
 (
-  input [c_dest_nbits-1:0] 		{L}	dest,
+  input                         {L}             domain,
+  input [c_dest_nbits-1:0] 		{Domain domain}	dest,
 
-  input [p_num_free_nbits-1:0] 	{L}	num_free_chan0,
-  input [p_num_free_nbits-1:0]  {L}	num_free_chan2,
+  input [p_num_free_nbits-1:0] 	{Domain domain}	num_free_chan0,
+  input [p_num_free_nbits-1:0]  {Domain domain}	num_free_chan2,
 
-  output reg [1:0]         		{L}	route
+  output reg [1:0]         		{Domain domain}	route
 );
 
   // calculate forward and backward hops

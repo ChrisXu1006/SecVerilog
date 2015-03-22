@@ -5,10 +5,10 @@
 `ifndef PLAB4_NET_RING_NET_ALT_SEP
 `define PLAB4_NET_RING_NET_ALT_SEP
 
-`include "vc-net-msgs.v"
+`include "vc-net-msgsunpack.v"
 `include "vc-param-utils.v"
 `include "vc-queues.v"
-`include "plab4-net-RouterAlt.v"
+`include "plab4-net-RouterAlt-Sep.v"
 `include "plab4-net-demux.v"
 
 // macros to calculate previous and next router ids
@@ -153,7 +153,7 @@ module plab4_net_RingNetAlt_Sep
   // Router generation
   //----------------------------------------------------------------------
 
-    plab4_net_RouterAlt
+    plab4_net_RouterAlt_Sep
       #(
         .p_payload_cnbits	(p_payload_cnbits),
 		.p_payload_dnbits	(p_payload_dnbits),
@@ -218,7 +218,7 @@ module plab4_net_RingNetAlt_Sep
 
       );
 
-	plab4_net_RouterAlt
+	plab4_net_RouterAlt_Sep
       #(
         .p_payload_cnbits	(p_payload_cnbits),
 		.p_payload_dnbits	(p_payload_dnbits),

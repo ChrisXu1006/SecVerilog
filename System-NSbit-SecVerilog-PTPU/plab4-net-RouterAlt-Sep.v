@@ -5,8 +5,9 @@
 `ifndef PLAB4_NET_ROUTER_ALT_SEP_V
 `define PLAB4_NET_ROUTER_ALT_SEP_V
 
-`include "vc-crossbars.v"
-`include "vc-muxes.v"
+`include "vc-crossbar3.v"
+`include "vc-net-msgsunpack.v"
+`include "vc-mux2-dd.v"
 `include "vc-queues.v"
 `include "vc-mem-msgs.v"
 `include "plab4-net-RouterInputCtrl-Arb-Sep.v"
@@ -38,7 +39,7 @@ module plab4_net_RouterAlt_Sep
   input                        {L} clk,
   input                        {L} reset,
 
-  input                        {L} domain
+  input                        {L} domain,
 
   input                        {D1} in0_val_d1,
   output                       {D1} in0_rdy_d1,
@@ -116,13 +117,13 @@ module plab4_net_RouterAlt_Sep
   wire [1:0]                 {L}  num_free0_control_d2;
   wire [1:0]                 {L}  num_free0_data_d2;
 
-  wire						 {Domain in1_reqs_domain} in1_rdy_control;
-  wire						 {Domain in1_reqs_domain} in1_rdy_data;
-  wire                       {Domain in1_reqs_domain} in1_deq_val_control;
-  wire						 {Domain in1_reqs_domain} in1_deq_val_data;
-  wire                       {Domain in1_reqs_domain} in1_deq_rdy;
-  wire [c_net_msg_cnbits-1:0]{Domain in1_reqs_domain} in1_deq_msg_control;
-  wire [c_net_msg_dnbits-1:0]{Domain in1_reqs_domain} in1_deq_msg_data;
+  wire						 {Domain domain} in1_rdy_control;
+  wire						 {Domain domain} in1_rdy_data;
+  wire                       {Domain domain} in1_deq_val_control;
+  wire						 {Domain domain} in1_deq_val_data;
+  wire                       {Domain domain} in1_deq_rdy;
+  wire [c_net_msg_cnbits-1:0]{Domain domain} in1_deq_msg_control;
+  wire [c_net_msg_dnbits-1:0]{Domain domain} in1_deq_msg_data;
 
   wire						 {D1} in2_rdy_control_d1;
   wire						 {D1} in2_rdy_data_d1;
@@ -198,7 +199,7 @@ module plab4_net_RouterAlt_Sep
 
   // 2 to 1 mux for input0 signal port
 
-  vc_Mux2
+  vc_Mux2_dd
   #(
 	.p_nbits  (c_net_msg_cnbits)
   )
@@ -206,6 +207,8 @@ module plab4_net_RouterAlt_Sep
   (
 	.in0		  (in0_deq_msg_control_d1),
 	.in1		  (in0_deq_msg_control_d2),
+    .in0_domain   (0),
+    .in1_domain   (1),
 	.sel		  (in0_reqs_domain),
 	.out		  (in0_deq_msg_control)
   );
@@ -264,7 +267,7 @@ module plab4_net_RouterAlt_Sep
 
   // 2 to 1 mux for input0 signal port
 
-  vc_Mux2
+  vc_Mux2_dd
   #(
 	.p_nbits  (c_net_msg_dnbits)
   )
@@ -272,6 +275,8 @@ module plab4_net_RouterAlt_Sep
   (
 	.in0		  (in0_deq_msg_data_d1),
 	.in1		  (in0_deq_msg_data_d2),
+    .in0_domain   (0),
+    .in1_domain   (1),
 	.sel		  (in0_reqs_domain),
 	.out		  (in0_deq_msg_data)
   );
@@ -376,7 +381,7 @@ module plab4_net_RouterAlt_Sep
 
   // 2 to 1 mux for input0 port
 
-  vc_Mux2
+  vc_Mux2_dd
   #(
 	.p_nbits  (c_net_msg_cnbits)
   )
@@ -384,6 +389,8 @@ module plab4_net_RouterAlt_Sep
   (
 	.in0		  (in2_deq_msg_control_d1),
 	.in1		  (in2_deq_msg_control_d2),
+    .in0_domain   (0),
+    .in1_domain   (1),
 	.sel		  (in2_reqs_domain),
 	.out		  (in2_deq_msg_control)
   );
@@ -442,7 +449,7 @@ module plab4_net_RouterAlt_Sep
 
   // 2 to 1 mux for input0 port
 
-  vc_Mux2
+  vc_Mux2_dd
   #(
 	.p_nbits  (c_net_msg_dnbits)
   )
@@ -450,6 +457,8 @@ module plab4_net_RouterAlt_Sep
   (
 	.in0		  (in2_deq_msg_data_d1),
 	.in1		  (in2_deq_msg_data_d2),
+    .in0_domain   (0),
+    .in1_domain   (1),
 	.sel		  (in2_reqs_domain),
 	.out		  (in2_deq_msg_data)
   );
@@ -458,9 +467,9 @@ module plab4_net_RouterAlt_Sep
   // Crossbar
   //----------------------------------------------------------------------
 
-  wire [1:0] {Domain out0_domain} xbar_sel0;
-  wire [1:0] {Domain out1_domain} xbar_sel1;
-  wire [1:0] {Domain out2_domain} xbar_sel2;
+  wire [1:0] {L} xbar_sel0;
+  wire [1:0] {L} xbar_sel1;
+  wire [1:0] {L} xbar_sel2;
 
   vc_Crossbar3
   #(
@@ -472,13 +481,21 @@ module plab4_net_RouterAlt_Sep
     .in1        (in1_deq_msg_control),
     .in2        (in2_deq_msg_control),
 
+    .in0_domain (in0_reqs_domain),
+    .in1_domain (domain),
+    .in2_domain (in2_reqs_domain),
+
     .sel0       (xbar_sel0),
     .sel1       (xbar_sel1),
     .sel2       (xbar_sel2),
 
     .out0       (out0_msg_control),
     .out1       (out1_msg_control),
-    .out2       (out2_msg_control)
+    .out2       (out2_msg_control),
+
+    .out0_domain(out0_domain),
+    .out1_domain(out1_domain),
+    .out2_domain(out2_domain)
   );
 
   vc_Crossbar3
@@ -491,13 +508,21 @@ module plab4_net_RouterAlt_Sep
     .in1        (in1_deq_msg_data),
     .in2        (in2_deq_msg_data),
 
+    .in0_domain (in0_reqs_domain),
+    .in1_domain (domain),
+    .in2_domain (in2_reqs_domain),
+
     .sel0       (xbar_sel0),
     .sel1       (xbar_sel1),
     .sel2       (xbar_sel2),
 
     .out0       (out0_msg_data),
     .out1       (out1_msg_data),
-    .out2       (out2_msg_data)
+    .out2       (out2_msg_data),
+
+    .out0_domain(out0_domain),
+    .out1_domain(out1_domain),
+    .out2_domain(out2_domain)
   );
 
   /*vc_Crossbar3
@@ -507,7 +532,7 @@ module plab4_net_RouterAlt_Sep
   xbar_reqs
   (
     .in0        (in0_reqs_domain),
-    .in1        (in1_reqs_domain),
+    .in1        (domain),
     .in2        (in2_reqs_domain),
 
     .sel0       (xbar_sel0),
@@ -526,9 +551,9 @@ module plab4_net_RouterAlt_Sep
   wire {Domain in0_reqs_domain} in0_reqs_p0;
   wire {Domain in0_reqs_domain} in0_reqs_p1;
   wire {Domain in0_reqs_domain} in0_reqs_p2;
-  wire {Domain in1_reqs_domain} in1_reqs_p0;
-  wire {Domain in1_reqs_domain} in1_reqs_p1;
-  wire {Domain in1_reqs_domain} in1_reqs_p2;
+  wire {Domain domain} in1_reqs_p0;
+  wire {Domain domain} in1_reqs_p1;
+  wire {Domain domain} in1_reqs_p2;
   wire {Domain in2_reqs_domain} in2_reqs_p0;
   wire {Domain in2_reqs_domain} in2_reqs_p1;
   wire {Domain in2_reqs_domain} in2_reqs_p2;
@@ -536,31 +561,31 @@ module plab4_net_RouterAlt_Sep
   wire {Domain in0_reqs_domain} in0_grants_p0;
   wire {Domain in0_reqs_domain} in0_grants_p1;
   wire {Domain in0_reqs_domain} in0_grants_p2;
-  wire {Domain in1_reqs_domain} in1_grants_p0;
-  wire {Domain in1_reqs_domain} in1_grants_p1;
-  wire {Domain in1_reqs_domain} in1_grants_p2;
+  wire {Domain domain} in1_grants_p0;
+  wire {Domain domain} in1_grants_p1;
+  wire {Domain domain} in1_grants_p2;
   wire {Domain in2_reqs_domain} in2_grants_p0;
   wire {Domain in2_reqs_domain} in2_grants_p1;
   wire {Domain in2_reqs_domain} in2_grants_p2;
 
   wire {Domain in0_reqs_domain} out0_reqs_p0;
-  wire {Domain in1_reqs_domain} out0_reqs_p1;
+  wire {Domain domain} out0_reqs_p1;
   wire {Domain in2_reqs_domain} out0_reqs_p2;
   wire {Domain in0_reqs_domain} out1_reqs_p0;
-  wire {Domain in1_reqs_domain} out1_reqs_p1;
+  wire {Domain domain} out1_reqs_p1;
   wire {Domain in2_reqs_domain} out1_reqs_p2;
   wire {Domain in0_reqs_domain} out2_reqs_p0;
-  wire {Domain in1_reqs_domain} out2_reqs_p1;
+  wire {Domain domain} out2_reqs_p1;
   wire {Domain in2_reqs_domain} out2_reqs_p2;
 
   wire {Domain in0_reqs_domain} out0_grants_p0;
-  wire {Domain in1_reqs_domain} out0_grants_p1;
+  wire {Domain domain} out0_grants_p1;
   wire {Domain in2_reqs_domain} out0_grants_p2;
   wire {Domain in0_reqs_domain} out1_grants_p0;
-  wire {Domain in1_reqs_domain} out1_grants_p1;
+  wire {Domain domain} out1_grants_p1;
   wire {Domain in2_reqs_domain} out1_grants_p2;
   wire {Domain in0_reqs_domain} out2_grants_p0;
-  wire {Domain in1_reqs_domain} out2_grants_p1;
+  wire {Domain domain} out2_grants_p1;
   wire {Domain in2_reqs_domain} out2_grants_p2;
 
   wire [s-1:0] {D1} dest0_d1;
@@ -570,7 +595,7 @@ module plab4_net_RouterAlt_Sep
   wire [s-1:0] {D2} dest2_d2;
 
   wire		   {L} in0_reqs_domain;
-  wire		   {L} in1_reqs_domain;
+  wire		   {L} domain;
   wire		   {L} in2_reqs_domain;
 
   wire		   {L} out0_reqs_domain;
@@ -655,7 +680,7 @@ module plab4_net_RouterAlt_Sep
 	.grants_p2 (in1_grants_p2),
 
 
-	.domain	   (in1_reqs_domain)
+	.domain	   (domain)
   );
 
   plab4_net_RouterInputCtrlArb_Sep
@@ -694,7 +719,7 @@ module plab4_net_RouterAlt_Sep
     .reset			(reset),
 
 	.reqs_p0_domain	(in0_reqs_domain),
-	.reqs_p1_domain	(in1_reqs_domain),
+	.reqs_p1_domain	(domain),
 	.reqs_p2_domain (in2_reqs_domain),
 	.out_domain		(out0_domain),
 
@@ -717,12 +742,13 @@ module plab4_net_RouterAlt_Sep
     .reset			(reset),
 
 	.reqs_p0_domain	(in0_reqs_domain),
-	.reqs_p1_domain	(in1_reqs_domain),
+	.reqs_p1_domain	(domain),
 	.reqs_p2_domain (in2_reqs_domain),
 
     .reqs_p0		(out1_reqs_p0),
 	.reqs_p1		(out1_reqs_p1),
 	.reqs_p2		(out1_reqs_p2),
+    .out_domain     (out1_domain),
 
     .grants_p0      (out1_grants_p0),
 	.grants_p1		(out1_grants_p1),
@@ -739,7 +765,7 @@ module plab4_net_RouterAlt_Sep
     .reset			(reset),
 
 	.reqs_p0_domain	(in0_reqs_domain),
-	.reqs_p1_domain	(in1_reqs_domain),
+	.reqs_p1_domain	(domain),
 	.reqs_p2_domain (in2_reqs_domain),
 	.out_domain		(out2_domain),
 

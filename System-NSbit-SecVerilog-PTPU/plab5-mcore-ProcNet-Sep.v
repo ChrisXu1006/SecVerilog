@@ -46,24 +46,24 @@ module plab5_mcore_ProcNet_Sep
 	// proc0 manager ports
 	
 	input	[31:0]	{D1} proc0_from_mngr_msg,
-	input			{L}  proc0_from_mngr_val,
-	output			{L} proc0_from_mngr_rdy,
+	input			{D1} proc0_from_mngr_val,
+	output			{D1} proc0_from_mngr_rdy,
 
 	output	[31:0]	{D1} proc0_to_mngr_msg,
-	output			{L}  proc0_to_mngr_val,
-	input			{L}  proc0_to_mngr_rdy,
+	output			{D1} proc0_to_mngr_val,
+	input			{D1} proc0_to_mngr_rdy,
 
 	output			{D1} stats_en_proc0,
 
 	// proc1 manager ports
 	
 	input	[31:0]	{D2} proc1_from_mngr_msg,
-	input			{L}  proc1_from_mngr_val,
-	output			{L}  proc1_from_mngr_rdy,
+	input			{D2} proc1_from_mngr_val,
+	output			{D2} proc1_from_mngr_rdy,
 
 	output	[31:0]	{D2} proc1_to_mngr_msg,
-	output			{L}  proc1_to_mngr_val,
-	input			{L}  proc1_to_mngr_rdy,
+	output			{D2} proc1_to_mngr_val,
+	input			{D2} proc1_to_mngr_rdy,
 
 	output			{D2} stats_en_proc1,
 
@@ -71,52 +71,52 @@ module plab5_mcore_ProcNet_Sep
 	// req0 and resp0 are connected to low-paritioned memory
 	// req1 and resp1 are connected to high-paritioned memory 
 	
-	output	[c_memreq_cnbits-1:0]	{L} inst_memreq0_control,
+	output	[c_memreq_cnbits-1:0]	{Domain inst_memreq0_domain} inst_memreq0_control,
 	output	[c_memreq_dnbits-1:0]	{Domain inst_memreq0_domain} inst_memreq0_data,
-	output							{L} inst_memreq0_val,
-	input							{L} inst_memreq0_rdy,
+	output							{Domain inst_memreq0_domain} inst_memreq0_val,
+	input							{Domain inst_memreq0_domain} inst_memreq0_rdy,
 	output							{L} inst_memreq0_domain,
 
-	input	[c_memresp_cnbits-1:0]	{L} inst_memresp0_control,
+	input	[c_memresp_cnbits-1:0]	{Domain inst_memresp0_domain} inst_memresp0_control,
 	input	[c_memresp_dnbits-1:0]	{Domain inst_memresp0_domain} inst_memresp0_data,
-	input							{L} inst_memresp0_val,
-	output							{L} inst_memresp0_rdy,
+	input							{Domain inst_memresp0_domain} inst_memresp0_val,
+	output							{Domain inst_memresp0_domain} inst_memresp0_rdy,
 	input							{L} inst_memresp0_domain,
 
-	output	[c_memreq_cnbits-1:0]	{L} inst_memreq1_control,
+	output	[c_memreq_cnbits-1:0]	{Domain inst_memreq1_domain} inst_memreq1_control,
 	output	[c_memreq_dnbits-1:0]	{Domain inst_memreq1_domain} inst_memreq1_data,
-	output							{L} inst_memreq1_val,
-	input							{L} inst_memreq1_rdy,
+	output							{Domain inst_memreq1_domain} inst_memreq1_val,
+	input							{Domain inst_memreq1_domain} inst_memreq1_rdy,
 	output							{L} inst_memreq1_domain,
 
-	input	[c_memresp_cnbits-1:0]	{L} inst_memresp1_control,
+	input	[c_memresp_cnbits-1:0]	{Domain inst_memresp1_domain} inst_memresp1_control,
 	input	[c_memresp_dnbits-1:0]	{Domain inst_memresp1_domain} inst_memresp1_data,
-	input							{L} inst_memresp1_val,
-	output							{L} inst_memresp1_rdy,
+	input							{Domain inst_memresp1_domain} inst_memresp1_val,
+	output							{Domain inst_memresp1_domain} inst_memresp1_rdy,
 	input							{L} inst_memresp1_domain,
 
-	output	[c_memreq_cnbits-1:0]	{L} data_memreq0_control,
+	output	[c_memreq_cnbits-1:0]	{Domain data_memreq0_domain} data_memreq0_control,
 	output	[c_memreq_dnbits-1:0]	{Domain data_memreq0_domain} data_memreq0_data,
-	output							{L} data_memreq0_val,
-	input							{L} data_memreq0_rdy,
+	output							{Domain data_memreq0_domain} data_memreq0_val,
+	input							{Domain data_memreq0_domain} data_memreq0_rdy,
 	output							{L} data_memreq0_domain,
 
-	input	[c_memresp_cnbits-1:0]	{L} data_memresp0_control,
+	input	[c_memresp_cnbits-1:0]	{Domain data_memresp0_domain} data_memresp0_control,
 	input	[c_memresp_dnbits-1:0]	{Domain data_memresp0_domain} data_memresp0_data,
-	input							{L} data_memresp0_val,
-	output							{L} data_memresp0_rdy,
+	input							{Domain data_memresp0_domain} data_memresp0_val,
+	output							{Domain data_memresp0_domain} data_memresp0_rdy,
 	input							{L} data_memresp0_domain,
 
-	output	[c_memreq_cnbits-1:0]	{L} data_memreq1_control,
+	output	[c_memreq_cnbits-1:0]	{Domain data_memreq1_domain} data_memreq1_control,
 	output	[c_memreq_dnbits-1:0]	{Domain data_memreq1_domain} data_memreq1_data,
-	output							{L} data_memreq1_val,
-	input							{L} data_memreq1_rdy,
+	output							{Domain data_memreq1_domain} data_memreq1_val,
+	input							{Domain data_memreq1_domain} data_memreq1_rdy,
 	output							{L} data_memreq1_domain,
 
-	input	[c_memresp_cnbits-1:0]	{L} data_memresp1_control,
+	input	[c_memresp_cnbits-1:0]	{Domain data_memresp1_domain} data_memresp1_control,
 	input	[c_memresp_dnbits-1:0]	{Domain data_memresp1_domain} data_memresp1_data,
-	input							{L} data_memresp1_val,
-	output							{L} data_memresp1_rdy,
+	input							{Domain data_memresp1_domain} data_memresp1_val,
+	output							{Domain data_memresp1_domain} data_memresp1_rdy,
 	input							{L} data_memresp1_domain
 
 );
@@ -148,38 +148,38 @@ module plab5_mcore_ProcNet_Sep
 	// wires connected to processor0
 	
 	wire	[prq-1:0]	{D1} inst_net_req_in_msg_proc_d0;
-	wire				{L}  inst_net_req_in_val_d0;
-	wire				{L}  inst_net_req_in_rdy_d0;
+	wire				{D1} inst_net_req_in_val_d0;
+	wire				{D1} inst_net_req_in_rdy_d0;
 
 	wire	[prs-1:0]	{D1} inst_net_resp_out_msg_proc_d0;
-	wire				{L}  inst_net_resp_out_val_d0;
-	wire				{L}  inst_net_resp_out_rdy_d0;
+	wire				{D1} inst_net_resp_out_val_d0;
+	wire				{D1} inst_net_resp_out_rdy_d0;
 
 	wire	[prq-1:0]	{D1} data_net_req_in_msg_proc_d0;
-	wire				{L}  data_net_req_in_val_d0;
-	wire				{L}  data_net_req_in_rdy_d0;
+	wire				{D1} data_net_req_in_val_d0;
+	wire				{D1} data_net_req_in_rdy_d0;
 
 	wire	[prs-1:0]	{D1} data_net_resp_out_msg_proc_d0;
-	wire				{L}  data_net_resp_out_val_d0;
-	wire				{L}  data_net_resp_out_rdy_d0;
+	wire				{D1} data_net_resp_out_val_d0;
+	wire				{D1} data_net_resp_out_rdy_d0;
 
 	// wires connected to processor1
 	
 	wire	[prq-1:0]	{D2} inst_net_req_in_msg_proc_d1;
-	wire				{L}  inst_net_req_in_val_d1;
-	wire				{L}  inst_net_req_in_rdy_d1;
+	wire				{D2} inst_net_req_in_val_d1;
+	wire				{D2} inst_net_req_in_rdy_d1;
 
 	wire	[prs-1:0]	{D2} inst_net_resp_out_msg_proc_d1;
-	wire				{L}  inst_net_resp_out_val_d1;
-	wire				{L}  inst_net_resp_out_rdy_d1;
+	wire				{D2} inst_net_resp_out_val_d1;
+	wire				{D2} inst_net_resp_out_rdy_d1;
 
 	wire	[prq-1:0]	{D2} data_net_req_in_msg_proc_d1;
-	wire				{L}  data_net_req_in_val_d1;
-	wire				{L}  data_net_req_in_rdy_d1;
+	wire				{D2} data_net_req_in_val_d1;
+	wire				{D2} data_net_req_in_rdy_d1;
 
 	wire	[prs-1:0]	{D2} data_net_resp_out_msg_proc_d1;
-	wire				{L}  data_net_resp_out_val_d1;
-	wire				{L}  data_net_resp_out_rdy_d1;
+	wire				{D2} data_net_resp_out_val_d1;
+	wire				{D2} data_net_resp_out_rdy_d1;
 
 	// Processor module claim
 	
@@ -266,14 +266,14 @@ module plab5_mcore_ProcNet_Sep
 	wire [mrq-1:0]	{D1} inst_net_req_in_msg_mem_d0;
 	wire [mrq-1:0]	{D2} inst_net_req_in_msg_mem_d1;
 
-	wire [mrs-1:0]	{D1} inst_net_resp_out_msg_mem_d0;
-	wire [mrs-1:0]	{D2} inst_net_resp_out_msg_mem_d1;
+	wire [mrs-1:0]	{Domain inst_net_resp_out_domain_d0} inst_net_resp_out_msg_mem_d0;
+	wire [mrs-1:0]	{Domain inst_net_resp_out_domain_d1} inst_net_resp_out_msg_mem_d1;
 
 	wire [mrq-1:0]	{D1} data_net_req_in_msg_mem_d0;
 	wire [mrq-1:0]	{D2} data_net_req_in_msg_mem_d1;
 
-	wire [mrs-1:0]	{D1} data_net_resp_out_msg_mem_d0;
-	wire [mrs-1:0]	{D2} data_net_resp_out_msg_mem_d1;
+	wire [mrs-1:0]	{Domain data_net_resp_out_domain_d0} data_net_resp_out_msg_mem_d0;
+	wire [mrs-1:0]	{Domain data_net_resp_out_domain_d1} data_net_resp_out_msg_mem_d1;
 
 	plab5_mcore_proc2mem_trans
 	#(
@@ -339,10 +339,10 @@ module plab5_mcore_ProcNet_Sep
 		.proc_resp_msg	(data_net_resp_out_msg_proc_d1)
 	);
 
-	wire   inst_net_resp_out_domain_d0;
-	wire   inst_net_resp_out_domain_d1;
-	wire   data_net_resp_out_domain_d0;
-	wire   data_net_resp_out_domain_d1;
+	wire   {L} inst_net_resp_out_domain_d0;
+	wire   {L} inst_net_resp_out_domain_d1;
+	wire   {L} data_net_resp_out_domain_d0;
+	wire   {L} data_net_resp_out_domain_d1;
 
 	// inst refill net
 

@@ -3,8 +3,8 @@ module vc_RRArb
     parameter p_num_reqs = 3
 )
 (
-    input   {L} clk,
-    input   {L} reset,
+    input   {L}  clk,
+    input   {L}  reset,
 
     input  [p_num_reqs-1:0]  reqs,
     output [p_num_reqs-1:0]  grants

@@ -6,7 +6,7 @@
 `define PLAB5_MCORE_MEM_NET_REQ_V
 
 `include "plab5-mcore-memreqcmsgpack.v"
-`include "vc-net-msgs.v"
+`include "vc-net-msgsunpack.v"
 
 module plab5_mcore_MemReqMsgToNetMsg
 #(

@@ -27,7 +27,7 @@ module plab4_net_RouterOutputCtrl_sep
 
 	output		{Domain out_domain} out_val,
 	input		{Domain out_domain} out_rdy,
-	output[1:0]	{Domain out_domain} xbar_sel
+	output[1:0]	{L} xbar_sel
 );
 
 	//  only when out_rdy is high, combine reqs into a single wire
@@ -61,8 +61,8 @@ module plab4_net_RouterOutputCtrl_sep
 
 	// based on the perssimion signal, we will set xbar_sel's value
 	// as well as out_domain 
-	reg [1:0]	{Domain out_domain} xbar_sel;
-	reg			{Domain out_domain} out_domain;
+	reg [1:0]	{L} xbar_sel;
+	reg			{L} out_domain;
 
 	always @(*) begin
 		if ( grants_p0 == 1'b1 && out_domain == reqs_p0_domain) begin

@@ -20,30 +20,29 @@ module plab4_net_RouterAdaptiveInputTerminalCtrl_Sep
 
 )
 (
-  input  [c_dest_nbits-1:0]         dest,
+  input  [c_dest_nbits-1:0]         {Domain domain} dest,
 
-  input                             in_val,
-  output                            in_rdy,
+  input                             {Domain domain} in_val,
+  output                            {Domain domain} in_rdy,
 
-  input [p_num_free_nbits-1:0]      num_free0,
-  input [p_num_free_nbits-1:0]      num_free2,
+  input [p_num_free_nbits-1:0]      {Domain domain} num_free0,
+  input [p_num_free_nbits-1:0]      {Domain domain} num_free2,
 
-  input [p_num_free_chan_nbits-1:0] num_free_chan0,
-  input [p_num_free_chan_nbits-1:0] num_free_chan2,
+  input [p_num_free_chan_nbits-1:0] {Domain domain} num_free_chan0,
+  input [p_num_free_chan_nbits-1:0] {Domain domain} num_free_chan2,
 
-  output							reqs_p0,
-  output							reqs_p1,
-  output							reqs_p2,
-  input			                    grants_p0,
-  input			                    grants_p1,
-  input			                    grants_p2,
+  output							{Domain domain} reqs_p0,
+  output							{Domain domain} reqs_p1,
+  output							{Domain domain} reqs_p2,
+  input			                    {Domain domain} grants_p0,
+  input			                    {Domain domain} grants_p1,
+  input			                    {Domain domain} grants_p2,
 
-  output							domain
+  input							    {L} domain
 );
 
-  assign domain = p_router_id % 2;
 
-  wire [1:0] route;
+  wire [1:0] {Domain domain} route;
 
   //----------------------------------------------------------------------
   // Adaptive Route Compute
@@ -57,6 +56,7 @@ module plab4_net_RouterAdaptiveInputTerminalCtrl_Sep
   )
   route_compute
   (
+    .domain         (domain), 
     .dest           (dest),
 
     .num_free_chan0 (num_free_chan0),
@@ -69,8 +69,8 @@ module plab4_net_RouterAdaptiveInputTerminalCtrl_Sep
   // Combinational logic
   //----------------------------------------------------------------------
 
-  reg  [2:0] reqs;
-  wire [2:0] grants;
+  reg  [2:0] {Domain domain} reqs;
+  wire [2:0] {Domain domain} grants;
 
   assign {reqs_p2, reqs_p1, reqs_p0} = reqs;
   assign grants = {grants_p2, grants_p1, grants_p0};
