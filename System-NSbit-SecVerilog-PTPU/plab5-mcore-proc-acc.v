@@ -60,7 +60,7 @@ module plab5_mcore_proc_resp_acc
 
 		// if response secruity level is higehr than processor security
 		// level, we drop the data
-		else if ( resp_sec_level == 1'b1 &&  proc_sec_level == 1'b0 ) begin
+		else if ( resp_sec_level == 1'b0 &&  proc_sec_level == 1'b1 ) begin
 			proc_resp_val = net_resp_val;
 			net_resp_rdy  = proc_resp_rdy;
 			proc_resp_msg = net_resp_msg;

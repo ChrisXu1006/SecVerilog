@@ -40,8 +40,8 @@ module plab4_net_RouterInputCtrlArb_Sep
 	output						{L} domain
 );
 
-    reg		[2:0]				reqs;
-	wire	[2:0]				grants;
+    reg		[2:0]				{Domain domain} reqs;
+	wire	[2:0]				{Domain domain} grants;
 
 	assign grants = {grants_p2, grants_p1, grants_p0};
 	assign {reqs_p2, reqs_p1, reqs_p0} = reqs;
