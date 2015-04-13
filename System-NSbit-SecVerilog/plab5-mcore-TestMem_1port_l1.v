@@ -45,6 +45,7 @@ module plab5_mcore_TestMem_1port
   // input used to indicate the security level of memory, 
   // this signal is mainly used for labeling
   input         {L} sec_level,
+  input         {L} req_level,
 
   // clears the content of memory
   input			{L} mem_clear,
@@ -54,7 +55,7 @@ module plab5_mcore_TestMem_1port
   input                     {L} memreq_val,
   output					{L} memreq_rdy,
   input	[c_req_cnbits-1:0]	{L} memreq_control,
-  input	[c_req_dnbits-1:0]	{Domain sec_level}  memreq_data,
+  input	[c_req_dnbits-1:0]	{Domain req_level}  memreq_data,
 
   // Memory response port interface
 
@@ -124,7 +125,7 @@ module plab5_mcore_TestMem_1port
   wire						{L} memreq_val_M;
   wire						{L} memreq_rdy_M;
   wire [c_req_cnbits-1:0]	{L} memreq_control_M;
-  wire [c_req_dnbits-1:0]	{Domain sec_level} memreq_data_M;
+  wire [c_req_dnbits-1:0]	{Domain req_level} memreq_data_M;
 
   vc_Queue
   #(
@@ -155,7 +156,7 @@ module plab5_mcore_TestMem_1port
   (
     .clk     (clk),
     .reset   (reset),
-    .domain  (sec_level),
+    .domain  (req_level),
     .enq_val (memreq_val),
     .enq_rdy (memreq_rdy),
     .enq_msg (memreq_data),
@@ -246,7 +247,7 @@ module plab5_mcore_TestMem_1port
 
   integer memory_cleared = 1;
 
-  /*always @( posedge clk ) begin
+  always @( posedge clk ) begin
 
     // We clear all of the test memory to X's on mem_clear. As mentioned
     // above, this only happens if we clear a test memory more than once.
@@ -258,9 +259,9 @@ module plab5_mcore_TestMem_1port
     if ( mem_clear ) begin
       if ( !memory_cleared ) begin
         memory_cleared = 1;
-        for ( wr_i = 0; wr_i < c_num_blocks; wr_i = wr_i + 1 ) begin
-          m[wr_i] <= {p_data_nbits{1'bx}};
-        end
+        //for ( wr_i = 0; wr_i < c_num_blocks; wr_i = wr_i + 1 ) begin
+          m[wr_i] <= 'hx;
+        //end
       end
     end
 
@@ -268,9 +269,9 @@ module plab5_mcore_TestMem_1port
       memory_cleared = 0;
 
       if ( write_en_M ) begin
-        for ( wr_i = 0; wr_i < memreq_msg_len_modified_M; wr_i = wr_i + 1 ) begin
-          m[physical_block_addr_M][ (block_offset_M*8) + (wr_i*8) +: 8 ] <= memreq_data_M[ (wr_i*8) +: 8 ];
-        end
+        //for ( wr_i = 0; wr_i < memreq_msg_len_modified_M; wr_i = wr_i + 1 ) begin
+          m[physical_block_addr_M][31:0] <= memreq_data_M[31:0];
+        //end
       end
 
       if ( amo_en_M ) begin
@@ -283,7 +284,7 @@ module plab5_mcore_TestMem_1port
 
     end
 
-  end*/
+  end
 
   //----------------------------------------------------------------------
   // Pack the response message
@@ -346,10 +347,6 @@ module plab5_mcore_TestMem_1port
     .deq_rdy (memresp_rdy),
     .deq_msg (memresp_data)
   );
-
-  always @(posedge clk) begin
-    m[physical_block_addr_M][31:0] <= memreq_data_M[31:0 ];
-  end
   //----------------------------------------------------------------------
   // General assertions
   //----------------------------------------------------------------------

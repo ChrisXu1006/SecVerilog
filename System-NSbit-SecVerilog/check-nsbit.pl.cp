@@ -19,10 +19,10 @@ sub print_fail {
 
 # type check all files with .v extension in current directory
 # first generate the z3 files
-# my @files = <*>;
-my @files = ("plab5-mcore-TestMem_1port_sep.v","plab5-mcore-memreqcmsgunpack.v","plab5-mcore-memreqcmsgpack.v","plab5-mcore-memrespcmsgpack.v","vc-mem-msgs.v","vc-queues.v");
+my @files = ("plab4-net-RouterOutputCtrl-Sep.v");
+#my @files = ("plab5-mcore-top.v","plab5-mcore-ProcNet-Sep1.v","plab5-mcore-mem-acc.v","plab5-mcore-TestMem_1port,v","plab2-proc-PipelinedProcBypass.v", "plab5-mcoe-proc2mem-trans.v","plab5-mcore-Memt-sep.v","plab2-proc-PipelinedProcBypass.v","plab5-mcore-proc2mem-trans.v","plab5-mcore-MemNet-sep.v","plab5-mcore-proc-acc.v","plab4-net-RingNetAlt-sep.v", "plab5-mcore-mem-net-req.v", "plab5-mcore-mem-net-resp.v");
+#my @files = ("plab5-mcore-top.v","plab5-mcore-ProcNet-Sep.v", "plab5-mcore-mem-acc.v", "plab5-mcore-TestMem_1port.v","plab2-proc-PipelinedProcBypass.v", "plab5-mcore-proc2mem-trans.v", "plab5-mcore-MemNet-sep.v", "plab4-net-RingNetAlt-sep.v");
 #my @files = ("plab4-net-RingNetAlt-sep.v","plab4-net-demux.v","plab4-net-RouterAlt.v", "plab4-net-RouterInputCtrl-Arb.v", "plab4-net-RouterAdaptiveInputTerminalCtrl.v", "plab4-net-RouterOutputCtrl.v", "plab4-net-RouterInputCtrl.v", "plab4-net-AdaptiveRouteCompute.v", "vc-crossbar3.v","vc-crossbar3-sd.v", "vc-mux3.v", "vc-mux3-sd.v","vc-mux2-sd.v", "vc-queues.v", "vc-mem-msgs.v");
-#my @files = ("plab5-mcore-resp-mem2net-adapter.v","plab5-mcore-memrespcmsgpack.v","vc-net-msgpack.v");
 foreach my $file (@files) {
   if (-f $file and $file =~ /\.v$/) {
     # run iverilog to generate constraints

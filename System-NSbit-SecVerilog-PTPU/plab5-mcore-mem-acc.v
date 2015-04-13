@@ -128,6 +128,13 @@ module plab5_mcore_mem_acc
             mem_resp_rdy     = net_resp_rdy;
         end
 
+        if ( resp_sec_level == 1'b1 && mem_sec_level == 1'b0 ) begin
+            net_resp_control = mem_resp_control;
+            net_resp_data    = mem_resp_data;
+            net_resp_val     = mem_resp_val;
+            mem_resp_rdy     = net_resp_rdy;
+        end
+
         if ( resp_sec_level == 1'b0 &&  mem_sec_level == 1'b1 ) begin
             net_resp_control = net_resp_control_dump;
             net_resp_data    = 'hx;

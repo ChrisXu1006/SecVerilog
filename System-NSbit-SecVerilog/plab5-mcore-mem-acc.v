@@ -45,7 +45,7 @@ module plab5_mcore_mem_acc
 
 	// outputs to the memory side
 	output	reg [req_cnbits-1:0]	{L} mem_req_control,
-	output	reg [req_dnbits-1:0]	{Domain mem_sec_level} mem_req_data,
+	output	reg [req_dnbits-1:0]	{Domain req_sec_level} mem_req_data,
 	output	reg 					{L} mem_req_val,
 	input							{L} mem_req_rdy,
 

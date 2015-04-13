@@ -24,13 +24,16 @@ module plab4_net_RouterInputCtrl
 
 )
 (
-  input  [c_dest_nbits-1:0] {L}	dest,
 
-  input                     {L}	in_val,
-  output                    {L}	in_rdy,
+  input                     {L} domain,
 
-  output [2:0]              {L}	reqs,
-  input  [2:0]              {L}	grants
+  input  [c_dest_nbits-1:0] {Domain domain} dest,
+
+  input                     {Domain domain}	in_val,
+  output                    {Domain domain}	in_rdy,
+
+  output [2:0]              {Domain domain}	reqs,
+  input  [2:0]              {Domain domain}	grants
 );
 
   //+++ gen-harness : begin insert +++++++++++++++++++++++++++++++++++++++
@@ -52,7 +55,7 @@ module plab4_net_RouterInputCtrl
 
   assign in_rdy = | (reqs & grants);
 
-  reg [2:0] {L}	reqs;
+  reg [2:0] {Domain domain}	reqs;
 
   always @(*) begin
     if (in_val) begin

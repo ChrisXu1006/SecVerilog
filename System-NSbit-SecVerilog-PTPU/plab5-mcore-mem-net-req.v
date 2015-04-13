@@ -96,7 +96,7 @@ module plab5_mcore_MemReqMsgToNetMsg
 		  ( mode ? ( ( mem_addr < 32'hc000 ) ? 0 : 1 ) 
 				 : ( ( mem_addr < 32'h4000 ) ? 0 : 1 ) );
                                     //mem_addr[c_dest_addr_msb:c_dest_addr_lsb];
-
+  //assign net_dest = 0;
   // we use high bits of the opaque field to put the destination info
 
   wire [mo-1:0] {Control domain} mem_msg_opaque;
@@ -140,7 +140,7 @@ module plab5_mcore_MemReqMsgToNetMsg
     .dest     (net_dest),
     .src      (p_net_src[ns-1:0]),
     .opaque   (0),
-    .payload  ({req_domain,net_payload_control}),
+    .payload  ({~req_domain,net_payload_control}),
 
     .msg      (net_msg_control)
   );

@@ -5,15 +5,12 @@
 `ifndef PLAB4_NET_ROUTER_OUTPUT_CTRL_SEP_V
 `define PLAB4_NET_ROUTER_OUTPUT_CTRL_SEP_V
 
-`include "vc-RRArb.v"
+`include "vc-arbiters.v"
 
 module plab4_net_RouterOutputCtrl_sep
 (
 	input		{L} clk,
 	input		{L} reset,
-
-    input       {L} req,
-    input       {L} ter,
 
 	input		{L} reqs_p0_domain,
 	input		{L} reqs_p1_domain,
@@ -35,8 +32,8 @@ module plab4_net_RouterOutputCtrl_sep
 
 	//  only when out_rdy is high, combine reqs into a single wire
 	//  otherwise, we set input to arbiters to be low
-	wire [2:0]	arb_reqs;
-	wire [2:0]	grants;
+	wire [2:0]	{L} arb_reqs;
+	wire [2:0]	{Domain out_domain} grants;
 
 	assign arb_reqs = ( out_rdy ? {reqs_p2, reqs_p1, reqs_p0} : 3'h0 );
 	assign {grants_p2, grants_p1, grants_p0} = grants;
@@ -45,7 +42,7 @@ module plab4_net_RouterOutputCtrl_sep
 	// Round robin arbiter
 	//----------------------------------------------------------------------
 
-	vc_RRArb
+	vc_RoundRobinArb
 	#(
 		.p_num_reqs   (3)
 	)
@@ -68,22 +65,22 @@ module plab4_net_RouterOutputCtrl_sep
 	reg			{L} out_domain;
 
 	always @(*) begin
-		if ( grants_p0 == 1'b1 && out_domain == reqs_p0_domain) begin
+		if ( grants_p0 == 1'b1 ) begin
 			xbar_sel = 2'h0;
 			out_domain = reqs_p0_domain;
 		end
 
-		if ( grants_p1 == 1'b1 && out_domain == reqs_p1_domain) begin
+		else if ( grants_p1 == 1'b1 ) begin
 			xbar_sel = 2'h1;
 			out_domain = reqs_p1_domain;
 		end
 
-		if ( grants_p2 == 1'b1 && out_domain == reqs_p2_domain) begin
+		else if ( grants_p2 == 1'b1 ) begin
 			xbar_sel = 2'h2;
 			out_domain = reqs_p2_domain;
 		end
 
-		if ( reset )
+		else if ( reset )
 			out_domain = 1'b0;
 		
 	end

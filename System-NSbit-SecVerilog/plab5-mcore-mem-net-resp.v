@@ -79,8 +79,8 @@ module plab5_mcore_MemRespMsgToNetMsg
   wire [p_net_srcdest_nbits-1:0]{L}  net_dest;
 
   assign mem_msg_opaque = mem_msg[`VC_MEM_RESP_MSG_OPAQUE_FIELD(mo,md)];
-  assign net_dest = mem_msg_opaque[mo-1 -: ns];
-
+  //assign net_dest = mem_msg_opaque[mo-1 -: ns];
+  assign net_dest = 1'b1;
   // re-pack the memory message without the destination opaque field
 
   wire [`VC_MEM_RESP_MSG_NBITS(mo,md)-1:0] {L} net_payload;

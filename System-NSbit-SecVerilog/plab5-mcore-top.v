@@ -16,6 +16,7 @@
 
 `include "plab5-mcore-mem-acc.v"
 `include "plab5-mcore-ProcNet-Sep.v"
+`include "plab5-mcore-ProcNet-Sep1.v"
 `include "plab5-mcore-TestMem_1port.v"
 
 //------------------------------------------------------------------------
@@ -400,7 +401,7 @@ module TestHarness
 
   // processor-network
 
-  plab5_mcore_ProcNet_Sep  proc_cache_net
+  plab5_mcore_ProcNet_Sep1  proc_cache_net
   (
     .clk					(clk),
     .reset					(reset),

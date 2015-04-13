@@ -64,10 +64,11 @@ module plab5_mcore_MemNet_Sep
 	input				{L} mode,
 
 	input	[rq-1:0]	{D1} req_in_msg_p0,
+    input               {L}  req_in_domain_p0,
 	input				{L}  req_in_val_p0,
 	output				{L}  req_in_rdy_p0,
 	
-	output	[rs-1:0]	{D1} resp_out_msg_p0,
+	output	[rs-1:0]	{Domain resp_out_domain_p0} resp_out_msg_p0,
 	output				{L}  resp_out_domain_p0,
 	output				{L}  resp_out_val_p0,
 	input				{L}  resp_out_rdy_p0,
@@ -85,10 +86,11 @@ module plab5_mcore_MemNet_Sep
 	output				{L}  resp_in_rdy_p0,
 
 	input	[rq-1:0]	{D2} req_in_msg_p1,
+    input               {L}  req_in_domain_p1,
 	input				{L}  req_in_val_p1,
 	output				{L}  req_in_rdy_p1,
 	
-	output	[rs-1:0]	{D2} resp_out_msg_p1,
+	output	[rs-1:0]	{Domain resp_out_domain_p1} resp_out_msg_p1,
 	output				{L}  resp_out_domain_p1,
 	output				{L}  resp_out_val_p1,
 	input				{L}  resp_out_rdy_p1,
@@ -115,12 +117,12 @@ module plab5_mcore_MemNet_Sep
 	wire	[nrsc:0]	{L}  resp_net_in_msg_control_p0;
 	wire	[nrsd-1:0]	{Domain resp_in_domain_p0} resp_net_in_msg_data_p0;
 	wire	[nrsc:0]	{L}  resp_net_out_msg_control_p0;
-	wire	[nrsd-1:0]	{D1} resp_net_out_msg_data_p0;
+	wire	[nrsd-1:0]	{Domain resp_out_domain_p0} resp_net_out_msg_data_p0;
 
 	wire	[rqc:0]		{L}  req_out_msg_control_M_p0;
 	wire	[rsc:0]		{L}  resp_out_msg_control_M_p0;
 	wire	[rsc-1:0]	{L}  resp_out_msg_control_p0;
-	wire	[rsd-1:0]	{D1} resp_out_msg_data_p0;
+	wire	[rsd-1:0]	{Domain resp_out_domain_p0} resp_out_msg_data_p0;
 
 	wire	[nrqc:0]	{L}  req_net_in_msg_control_p1;
 	wire	[nrqd-1:0]	{D2} req_net_in_msg_data_p1;
@@ -130,12 +132,12 @@ module plab5_mcore_MemNet_Sep
 	wire	[nrsc:0]	{L}  resp_net_in_msg_control_p1;
 	wire	[nrsd-1:0]	{Domain resp_in_domain_p1} resp_net_in_msg_data_p1;
 	wire	[nrsc:0]	{L}  resp_net_out_msg_control_p1;
-	wire	[nrsd-1:0]	{D2} resp_net_out_msg_data_p1;
+	wire	[nrsd-1:0]	{Domain resp_out_domain_p1} resp_net_out_msg_data_p1;
 
 	wire	[rqc:0]		{L}  req_out_msg_control_M_p1;
 	wire	[rsc:0]		{L}  resp_out_msg_control_M_p1;
 	wire	[rsc-1:0]	{L}  resp_out_msg_control_p1;
-	wire	[rsd-1:0]	{D2} resp_out_msg_data_p1;
+	wire	[rsd-1:0]	{Domain resp_out_domain_p1} resp_out_msg_data_p1;
 	
 
 	// proc req mem msg to net msg adapter
@@ -264,8 +266,18 @@ module plab5_mcore_MemNet_Sep
         .payload  (resp_out_msg_control_M_p0)
       );
 
-	  assign {resp_out_domain_p0, resp_out_msg_control_p0}
-		= req_out_msg_control_M_p0;
+      always @(*) begin
+        if ( resp_out_domain_p0_M == 1'b1 ) 
+            resp_out_domain_p0 = 1'b0;
+        else
+            resp_out_domain_p0 = resp_out_domain_p0_M;
+      end
+
+      wire {L} resp_out_domain_p0_M;
+      wire {L} resp_out_domain_p0_M1;
+
+	  assign {resp_out_domain_p0_M1, resp_out_msg_control_p0}
+		= resp_out_msg_control_M_p0;
 
 	  assign resp_out_msg_data_p0 = resp_net_out_msg_data_p0;
 
@@ -277,8 +289,9 @@ module plab5_mcore_MemNet_Sep
         .payload  (resp_out_msg_control_M_p1)
       );
 
-	  assign {resp_out_domain_p1, resp_out_msg_control_p1}
-		= req_out_msg_control_M_p1;
+      wire {L} resp_out_domain_p1_M;
+	  assign {resp_out_domain_p1_M, resp_out_msg_control_p1}
+		= resp_out_msg_control_M_p1;
 
 	  assign resp_out_msg_data_p1 = resp_net_out_msg_data_p1;
 
@@ -330,7 +343,7 @@ module plab5_mcore_MemNet_Sep
 		.out_rdy_p0			(req_net_out_rdy_p0),
 		.out_msg_control_p0	(req_net_out_msg_control_p0),
 		.out_msg_data_p0	(req_net_out_msg_data_p0),
-        .out1_domain_p0      (req_out_domain_p0),
+        .out1_domain_p0     (req_out_domain_p0),
 
 		.in_val_p1			(req_net_in_val_p1),
 		.in_rdy_p1			(req_in_rdy_p1),
@@ -362,6 +375,7 @@ module plab5_mcore_MemNet_Sep
 		.out_rdy_p0			(resp_net_out_rdy_p0),
 		.out_msg_control_p0	(resp_net_out_msg_control_p0),
 		.out_msg_data_p0	(resp_net_out_msg_data_p0),
+        .out1_domain_p0     (resp_out_domain_p0_M),
 
 		.in_val_p1			(resp_net_in_val_p1),
 		.in_rdy_p1			(resp_in_rdy_p1),
@@ -372,7 +386,8 @@ module plab5_mcore_MemNet_Sep
 		.out_val_p1			(resp_out_val_p1),
 		.out_rdy_p1			(resp_net_out_rdy_p1),
 		.out_msg_control_p1	(resp_net_out_msg_control_p1),
-		.out_msg_data_p1	(resp_net_out_msg_data_p1)
+		.out_msg_data_p1	(resp_net_out_msg_data_p1),
+        .out1_domain_p1     (resp_out_domain_p1)
 	);
 
 endmodule

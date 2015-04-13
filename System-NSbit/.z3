@@ -18,14 +18,6 @@
 (assert (forall ((x Label) (y Label) (z Label)) (implies (and (leq x y) (leq x z)) (leq x (meet y z)))))
 (assert (forall ((x Label) (y Label)) (and (leq (meet x y) x) (leq (meet x y) y))))
 (assert (forall ((x Label) (y Label)) (= (meet x y) (meet y x))))
-; convert int to bool
-(declare-fun IBOOL (Int) Bool)
-(assert (forall ((x Int))
-    (and
-        (implies (= x 0) (= (IBOOL x) false))
-        (implies (not (= x 0)) (= (IBOOL x) true))
-    )
-))
 
 ; lattice elements
 (declare-fun LOW () Label)
@@ -69,7 +61,25 @@
 ; assertions to be verified
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign out = {{(p_out_nbits)-(p_in_nbits){0}}, in} @./vc-arithmetic.v:89
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign in_rdy = |((reqs)&(grants)) @./plab4-net-RouterInputCtrl.v:56
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; reqs = 2 @./plab4-net-RouterInputCtrl.v:65
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; reqs = p_default_reqs @./plab4-net-RouterInputCtrl.v:69
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; reqs = 0 @./plab4-net-RouterInputCtrl.v:73
 (check-sat)
 (pop)
 

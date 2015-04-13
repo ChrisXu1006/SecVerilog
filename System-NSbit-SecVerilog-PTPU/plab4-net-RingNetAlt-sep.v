@@ -41,6 +41,8 @@ module plab4_net_RingNetAlt_Sep
   input {L} clk,
   input {L} reset,
 
+  input {L} req,
+
   input				{Control in_domain_p0} in_val_p0,
   output			{Control in_domain_p0} in_rdy_p0,
   input             {L}                    in_domain_p0,
@@ -168,6 +170,7 @@ module plab4_net_RingNetAlt_Sep
         .clk				(clk),
         .reset				(reset),
 
+        .req                (req),
         .domain             (in_domain_p0),
 
         .in0_val_d1			(forw_in_val_d1_p0),
@@ -233,6 +236,7 @@ module plab4_net_RingNetAlt_Sep
         .clk				(clk),
         .reset				(reset),
 
+        .req                (req),
         .domain             (in_domain_p1),
 
         .in0_val_d1			(forw_in_val_d1_p1),

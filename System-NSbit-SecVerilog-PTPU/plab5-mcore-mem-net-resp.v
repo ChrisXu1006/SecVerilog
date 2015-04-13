@@ -62,7 +62,7 @@ module plab5_mcore_MemRespMsgToNetMsg
   parameter c_net_msg_dnbits= npd
 )
 (
-
+  input                         {L}              mode,
   input                         {Control domain} domain,
   input  [c_mem_msg_cnbits-1:0] {Control domain} mem_msg_control,
   input	 [c_mem_msg_dnbits-1:0]	{Domain  domain} mem_msg_data,
@@ -74,12 +74,13 @@ module plab5_mcore_MemRespMsgToNetMsg
 
   // extract the opaque field from memory message
 
-  wire [c_mem_msg_nbits-1:0]    {Domain domain} mem_msg = {mem_msg_control, mem_msg_data};
+  wire [c_mem_msg_nbits-1:0]    {Domain domain}   mem_msg = {mem_msg_control, mem_msg_data};
   wire [p_mem_opaque_nbits-1:0] {Control domain}  mem_msg_opaque;
   wire [p_net_srcdest_nbits-1:0]{Control domain}  net_dest;
 
   assign mem_msg_opaque = mem_msg[`VC_MEM_RESP_MSG_OPAQUE_FIELD(mo,md)];
   assign net_dest = mem_msg_opaque[mo-1 -: ns];
+  //assign net_dest = (mode === 1'b0 ) mem_msg_opaque[mo-1 -: ns] : 1'b0;
 
   // re-pack the memory message without the destination opaque field
 

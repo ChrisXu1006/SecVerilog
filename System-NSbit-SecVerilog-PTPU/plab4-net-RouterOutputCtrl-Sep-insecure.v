@@ -7,7 +7,7 @@
 
 `include "vc-RRArb.v"
 
-module plab4_net_RouterOutputCtrl_sep
+module plab4_net_RouterOutputCtrl_sep_insecure
 (
 	input		{L} clk,
 	input		{L} reset,
@@ -70,17 +70,32 @@ module plab4_net_RouterOutputCtrl_sep
 	always @(*) begin
 		if ( grants_p0 == 1'b1 && out_domain == reqs_p0_domain) begin
 			xbar_sel = 2'h0;
-			out_domain = reqs_p0_domain;
+            if ( req == 1 && ter == 1 )
+                out_domain = 1;
+            else if ( req == 0 && ter == 1 )
+                out_domain = 1;
+            else
+			    out_domain = reqs_p0_domain;
 		end
 
 		if ( grants_p1 == 1'b1 && out_domain == reqs_p1_domain) begin
 			xbar_sel = 2'h1;
-			out_domain = reqs_p1_domain;
+            if ( req == 1 && ter == 1 )
+                out_domain = 1;
+            else if ( req == 0 && ter == 1 )
+                out_domain = 1;
+            else
+			    out_domain = reqs_p1_domain;
 		end
 
 		if ( grants_p2 == 1'b1 && out_domain == reqs_p2_domain) begin
 			xbar_sel = 2'h2;
-			out_domain = reqs_p2_domain;
+            if ( req == 1 && ter == 1 )
+                out_domain = 1;
+            else if ( req == 0 && ter == 1 )
+                out_domain = 1;
+            else
+			    out_domain = reqs_p2_domain;
 		end
 
 		if ( reset )

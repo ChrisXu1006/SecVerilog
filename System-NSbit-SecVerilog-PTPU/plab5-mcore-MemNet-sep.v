@@ -235,6 +235,7 @@ module plab5_mcore_MemNet_Sep
       )
       cache_mem_msg_to_net_msg_p0
       (
+        .mode           (mode),
 	    .mem_msg_control(resp_in_msg_control_p0),
 		.mem_msg_data	(resp_in_msg_data_p0),
 		.domain         (resp_in_domain_p0),
@@ -255,6 +256,7 @@ module plab5_mcore_MemNet_Sep
       )
       cache_mem_msg_to_net_msg_p1
       (
+        .mode           (mode),
 	    .mem_msg_control(resp_in_msg_control_p1),
 		.mem_msg_data	(resp_in_msg_data_p1),
 		.domain         (resp_in_domain_p1),
@@ -332,6 +334,8 @@ module plab5_mcore_MemNet_Sep
 		.clk				(clk),
 		.reset				(reset),
 
+        .req                (1),
+
 		.in_val_p0			(req_net_in_val_p0),
 		.in_rdy_p0			(req_in_rdy_p0),
         .in_domain_p0       (0),
@@ -363,6 +367,8 @@ module plab5_mcore_MemNet_Sep
 	(
 		.clk				(clk),
 		.reset				(reset),
+
+        .req                (0),
 
 		.in_val_p0			(resp_net_in_val_p0),
 		.in_rdy_p0			(resp_in_rdy_p0),
