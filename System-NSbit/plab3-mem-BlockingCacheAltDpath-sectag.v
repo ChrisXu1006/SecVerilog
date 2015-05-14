@@ -34,10 +34,12 @@ module plab3_mem_BlockingCacheAltDpath
   // Cache Request
 
   input [`VC_MEM_REQ_MSG_NBITS(o,abw,dbw)-1:0]       cachereq_msg,
+  input												 cachereq_domain,
 
   // Cache Response
 
   output [`VC_MEM_RESP_MSG_NBITS(o,dbw)-1:0]         cacheresp_msg,
+  output											 cacheresp_domain,
 
   // Memory Request
 
@@ -45,7 +47,6 @@ module plab3_mem_BlockingCacheAltDpath
 
   // Memory Response
 
-  input												 insecure,
   input [`VC_MEM_RESP_MSG_NBITS(o,clw)-1:0]          memresp_msg,
 
   // control signals (ctrl->dpath)
@@ -72,7 +73,9 @@ module plab3_mem_BlockingCacheAltDpath
   output [`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw)-1:0] cachereq_type,
   output [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] cachereq_addr,
   output                                             tag_match_0,
-  output                                             tag_match_1
+  output                                             tag_match_1,
+  output											 nsbit_match_0,
+  output											 nsbit_match_1
 );
 
   // Unpack cache request
@@ -215,11 +218,11 @@ module plab3_mem_BlockingCacheAltDpath
   //     entries: 256*8/128 = 16
   wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-4-1:0] cachereq_tag;
   // Index is 3 bits to account for the way number
-  wire [2:0]                                         cachereq_idx;
+  wire [idw-2:0]									 cachereq_idx;
 
   assign cachereq_tag = cachereq_addr_reg_out[`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:4];
   // -1 for way
-  assign cachereq_idx = cachereq_addr_reg_out[4+p_idx_shamt +: 3];
+  assign cachereq_idx = cachereq_addr_reg_out[4+idw-1+p_idx_shamt:4+p_idx_shamt];
 
   // Tag array
   wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] tag_array_0_read_out;
@@ -234,7 +237,7 @@ module plab3_mem_BlockingCacheAltDpath
     .read_en       (tag_array_0_ren),
     .write_byte_en (4'b1111),
     .write_addr    (cachereq_idx),
-    .write_data    ( { 4'h0, cachereq_tag } )
+    .write_data    ( { 3'h0, cachereq_domain, cachereq_tag } )
   );
 
   // Tag array 1
@@ -250,7 +253,7 @@ module plab3_mem_BlockingCacheAltDpath
     .read_en       (tag_array_1_ren),
     .write_byte_en (4'b1111),
     .write_addr    (cachereq_idx),
-    .write_data    ( { 4'h0, cachereq_tag } )
+    .write_data    ( { 3'h0, cachereq_domain, cachereq_tag } )
   );
 
   wire [clw-1:0] data_array_read_out;
@@ -286,6 +289,22 @@ module plab3_mem_BlockingCacheAltDpath
     .in0 (cachereq_tag),
     .in1 (tag_array_1_read_out[27:0]),
     .out (tag_match_1)
+  );
+
+  // Eq comparator to check for NS-bit matching (nsbit_compare_0)
+  vc_EqComparator #(1)	NSbit_compare_0
+  (
+	.in0	(cachereq_domain),
+	.in1	(tag_array_0_read_out[28:28]),
+	.out	(nsbit_match_0)
+  );
+
+  // Eq comparator to check for NS-bit matching (nsbit_compare_1)
+  vc_EqComparator #(1)	NSbit_compare_1
+  (
+	.in0	(cachereq_domain),
+	.in1	(tag_array_1_read_out[28:28]),
+	.out	(nsbit_match_1)
   );
 
   // Mux that selects between the ways for requesting from memory
@@ -355,15 +374,6 @@ module plab3_mem_BlockingCacheAltDpath
     .out  (read_byte_sel_mux_out)
   );
 
-  wire [`VC_MEM_RESP_MSG_DATA_NBITS(o,dbw)-1:0]	read_byte_sec_mux_out;
-  vc_Mux2 #(dbw) sec_mux
-  (
-	.in0  (read_byte_sel_mux_out),
-	.in1  ('hx),
-	.sel  (insecure),
-	.out  (read_byte_sec_mux_out)
-  );
-
   // Pack cache response
 
   vc_MemRespMsgPack#(o,dbw) cacheresp_msg_pack
@@ -371,9 +381,11 @@ module plab3_mem_BlockingCacheAltDpath
     .type   (cacheresp_type),
     .opaque (cachereq_opaque_reg_out),
     .len    (0),
-    .data   (read_byte_sec_mux_out),
+    .data   (read_byte_sel_mux_out),
     .msg    (cacheresp_msg)
   );
+
+  assign cacheresp_domain = cachereq_domain;
 
   // Pack cache response
   vc_MemReqMsgPack#(o,abw,clw) memreq_msg_pack

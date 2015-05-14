@@ -1,16 +1,16 @@
 //=========================================================================
-// Alternative Blocking Cache Datapath
+// Prefetch Buffer Datapath
 //=========================================================================
 
-`ifndef PLAB3_MEM_BLOCKING_CACHE_ALT_DPATH_V
-`define PLAB3_MEM_BLOCKING_CACHE_ALT_DPATH_V
+`ifndef PLAB3_MEM_PREFETCH_BUFFER_DPATH_V
+`define PLAB3_MEM_PREFETCH_BUFFER_DPATH_V
 
 `include "vc-mem-msgs.v"
 `include "vc-arithmetic.v"
 `include "vc-muxes.v"
 `include "vc-srams.v"
 
-module plab3_mem_BlockingCacheAltDpath
+module plab3_mem_PrefetchBufferDpath
 #(
   parameter size    = 256,            // Cache size in bytes
 
@@ -45,7 +45,6 @@ module plab3_mem_BlockingCacheAltDpath
 
   // Memory Response
 
-  input												 insecure,
   input [`VC_MEM_RESP_MSG_NBITS(o,clw)-1:0]          memresp_msg,
 
   // control signals (ctrl->dpath)
@@ -355,14 +354,14 @@ module plab3_mem_BlockingCacheAltDpath
     .out  (read_byte_sel_mux_out)
   );
 
-  wire [`VC_MEM_RESP_MSG_DATA_NBITS(o,dbw)-1:0]	read_byte_sec_mux_out;
+  /*wire [`VC_MEM_RESP_MSG_DATA_NBITS(o,dbw)-1:0]	read_byte_sec_mux_out;
   vc_Mux2 #(dbw) sec_mux
   (
 	.in0  (read_byte_sel_mux_out),
 	.in1  ('hx),
 	.sel  (insecure),
 	.out  (read_byte_sec_mux_out)
-  );
+  );*/
 
   // Pack cache response
 
@@ -371,7 +370,7 @@ module plab3_mem_BlockingCacheAltDpath
     .type   (cacheresp_type),
     .opaque (cachereq_opaque_reg_out),
     .len    (0),
-    .data   (read_byte_sec_mux_out),
+    .data   (read_byte_sel_mux_out),
     .msg    (cacheresp_msg)
   );
 

@@ -2,18 +2,18 @@
 // Alternative Blocking Cache
 //=========================================================================
 
-`ifndef PLAB3_MEM_BLOCKING_CACHE_ALT_V
-`define PLAB3_MEM_BLOCKING_CACHE_ALT_V
+`ifndef PLAB3_MEM_BLOCKING_CACHE_ALT_SEC_TAG_V
+`define PLAB3_MEM_BLOCKING_CACHE_ALT_SEC_TAG_V
 
 `include "vc-mem-msgs.v"
-`include "plab3-mem-BlockingCacheAltCtrl.v"
-`include "plab3-mem-BlockingCacheAltDpath.v"
+`include "plab3-mem-BlockingCacheAltCtrl-sectag.v"
+`include "plab3-mem-BlockingCacheAltDpath-sectag.v"
+`include "plab3-mem-BlockingCacheAltDpath-v2.v"
 
-
-module plab3_mem_BlockingCacheAlt
+module plab3_mem_BlockingCacheAlt_Sectag
 #(
-  parameter mode = 0,					   // 0 for instruction, 1 for data
-
+  parameter mode = 0,	// 0 for instruction, 1 for data
+  
   parameter p_mem_nbytes = 256,            // Cache size in bytes
   parameter p_num_banks  = 0,              // Total number of cache banks
 
@@ -35,26 +35,28 @@ module plab3_mem_BlockingCacheAlt
 
   input [`VC_MEM_REQ_MSG_NBITS(o,abw,dbw)-1:0]  cachereq_msg,
   input                                         cachereq_val,
+  input											cachereq_domain,
   output                                        cachereq_rdy,
 
   // Cache Response
 
   output [`VC_MEM_RESP_MSG_NBITS(o,dbw)-1:0]    cacheresp_msg,
   output                                        cacheresp_val,
+  output										cacheresp_domain,
   input                                         cacheresp_rdy,
 
   // Memory Request
 
   output [`VC_MEM_REQ_MSG_NBITS(o,abw,clw)-1:0] memreq_msg,
+  output										memreq_domain,
   output                                        memreq_val,
   input                                         memreq_rdy,
 
-  // Imply Insecure memory request
-  input											insecure,
-
   // Memory Response
 
+  input											insecure,
   input [`VC_MEM_RESP_MSG_NBITS(o,clw)-1:0]     memresp_msg,
+  input											memresp_domain,
   input                                         memresp_val,
   output                                        memresp_rdy
 );
@@ -76,6 +78,10 @@ module plab3_mem_BlockingCacheAlt
   wire                                         tag_array_0_ren;
   wire                                         tag_array_1_wen;
   wire                                         tag_array_1_ren;
+  wire                                         sec_tag_array_0_wen;
+  wire                                         sec_tag_array_0_ren;
+  wire                                         sec_tag_array_1_wen;
+  wire                                         sec_tag_array_1_ren;
   wire                                         way_sel;
   wire                                         data_array_wen;
   wire                                         data_array_ren;
@@ -85,19 +91,23 @@ module plab3_mem_BlockingCacheAlt
   wire [$clog2(clw/dbw)-1:0]                   read_byte_sel;
   wire [`VC_MEM_RESP_MSG_TYPE_NBITS(o,clw)-1:0] memreq_type;
   wire [`VC_MEM_RESP_MSG_TYPE_NBITS(o,dbw)-1:0] cacheresp_type;
+  wire										   memresp_domain_pre;
 
 
   // status signals (dpath->ctrl)
   wire [`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw)-1:0] cachereq_type;
   wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] cachereq_addr;
+  wire											   cachereq_domain_out;
   wire                                             tag_match_0;
   wire                                             tag_match_1;
+  wire											   nsbit_match_0;
+  wire											   nsbit_match_1;
 
   //----------------------------------------------------------------------
   // Control
   //----------------------------------------------------------------------
 
-  plab3_mem_BlockingCacheAltCtrl
+  plab3_mem_BlockingCacheAltCtrl_Sectag
   #(
     .size                   (p_mem_nbytes),
     .p_idx_shamt            (c_idx_shamt),
@@ -119,14 +129,14 @@ module plab3_mem_BlockingCacheAlt
    .cacheresp_rdy     (cacheresp_rdy),
 
    // Memory Request
-
+	
    .memreq_val        (memreq_val),
    .memreq_rdy        (memreq_rdy),
 
    // Memory Response
 
    .insecure		  (insecure),
-
+   .memresp_domain	  (memresp_domain),
    .memresp_val       (memresp_val),
    .memresp_rdy       (memresp_rdy),
 
@@ -139,6 +149,10 @@ module plab3_mem_BlockingCacheAlt
    .tag_array_0_ren   (tag_array_0_ren),
    .tag_array_1_wen   (tag_array_1_wen),
    .tag_array_1_ren   (tag_array_1_ren),
+   .sec_tag_array_0_wen   (sec_tag_array_0_wen),
+   .sec_tag_array_0_ren   (sec_tag_array_0_ren),
+   .sec_tag_array_1_wen   (sec_tag_array_1_wen),
+   .sec_tag_array_1_ren   (sec_tag_array_1_ren),
    .way_sel           (way_sel),
    .data_array_wen    (data_array_wen),
    .data_array_ren    (data_array_ren),
@@ -148,19 +162,23 @@ module plab3_mem_BlockingCacheAlt
    .read_byte_sel     (read_byte_sel),
    .memreq_type       (memreq_type),
    .cacheresp_type    (cacheresp_type),
+   .memresp_domain_pre(memresp_domain_pre),
 
    // status signals  (dpath->ctrl)
    .cachereq_type     (cachereq_type),
    .cachereq_addr     (cachereq_addr),
+   .cachereq_domain	  (cachereq_domain_out),
    .tag_match_0       (tag_match_0),
-   .tag_match_1       (tag_match_1)
+   .tag_match_1       (tag_match_1),
+   .nsbit_match_0	  (nsbit_match_0),
+   .nsbit_match_1	  (nsbit_match_1)
   );
 
   //----------------------------------------------------------------------
   // Datapath
   //----------------------------------------------------------------------
 
-  plab3_mem_BlockingCacheAltDpath
+  plab3_mem_BlockingCacheAltDpath_v2
   #(
     .size                   (p_mem_nbytes),
     .p_idx_shamt            (c_idx_shamt),
@@ -174,19 +192,22 @@ module plab3_mem_BlockingCacheAlt
    // Cache Request
 
    .cachereq_msg      (cachereq_msg),
+   .cachereq_domain	  (cachereq_domain),
 
    // Cache Response
 
    .cacheresp_msg     (cacheresp_msg),
+   .cacheresp_domain  (cacheresp_domain),
 
    // Memory Request
 
    .memreq_msg        (memreq_msg),
+   .memreq_domain	  (memreq_domain),
 
    // Memory Response
 
-   .insecure		  (insecure),
    .memresp_msg       (memresp_msg),
+   .memresp_domain	  (memresp_domain),
 
    // control signals (ctrl->dpath)
    .amo_sel           (amo_sel),
@@ -197,6 +218,10 @@ module plab3_mem_BlockingCacheAlt
    .tag_array_0_ren   (tag_array_0_ren),
    .tag_array_1_wen   (tag_array_1_wen),
    .tag_array_1_ren   (tag_array_1_ren),
+   .sec_tag_array_0_wen   (sec_tag_array_0_wen),
+   .sec_tag_array_0_ren   (sec_tag_array_0_ren),
+   .sec_tag_array_1_wen   (sec_tag_array_1_wen),
+   .sec_tag_array_1_ren   (sec_tag_array_1_ren),
    .way_sel           (way_sel),
    .data_array_wen    (data_array_wen),
    .data_array_ren    (data_array_ren),
@@ -206,45 +231,32 @@ module plab3_mem_BlockingCacheAlt
    .read_byte_sel     (read_byte_sel),
    .memreq_type       (memreq_type),
    .cacheresp_type    (cacheresp_type),
+   .memresp_domain_pre(memresp_domain_pre),
 
    // status signals  (dpath->ctrl)
    .cachereq_type     (cachereq_type),
    .cachereq_addr     (cachereq_addr),
+   .cachereq_domain_out(cachereq_domain_out),
    .tag_match_0       (tag_match_0),
-   .tag_match_1       (tag_match_1)
+   .tag_match_1       (tag_match_1),
+   .nsbit_match_0	  (nsbit_match_0),
+   .nsbit_match_1	  (nsbit_match_1)
   );
 
 
   //----------------------------------------------------------------------
-  // Line tracing
+  // Debug part
   //----------------------------------------------------------------------
-  `include "vc-trace-tasks.v"
-
-  task trace_module( inout [vc_trace_nbits-1:0] trace );
-  begin
-
-    case ( ctrl.state_reg )
-
-      ctrl.STATE_IDLE:                  vc_trace_str( trace, "(I )" );
-      ctrl.STATE_TAG_CHECK:             vc_trace_str( trace, "(TC)" );
-      ctrl.STATE_READ_DATA_ACCESS:      vc_trace_str( trace, "(RD)" );
-      ctrl.STATE_WRITE_DATA_ACCESS:     vc_trace_str( trace, "(WD)" );
-      ctrl.STATE_AMO_READ_DATA_ACCESS:  vc_trace_str( trace, "(AR)" );
-      ctrl.STATE_AMO_WRITE_DATA_ACCESS: vc_trace_str( trace, "(AW)" );
-      ctrl.STATE_INIT_DATA_ACCESS:      vc_trace_str( trace, "(IN)" );
-      ctrl.STATE_REFILL_REQUEST:        vc_trace_str( trace, "(RR)" );
-      ctrl.STATE_REFILL_WAIT:           vc_trace_str( trace, "(RW)" );
-      ctrl.STATE_REFILL_UPDATE:         vc_trace_str( trace, "(RU)" );
-      ctrl.STATE_EVICT_PREPARE:         vc_trace_str( trace, "(EP)" );
-      ctrl.STATE_EVICT_REQUEST:         vc_trace_str( trace, "(ER)" );
-      ctrl.STATE_EVICT_WAIT:            vc_trace_str( trace, "(EW)" );
-      ctrl.STATE_WAIT:                  vc_trace_str( trace, "(W )" );
-      default:                          vc_trace_str( trace, "(? )" );
-
-    endcase
-
-  end
-  endtask
+  
+  `ifdef DEBUG
+	always @(posedge clk) begin
+	
+		if(mode == 1'b1 && cachereq_val == 1'b1) begin
+			$display("Cache Req Info, Address: %x, Req Domain: %d",
+					cachereq_addr, cachereq_domain);
+		end
+	end 
+  `endif
 
 endmodule
 
