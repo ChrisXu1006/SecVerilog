@@ -1,0 +1,88 @@
+#! /usr/local/bin/vvp
+:ivl_version "0.9.6 " "(v0_9_6)";
+:vpi_time_precision + 0;
+:vpi_module "system";
+:vpi_module "v2005_math";
+:vpi_module "va_math";
+S_0x86be10 .scope module, "quant_basic_lqe" "quant_basic_lqe" 2 1;
+ .timescale 0 0;
+v0x8661a0_0 .net *"_s11", 0 0, L_0x8939d0; 1 drivers
+v0x891b20_0 .net *"_s15", 0 0, L_0x893bb0; 1 drivers
+v0x891bc0_0 .net *"_s19", 0 0, L_0x893de0; 1 drivers
+v0x891c60_0 .net *"_s23", 0 0, L_0x893f70; 1 drivers
+v0x891d10_0 .net *"_s27", 0 0, L_0x894140; 1 drivers
+v0x891db0_0 .net *"_s3", 0 0, L_0x893660; 1 drivers
+v0x891e90_0 .net *"_s31", 0 0, L_0x8943a0; 1 drivers
+v0x891f30_0 .net *"_s35", 0 0, L_0x894610; 1 drivers
+v0x892020_0 .net *"_s37", 0 0, L_0x8947b0; 1 drivers
+v0x8920c0_0 .net *"_s38", 0 0, L_0x894850; 1 drivers
+v0x8921c0_0 .net *"_s43", 0 0, L_0x894b10; 1 drivers
+v0x892260_0 .net *"_s45", 0 0, L_0x894a10; 1 drivers
+v0x892370_0 .net *"_s46", 0 0, L_0x894d10; 1 drivers
+v0x892410_0 .net *"_s51", 0 0, L_0x894f70; 1 drivers
+v0x892530_0 .net *"_s53", 0 0, L_0x894ea0; 1 drivers
+v0x8925d0_0 .net *"_s54", 0 0, L_0x8950f0; 1 drivers
+v0x892490_0 .net *"_s59", 0 0, L_0x8953c0; 1 drivers
+v0x892720_0 .net *"_s61", 0 0, L_0x895280; 1 drivers
+v0x892840_0 .net *"_s62", 0 0, L_0x8955b0; 1 drivers
+v0x8928c0_0 .net *"_s7", 0 0, L_0x8937f0; 1 drivers
+RS_0x7f96717133d8 .resolv tri, L_0x8935c0, L_0x893700, C4<zz>, C4<zz>;
+v0x8927a0_0 .net8 "a", 1 0, RS_0x7f96717133d8; 2 drivers
+v0x8929f0_0 .net "b", 1 0, C4<zz>; 0 drivers
+RS_0x7f9671713438 .resolv tri, L_0x893930, L_0x893ac0, C4<zz>, C4<zz>;
+v0x892940_0 .net8 "c", 1 0, RS_0x7f9671713438; 2 drivers
+v0x892b30_0 .net "d", 1 0, C4<zz>; 0 drivers
+v0x892a90_0 .net "e", 1 0, L_0x893d40; 1 drivers
+v0x892c80_0 .net "f", 1 0, C4<zz>; 0 drivers
+v0x892bd0_0 .net "g", 0 0, C4<z>; 0 drivers
+v0x892de0_0 .net "h", 1 0, L_0x893ed0; 1 drivers
+v0x892d20_0 .net "i", 1 0, C4<zz>; 0 drivers
+v0x892f50_0 .net "j", 0 0, C4<z>; 0 drivers
+RS_0x7f96717135b8 .resolv tri, L_0x894040, L_0x8942b0, C4<zz>, C4<zz>;
+v0x892e60_0 .net8 "k", 1 0, RS_0x7f96717135b8; 2 drivers
+v0x8930d0_0 .net "l", 1 0, C4<zz>; 0 drivers
+RS_0x7f9671713618 .resolv tri, L_0x894570, L_0x894710, C4<zz>, C4<zz>;
+v0x892fd0_0 .net8 "m", 1 0, RS_0x7f9671713618; 2 drivers
+v0x893260_0 .net "n", 1 0, C4<zz>; 0 drivers
+v0x893150_0 .net "o", 1 0, C4<zz>; 0 drivers
+RS_0x7f96717136a8 .resolv tri, L_0x894c00, L_0x895010, C4<zz>, C4<zz>;
+v0x893400_0 .net8 "p", 1 0, RS_0x7f96717136a8; 2 drivers
+v0x8932e0_0 .net "q", 1 0, C4<zz>; 0 drivers
+v0x893380_0 .net "r", 1 0, C4<zz>; 0 drivers
+L_0x8935c0 .part/pv L_0x893660, 0, 1, 2;
+L_0x893660 .part C4<zz>, 0, 1;
+L_0x893700 .part/pv L_0x8937f0, 1, 1, 2;
+L_0x8937f0 .part C4<zz>, 1, 1;
+L_0x893930 .part/pv L_0x8939d0, 0, 1, 2;
+L_0x8939d0 .part C4<zz>, 0, 1;
+L_0x893ac0 .part/pv L_0x893bb0, 1, 1, 2;
+L_0x893bb0 .part C4<zz>, 1, 1;
+L_0x893d40 .part/pv L_0x893de0, 0, 1, 2;
+L_0x893de0 .part/v C4<zz>, C4<z>, 1;
+L_0x893ed0 .part/pv L_0x893f70, 0, 1, 2;
+L_0x893f70 .part/v C4<zz>, C4<z>, 1;
+L_0x894040 .part/pv L_0x894140, 0, 1, 2;
+L_0x894140 .part C4<zz>, 0, 1;
+L_0x8942b0 .part/pv L_0x8943a0, 1, 1, 2;
+L_0x8943a0 .part C4<zz>, 1, 1;
+L_0x894570 .part/pv L_0x894850, 0, 1, 2;
+L_0x894610 .part C4<zz>, 0, 1;
+L_0x8947b0 .part C4<zz>, 0, 1;
+L_0x894850 .arith/sum 1, L_0x894610, L_0x8947b0;
+L_0x894710 .part/pv L_0x894d10, 1, 1, 2;
+L_0x894b10 .part C4<zz>, 1, 1;
+L_0x894a10 .part C4<zz>, 1, 1;
+L_0x894d10 .arith/sum 1, L_0x894b10, L_0x894a10;
+L_0x894c00 .part/pv L_0x8950f0, 0, 1, 2;
+L_0x894f70 .part C4<zz>, 0, 1;
+L_0x894ea0 .part C4<zz>, 0, 1;
+L_0x8950f0 .arith/sum 1, L_0x894f70, L_0x894ea0;
+L_0x895010 .part/pv L_0x8955b0, 1, 1, 2;
+L_0x8953c0 .part C4<zz>, 1, 1;
+L_0x895280 .part C4<zz>, 1, 1;
+L_0x8955b0 .arith/sum 1, L_0x8953c0, L_0x895280;
+# The file index is used to find the file name in the following table.
+:file_names 3;
+    "N/A";
+    "<interactive>";
+    "quant_basic_lqe.v";

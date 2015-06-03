@@ -1,0 +1,380 @@
+/* A Bison parser, made by GNU Bison 3.0.4.  */
+
+/* Bison interface for Yacc-like parsers in C
+
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
+/* As a special exception, you may create a larger work that contains
+   part or all of the Bison parser skeleton and distribute that work
+   under terms of your choice, so long as that work isn't itself a
+   parser generator using the skeleton or a modified version thereof
+   as a parser skeleton.  Alternatively, if you modify or redistribute
+   the parser skeleton itself, you may (at your option) remove this
+   special exception, which will cause the skeleton and the resulting
+   Bison output files to be licensed under the GNU General Public
+   License without this special exception.
+
+   This special exception was added by the Free Software Foundation in
+   version 2.2 of Bison.  */
+
+#ifndef YY_VL_PARSE_HH_INCLUDED
+# define YY_VL_PARSE_HH_INCLUDED
+/* Debug traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 1
+#endif
+#if YYDEBUG
+extern int VLdebug;
+#endif
+
+/* Token type.  */
+#ifndef YYTOKENTYPE
+# define YYTOKENTYPE
+  enum yytokentype
+  {
+    IDENTIFIER = 258,
+    SYSTEM_IDENTIFIER = 259,
+    STRING = 260,
+    DISCIPLINE_IDENTIFIER = 261,
+    PATHPULSE_IDENTIFIER = 262,
+    BASED_NUMBER = 263,
+    DEC_NUMBER = 264,
+    REALTIME = 265,
+    K_LE = 266,
+    K_GE = 267,
+    K_EG = 268,
+    K_EQ = 269,
+    K_NE = 270,
+    K_CEQ = 271,
+    K_CNE = 272,
+    K_LS = 273,
+    K_RS = 274,
+    K_RSS = 275,
+    K_SG = 276,
+    K_CONTRIBUTE = 277,
+    K_PO_POS = 278,
+    K_PO_NEG = 279,
+    K_POW = 280,
+    K_PSTAR = 281,
+    K_STARP = 282,
+    K_LOR = 283,
+    K_LAND = 284,
+    K_NAND = 285,
+    K_NOR = 286,
+    K_NXOR = 287,
+    K_TRIGGER = 288,
+    K_edge_descriptor = 289,
+    K_meet = 290,
+    K_always = 291,
+    K_and = 292,
+    K_assign = 293,
+    K_begin = 294,
+    K_buf = 295,
+    K_bufif0 = 296,
+    K_bufif1 = 297,
+    K_case = 298,
+    K_casex = 299,
+    K_casez = 300,
+    K_cmos = 301,
+    K_deassign = 302,
+    K_default = 303,
+    K_defparam = 304,
+    K_disable = 305,
+    K_edge = 306,
+    K_else = 307,
+    K_end = 308,
+    K_endcase = 309,
+    K_endfunction = 310,
+    K_endmodule = 311,
+    K_endprimitive = 312,
+    K_endspecify = 313,
+    K_endtable = 314,
+    K_endtask = 315,
+    K_event = 316,
+    K_for = 317,
+    K_force = 318,
+    K_forever = 319,
+    K_fork = 320,
+    K_function = 321,
+    K_highz0 = 322,
+    K_highz1 = 323,
+    K_if = 324,
+    K_ifnone = 325,
+    K_initial = 326,
+    K_inout = 327,
+    K_input = 328,
+    K_integer = 329,
+    K_join = 330,
+    K_large = 331,
+    K_macromodule = 332,
+    K_medium = 333,
+    K_module = 334,
+    K_nand = 335,
+    K_negedge = 336,
+    K_nmos = 337,
+    K_nor = 338,
+    K_not = 339,
+    K_notif0 = 340,
+    K_notif1 = 341,
+    K_or = 342,
+    K_output = 343,
+    K_parameter = 344,
+    K_pmos = 345,
+    K_posedge = 346,
+    K_primitive = 347,
+    K_pull0 = 348,
+    K_pull1 = 349,
+    K_pulldown = 350,
+    K_pullup = 351,
+    K_rcmos = 352,
+    K_real = 353,
+    K_realtime = 354,
+    K_reg = 355,
+    K_release = 356,
+    K_repeat = 357,
+    K_rnmos = 358,
+    K_rpmos = 359,
+    K_rtran = 360,
+    K_rtranif0 = 361,
+    K_rtranif1 = 362,
+    K_scalared = 363,
+    K_small = 364,
+    K_specify = 365,
+    K_specparam = 366,
+    K_strong0 = 367,
+    K_strong1 = 368,
+    K_supply0 = 369,
+    K_supply1 = 370,
+    K_table = 371,
+    K_task = 372,
+    K_time = 373,
+    K_tran = 374,
+    K_tranif0 = 375,
+    K_tranif1 = 376,
+    K_tri = 377,
+    K_tri0 = 378,
+    K_tri1 = 379,
+    K_triand = 380,
+    K_trior = 381,
+    K_trireg = 382,
+    K_vectored = 383,
+    K_wait = 384,
+    K_wand = 385,
+    K_weak0 = 386,
+    K_weak1 = 387,
+    K_while = 388,
+    K_wire = 389,
+    K_wor = 390,
+    K_xnor = 391,
+    K_xor = 392,
+    K_Shold = 393,
+    K_Snochange = 394,
+    K_Speriod = 395,
+    K_Srecovery = 396,
+    K_Ssetup = 397,
+    K_Ssetuphold = 398,
+    K_Sskew = 399,
+    K_Swidth = 400,
+    KK_attribute = 401,
+    K_bool = 402,
+    K_logic = 403,
+    K_automatic = 404,
+    K_endgenerate = 405,
+    K_generate = 406,
+    K_genvar = 407,
+    K_localparam = 408,
+    K_noshowcancelled = 409,
+    K_pulsestyle_onevent = 410,
+    K_pulsestyle_ondetect = 411,
+    K_showcancelled = 412,
+    K_signed = 413,
+    K_unsigned = 414,
+    K_Sfullskew = 415,
+    K_Srecrem = 416,
+    K_Sremoval = 417,
+    K_Stimeskew = 418,
+    K_cell = 419,
+    K_config = 420,
+    K_design = 421,
+    K_endconfig = 422,
+    K_incdir = 423,
+    K_include = 424,
+    K_instance = 425,
+    K_liblist = 426,
+    K_library = 427,
+    K_use = 428,
+    K_wone = 429,
+    K_uwire = 430,
+    K_always_comb = 431,
+    K_always_ff = 432,
+    K_always_latch = 433,
+    K_assert = 434,
+    K_abs = 435,
+    K_abstol = 436,
+    K_access = 437,
+    K_acos = 438,
+    K_acosh = 439,
+    K_analog = 440,
+    K_asin = 441,
+    K_asinh = 442,
+    K_atan = 443,
+    K_atan2 = 444,
+    K_atanh = 445,
+    K_ceil = 446,
+    K_continuous = 447,
+    K_cos = 448,
+    K_cosh = 449,
+    K_ddt_nature = 450,
+    K_discipline = 451,
+    K_discrete = 452,
+    K_domain = 453,
+    K_enddiscipline = 454,
+    K_endnature = 455,
+    K_exclude = 456,
+    K_exp = 457,
+    K_floor = 458,
+    K_flow = 459,
+    K_from = 460,
+    K_ground = 461,
+    K_hypot = 462,
+    K_idt_nature = 463,
+    K_inf = 464,
+    K_ln = 465,
+    K_log = 466,
+    K_max = 467,
+    K_min = 468,
+    K_nature = 469,
+    K_potential = 470,
+    K_pow = 471,
+    K_sin = 472,
+    K_sinh = 473,
+    K_sqrt = 474,
+    K_string = 475,
+    K_tan = 476,
+    K_tanh = 477,
+    K_units = 478,
+    SV_TRUE = 479,
+    SV_FALSE = 480,
+    SV_BOOL = 481,
+    K_TAND = 482,
+    UNARY_PREC = 483,
+    less_than_K_else = 484
+  };
+#endif
+
+/* Value type.  */
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+
+union YYSTYPE
+{
+#line 165 "parse.y" /* yacc.c:1909  */
+
+      bool flag;
+
+      char letter;
+
+	/* text items are C strings allocated by the lexor using
+	   strdup. They can be put into lists with the texts type. */
+      char*text;
+      list<perm_string>*perm_strings;
+
+      list<pair<perm_string,PExpr*> >*port_list;
+
+      pform_name_t*pform_name;
+
+      ivl_discipline_t discipline;
+
+      hname_t*hier;
+
+      list<string>*strings;
+
+      struct str_pair_t drive;
+
+      PCase::Item*citem;
+      svector<PCase::Item*>*citems;
+
+      lgate*gate;
+      svector<lgate>*gates;
+
+      Module::port_t *mport;
+      LexicalScope::range_t* value_range;
+      vector<Module::port_t*>*mports;
+
+      named_pexpr_t*named_pexpr;
+      svector<named_pexpr_t*>*named_pexprs;
+      struct parmvalue_t*parmvalue;
+
+      PExpr*expr;
+      svector<PExpr*>*exprs;
+
+      svector<PEEvent*>*event_expr;
+
+      NetNet::Type nettype;
+      PGBuiltin::Type gatetype;
+      NetNet::PortType porttype;
+      ivl_variable_type_t datatype;
+
+      PWire*wire;
+      svector<PWire*>*wires;
+
+      PEventStatement*event_statement;
+      Statement*statement;
+      svector<Statement*>*statement_list;
+
+      PTaskFuncArg function_type;
+
+      net_decl_assign_t*net_decl_assign;
+
+      verinum* number;
+
+      verireal* realtime;
+
+      PSpecPath* specpath;
+      list<index_component_t> *dimensions;
+      
+      SecType*sectype;
+      IQuantExpr*iqetype;
+      BQuantExpr*bqetype;
+      LQuantExpr*lqetype;
+
+#line 354 "parse.hh" /* yacc.c:1909  */
+};
+
+typedef union YYSTYPE YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
+# define YYSTYPE_IS_DECLARED 1
+#endif
+
+/* Location type.  */
+#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
+typedef struct YYLTYPE YYLTYPE;
+struct YYLTYPE
+{
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+};
+# define YYLTYPE_IS_DECLARED 1
+# define YYLTYPE_IS_TRIVIAL 1
+#endif
+
+
+extern YYSTYPE VLlval;
+extern YYLTYPE VLlloc;
+int VLparse (void);
+
+#endif /* !YY_VL_PARSE_HH_INCLUDED  */

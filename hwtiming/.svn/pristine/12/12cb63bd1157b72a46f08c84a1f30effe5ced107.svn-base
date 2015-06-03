@@ -1,0 +1,7 @@
+Compiling file sound.v
+Verifying file sound.v
+fail
+(assert  (not(leq HIGH  (Par x))))    ; no-sensitive-upgrade check x = 1 @sound.v:28
+(assert (and (= x 1)  (not(leq (Par x)  (Par x69)))))    ; x = high @sound.v:69
+(assert (and (= x 1)  (not(leq (Par x)  (Par x76)))))    ; x = (x)-(1) @sound.v:76
+Total: 3 assertions failed

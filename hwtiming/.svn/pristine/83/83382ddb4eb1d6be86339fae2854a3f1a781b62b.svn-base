@@ -1,0 +1,5 @@
+/usr/local/lib/gcc/mipseb-linux/3.4.4/../../../../mipseb-linux/lib/crt1.o(.text+0xc): In function `__start':
+: undefined reference to `main'
+/usr/local/lib/gcc/mipseb-linux/3.4.4/../../../../mipseb-linux/lib/crt1.o(.text+0x10): In function `__start':
+: undefined reference to `main'
+collect2: ld returned 1 exit status
