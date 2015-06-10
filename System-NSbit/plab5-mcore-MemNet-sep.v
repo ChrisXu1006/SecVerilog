@@ -7,7 +7,9 @@
 
 `include "vc-mem-msgs.v"
 `include "vc-net-msgs.v"
+`include "plab5-mcore-define.v"
 `include "plab5-mcore-mem-net-adapters.v"
+`include "plab5-mcore-mem-net-adapters-insecure.v"
 `include "plab4-net-RingNetAlt-sep.v"
 
 module plab5_mcore_MemNet_Sep
@@ -71,6 +73,7 @@ module plab5_mcore_MemNet_Sep
 	output				resp_out_domain_p0,
 	output				resp_out_val_p0,
 	input				resp_out_rdy_p0,
+	output				resp_out_fail_p0,
 
 	output	[rqc-1:0]	req_out_msg_control_p0,
 	output  [rqd-1:0]	req_out_msg_data_p0,
@@ -83,6 +86,7 @@ module plab5_mcore_MemNet_Sep
 	input				resp_in_domain_p0,
 	input				resp_in_val_p0,
 	output				resp_in_rdy_p0,
+	input				resp_in_fail_p0,
 
 	input	[rq-1:0]	req_in_msg_p1,
 	input				req_in_domain_p1,
@@ -93,6 +97,7 @@ module plab5_mcore_MemNet_Sep
 	output				resp_out_domain_p1,
 	output				resp_out_val_p1,
 	input				resp_out_rdy_p1,
+	output				resp_out_fail_p1,
 
 	output	[rqc-1:0]	req_out_msg_control_p1,
 	output  [rqd-1:0]	req_out_msg_data_p1,
@@ -104,7 +109,8 @@ module plab5_mcore_MemNet_Sep
 	input	[rsd-1:0]	resp_in_msg_data_p1,
 	input				resp_in_domain_p1,
 	input				resp_in_val_p1,
-	output				resp_in_rdy_p1
+	output				resp_in_rdy_p1,
+	input				resp_in_fail_p1
 
 );
 
@@ -113,13 +119,13 @@ module plab5_mcore_MemNet_Sep
 	wire	[nrqc:0]	req_net_out_msg_control_p0;
 	wire	[nrqd-1:0]	req_net_out_msg_data_p0;
 
-	wire	[nrsc:0]	resp_net_in_msg_control_p0;
+	wire	[nrsc+1:0]	resp_net_in_msg_control_p0;
 	wire	[nrsd-1:0]	resp_net_in_msg_data_p0;
-	wire	[nrsc:0]	resp_net_out_msg_control_p0;
+	wire	[nrsc+1:0]	resp_net_out_msg_control_p0;
 	wire	[nrsd-1:0]	resp_net_out_msg_data_p0;
 
 	wire	[rqc:0]		req_out_msg_control_M_p0;
-	wire	[rsc:0]		resp_out_msg_control_M_p0;
+	wire	[rsc+1:0]	resp_out_msg_control_M_p0;
 	wire	[rsc-1:0]	resp_out_msg_control_p0;
 	wire	[rsd-1:0]	resp_out_msg_data_p0;
 
@@ -128,20 +134,23 @@ module plab5_mcore_MemNet_Sep
 	wire	[nrqc:0]	req_net_out_msg_control_p1;
 	wire	[nrqd-1:0]	req_net_out_msg_data_p1;
 
-	wire	[nrsc:0]	resp_net_in_msg_control_p1;
+	wire	[nrsc+1:0]	resp_net_in_msg_control_p1;
 	wire	[nrsd-1:0]	resp_net_in_msg_data_p1;
-	wire	[nrsc:0]	resp_net_out_msg_control_p1;
+	wire	[nrsc+1:0]	resp_net_out_msg_control_p1;
 	wire	[nrsd-1:0]	resp_net_out_msg_data_p1;
 
 	wire	[rqc:0]		req_out_msg_control_M_p1;
-	wire	[rsc:0]		resp_out_msg_control_M_p1;
+	wire	[rsc+1:0]	resp_out_msg_control_M_p1;
 	wire	[rsc-1:0]	resp_out_msg_control_p1;
 	wire	[rsd-1:0]	resp_out_msg_data_p1;
 	
 
 	// proc req mem msg to net msg adapter
-
-	plab5_mcore_MemReqMsgToNetMsg
+	`ifdef MEM_REQ_TRANS_SECURE
+		plab5_mcore_MemReqMsgToNetMsg
+	`elsif MEM_REQ_TRANS_INSECURE
+		plab5_mcore_MemReqMsgToNetMsg_Insecure
+	`endif
     #(
         .p_net_src            (0),
         .p_num_ports          (p_num_ports),
@@ -164,7 +173,11 @@ module plab5_mcore_MemNet_Sep
         .net_msg_data		(req_net_in_msg_data_p0)
       );
 
-	plab5_mcore_MemReqMsgToNetMsg
+	`ifdef MEM_REQ_TRANS_SECURE
+		plab5_mcore_MemReqMsgToNetMsg
+	`elsif MEM_REQ_TRANS_INSECURE
+		plab5_mcore_MemReqMsgToNetMsg_Insecure
+	`endif
     #(
         .p_net_src            (1),
         .p_num_ports          (p_num_ports),
@@ -195,8 +208,9 @@ module plab5_mcore_MemNet_Sep
         .payload  (req_out_msg_control_M_p0)
       );
 
-	  assign {req_out_domain_p0, req_out_msg_control_p0} 
-		= req_out_msg_control_M_p0;
+	  wire	req_out_domain_p0_M;
+	  assign {req_out_domain_p0_M, req_out_msg_control_p0} 
+	  = req_out_msg_control_M_p0;
 
 	  vc_NetMsgUnpack #(rqc+1,no,ns) req_net_msg_control_unpack_p1
       (
@@ -204,8 +218,9 @@ module plab5_mcore_MemNet_Sep
         .payload  (req_out_msg_control_M_p1)
       );
  
-	   assign {req_out_domain_p1, req_out_msg_control_p1} 
-		 = req_out_msg_control_M_p1;
+	  wire	req_out_domain_p1_M;
+	  assign {req_out_domain_p1_M, req_out_msg_control_p1} 
+	  = req_out_msg_control_M_p1;
 
 
 	  // extract the cache req mem msg from net msg payload
@@ -214,7 +229,11 @@ module plab5_mcore_MemNet_Sep
 
 	  // cache resp mem msg to net msg adapter
 
-	  plab5_mcore_MemRespMsgToNetMsg
+	  `ifdef MEM_RESP_TRANS_SECURE
+		 plab5_mcore_MemRespMsgToNetMsg
+	  `elsif MEM_RESP_TRANS_INSECURE
+		 plab5_mcore_MemRespMsgToNetMsg_Insecure
+	  `endif
       #(
         .p_net_src            (0),
         .p_num_ports          (p_num_ports),
@@ -227,14 +246,21 @@ module plab5_mcore_MemNet_Sep
       )
       cache_mem_msg_to_net_msg_p0
       (
+		.mode			(mode),
 	    .mem_msg_control(resp_in_msg_control_p0),
 		.mem_msg_data	(resp_in_msg_data_p0),
 		.mem_msg_domain (resp_in_domain_p0),
+		.mem_msg_fail	(resp_in_fail_p0),
         .net_msg_control(resp_net_in_msg_control_p0),
 		.net_msg_data	(resp_net_in_msg_data_p0)
       );
 
-	  plab5_mcore_MemRespMsgToNetMsg
+	  `ifdef MEM_RESP_TRANS_SECURE
+		 plab5_mcore_MemRespMsgToNetMsg
+	  `elsif MEM_RESP_TRANS_INSECURE
+		 plab5_mcore_MemRespMsgToNetMsg_Insecure
+	  `endif
+
       #(
         .p_net_src            (1),
         .p_num_ports          (p_num_ports),
@@ -247,35 +273,46 @@ module plab5_mcore_MemNet_Sep
       )
       cache_mem_msg_to_net_msg_p1
       (
+		.mode			(mode),
 	    .mem_msg_control(resp_in_msg_control_p1),
 		.mem_msg_data	(resp_in_msg_data_p1),
 		.mem_msg_domain (resp_in_domain_p1),
+		.mem_msg_fail	(resp_in_fail_p1),
         .net_msg_control(resp_net_in_msg_control_p1),
 		.net_msg_data	(resp_net_in_msg_data_p1)
       );
 
 	  // extract the proc resp mem msg from net msg payload
 
-	  vc_NetMsgUnpack #(rsc+1,no,ns) resp_net_msg_control_unpack_p0
+	  vc_NetMsgUnpack #(rsc+2,no,ns) resp_net_msg_control_unpack_p0
       (
         .msg      (resp_net_out_msg_control_p0),
         .payload  (resp_out_msg_control_M_p0)
       );
 
-	  assign {resp_out_domain_p0, resp_out_msg_control_p0}
+	  /*always @(*) begin
+		if ( resp_out_domain_p0_M == 1'b1 )
+			resp_out_domain_p0 = 1'b0;
+		else
+			resp_out_domain_p0 = resp_out_domain_p0_M;
+	  end*/
+
+	  wire resp_out_domain_p0_M; 
+	  assign {resp_out_domain_p0_M, resp_out_fail_p0, resp_out_msg_control_p0}
 		= resp_out_msg_control_M_p0;
 
 	  assign resp_out_msg_data_p0 = resp_net_out_msg_data_p0;
 
 	  assign resp_out_msg_p0 = { resp_out_msg_control_p0, resp_out_msg_data_p0 };
 
-	  vc_NetMsgUnpack #(rsc+1,no,ns) resp_net_msg_control_unpack_p1
+	  vc_NetMsgUnpack #(rsc+2,no,ns) resp_net_msg_control_unpack_p1
       (
         .msg      (resp_net_out_msg_control_p1),
         .payload  (resp_out_msg_control_M_p1)
       );
 
-	  assign {resp_out_domain_p1, resp_out_msg_control_p1}
+	  wire resp_out_domain_p1_M;
+	  assign {resp_out_domain_p1_M, resp_out_fail_p1, resp_out_msg_control_p1}
 		= resp_out_msg_control_M_p1;
 
 	  assign resp_out_msg_data_p1 = resp_net_out_msg_data_p1;
@@ -300,26 +337,23 @@ module plab5_mcore_MemNet_Sep
 	// than cache/mem 
 	
     assign req_net_in_val_p0   = req_in_val_p0;
-	assign req_net_out_rdy_p0  = p_single_bank ? { 32'h0, req_out_rdy_p0[0] } :
-												req_out_rdy_p0;
-	assign resp_net_in_val_p0  = p_single_bank ? { 32'h0, resp_in_val_p0[0] } :
-												resp_in_val_p0;
+	assign req_net_out_rdy_p0  = req_out_rdy_p0;
+	assign resp_net_in_val_p0  = resp_in_val_p0;
 	assign resp_net_out_rdy_p0 = resp_out_rdy_p0;	
 
 	assign req_net_in_val_p1   = req_in_val_p1;
-	assign req_net_out_rdy_p1  = p_single_bank ? { 32'h0, req_out_rdy_p1[0] } :
-												req_out_rdy_p1;
-	assign resp_net_in_val_p1  = p_single_bank ? { 32'h0, resp_in_val_p1[0] } :
-												resp_in_val_p1;
+	assign req_net_out_rdy_p1  = req_out_rdy_p1;
+	assign resp_net_in_val_p1  = resp_in_val_p1;
 	assign resp_net_out_rdy_p1 = resp_out_rdy_p1;	
 
-	plab4_net_RingNetAlt_Sep #(rqc+1, rqd, no, ns, 2) req_net
+	plab4_net_RingNetAlt_Sep #(rqc+1, rqd, no, ns, 2, 1) req_net
 	(
 		.clk				(clk),
 		.reset				(reset),
 
 		.in_val_p0			(req_net_in_val_p0),
 		.in_rdy_p0			(req_in_rdy_p0),
+		.in_domain_p0		(0),
 		.in_msg_control_p0	(req_net_in_msg_control_p0),
 		.in_msg_data_p0		(req_net_in_msg_data_p0),
 
@@ -327,27 +361,31 @@ module plab5_mcore_MemNet_Sep
 		.out_rdy_p0			(req_net_out_rdy_p0),
 		.out_msg_control_p0	(req_net_out_msg_control_p0),
 		.out_msg_data_p0	(req_net_out_msg_data_p0),
+		.out_domain_p0		(req_out_domain_p0),
 
 		.in_val_p1			(req_net_in_val_p1),
 		.in_rdy_p1			(req_in_rdy_p1),
+		.in_domain_p1		(1),
 		.in_msg_control_p1	(req_net_in_msg_control_p1),
 		.in_msg_data_p1		(req_net_in_msg_data_p1),
 
 		.out_val_p1			(req_out_val_p1),
 		.out_rdy_p1			(req_net_out_rdy_p1),
 		.out_msg_control_p1	(req_net_out_msg_control_p1),
-		.out_msg_data_p1	(req_net_out_msg_data_p1)
+		.out_msg_data_p1	(req_net_out_msg_data_p1),
+		.out_domain_p1		(req_out_domain_p1)
 	);
 
 	// response network
 
-	plab4_net_RingNetAlt_Sep #(rsc+1,rsd,no,ns,2) resp_net
+	plab4_net_RingNetAlt_Sep #(rsc+2,rsd,no,ns,2) resp_net
 	(
 		.clk				(clk),
 		.reset				(reset),
 
 		.in_val_p0			(resp_net_in_val_p0),
 		.in_rdy_p0			(resp_in_rdy_p0),
+		.in_domain_p0		(resp_in_domain_p0),
 		.in_msg_control_p0	(resp_net_in_msg_control_p0),
 		.in_msg_data_p0		(resp_net_in_msg_data_p0),
 
@@ -355,16 +393,19 @@ module plab5_mcore_MemNet_Sep
 		.out_rdy_p0			(resp_net_out_rdy_p0),
 		.out_msg_control_p0	(resp_net_out_msg_control_p0),
 		.out_msg_data_p0	(resp_net_out_msg_data_p0),
+		.out_domain_p0		(resp_out_domain_p0),
 
 		.in_val_p1			(resp_net_in_val_p1),
 		.in_rdy_p1			(resp_in_rdy_p1),
+		.in_domain_p1		(resp_in_domain_p1),
 		.in_msg_control_p1	(resp_net_in_msg_control_p1),
 		.in_msg_data_p1		(resp_net_in_msg_data_p1),
 
 		.out_val_p1			(resp_out_val_p1),
 		.out_rdy_p1			(resp_net_out_rdy_p1),
 		.out_msg_control_p1	(resp_net_out_msg_control_p1),
-		.out_msg_data_p1	(resp_net_out_msg_data_p1)
+		.out_msg_data_p1	(resp_net_out_msg_data_p1),
+		.out_domain_p1		(resp_out_domain_p1)
 	);
 
 endmodule

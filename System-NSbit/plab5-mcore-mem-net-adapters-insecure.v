@@ -2,13 +2,13 @@
 // Memory-Network message adapters
 //========================================================================
 
-`ifndef PLAB5_MCORE_MEM_NET_ADAPTERS_V
-`define PLAB5_MCORE_MEM_NET_ADAPTERS_V
+`ifndef PLAB5_MCORE_MEM_NET_ADAPTERS_INSECURE_V
+`define PLAB5_MCORE_MEM_NET_ADAPTERS_INSECURE_V
 
 `include "vc-mem-msgs.v"
 `include "vc-net-msgs.v"
 
-module plab5_mcore_MemReqMsgToNetMsg
+module plab5_mcore_MemReqMsgToNetMsg_Insecure
 #(
 
   // the source index where this memory request is originating (core id)
@@ -139,7 +139,7 @@ module plab5_mcore_MemReqMsgToNetMsg
     .dest     (net_dest),
     .src      (p_net_src[ns-1:0]),
     .opaque   (0),
-    .payload  ({req_domain,net_payload_control}),
+    .payload  ({~req_domain,net_payload_control}),
 
     .msg      (net_msg_control)
   );
@@ -149,7 +149,7 @@ module plab5_mcore_MemReqMsgToNetMsg
 endmodule
 
 
-module plab5_mcore_MemRespMsgToNetMsg
+module plab5_mcore_MemRespMsgToNetMsg_Insecure
 #(
 
   // the source index where this memory response is originating (bank id)
@@ -203,8 +203,6 @@ module plab5_mcore_MemRespMsgToNetMsg
   parameter c_net_msg_dnbits= npd
 )
 (
-
-  // mode 0 for instruction, mdoe 1 for data
   input							mode,
 
   input  [c_mem_msg_cnbits-1:0] mem_msg_control,
@@ -224,7 +222,7 @@ module plab5_mcore_MemRespMsgToNetMsg
   wire [p_net_srcdest_nbits-1:0] net_dest;
 
   assign mem_msg_opaque = mem_msg[`VC_MEM_RESP_MSG_OPAQUE_FIELD(mo,md)];
-  assign net_dest = mem_msg_opaque[mo-1 -: ns];
+  assign net_dest = ( mode === 0 ) ? mem_msg_opaque[mo-1 -: ns] : 0;
 
   // re-pack the memory message without the destination opaque field
 
@@ -265,4 +263,4 @@ module plab5_mcore_MemRespMsgToNetMsg
 endmodule
 
 
-`endif /* PLAB5_MCORE_MEM_NET_ADAPTERS_V */
+`endif /* PLAB5_MCORE_MEM_NET_ADAPTERS_INSECUREV */

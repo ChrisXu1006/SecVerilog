@@ -9,11 +9,13 @@
 `include "vc-mem-msgs.v"
 `include "plab2-proc-PipelinedProcBypass.v"
 `include "plab2-proc-PIC.v"
+`include "plab3-mem-BlockingL1Cache.v"
 `include "plab3-mem-BlockingCacheSec.v"
 `include "plab3-mem-BlockingCacheSec-FSM.v"
 `include "plab3-mem-BlockingCacheSec-FSM1.v"
 `include "plab3-mem-BlockingCacheAlt-sectag.v"
 `include "plab5-mcore-define.v"
+`include "plab5-mcore-debug.v"
 `include "plab5-mcore-proc-acc.v"
 `include "plab5-mcore-proc-acc-insecure.v"
 `include "plab5-mcore-mem-addr-ctrl.v"
@@ -24,8 +26,10 @@
 module plab5_mcore_ProcNetCacheMem
 #(
 	parameter	p_mem_nbytes  = 1 << 16,
-	parameter	p_inst_nbytes = 256,
-	parameter	p_data_nbytes = 256,
+	parameter	p_l1_inst_nbytes = 256,		// L1 Cache Size
+	parameter	p_l1_data_nbytes = 256,
+	parameter   p_l2_inst_nbytes = 1024,	// L2 Cache Size
+	parameter   p_l2_data_nbytes = 1024,
 
 	parameter	p_num_cores	= 2,
 
@@ -108,62 +112,71 @@ module plab5_mcore_ProcNetCacheMem
 	
 	// wires connected to processor0
 	
-	wire	[prq-1:0]	inst_net_req_in_msg_proc_d0;
-	wire				inst_net_req_in_val_d0;
-	wire				inst_net_req_in_rdy_d0;
+	wire	[prq-1:0]	inst_cache_req_msg_p0;
+	wire				inst_cache_req_val_p0;
+	wire				inst_cache_req_rdy_p0;
 
-	wire	[prs-1:0]	inst_proc_resp_out_msg_proc_d0;
-	wire				inst_proc_resp_out_val_d0;
-	wire				inst_proc_resp_out_rdy_d0;
+	wire	[prs-1:0]	inst_cache_resp_msg_p0;
+	wire				inst_cache_resp_val_p0;
+	wire				inst_cache_resp_rdy_p0;
 
-	wire	[prq-1:0]	data_net_req_in_msg_proc_d0;
-	wire				data_net_req_in_val_d0;
-	wire				data_net_req_in_rdy_d0;
+	wire	[prq-1:0]	data_cache_req_msg_p0;
+	wire				data_cache_req_val_p0;
+	wire				data_cache_req_rdy_p0;
 
-	wire	[prs-1:0]	data_proc_resp_out_msg_proc_d0;
-	wire				data_proc_resp_out_val_d0;
-	wire				data_proc_resp_out_rdy_d0;
+	wire	[prs-1:0]	data_cache_resp_msg_p0;
+	wire				data_cache_resp_val_p0;
+	wire				data_cache_resp_rdy_p0;
 
 	wire				cacheable_p0;
 	wire				req_in_domain_d0;
 	
-	wire				par_en_p0;
-	wire	[31:0]		par_addr_p0;		
-
 	wire				intr_rq_p0;
 	wire				intr_set_p0;
 	wire				intr_ack_p0;
 	wire				intr_val_p0;
 
+	wire				req_val_DB_p0;
+	wire				req_rdy_DB_p0;
+	wire	[5:0]		req_cmd_DB_p0;
+	
+	wire				resp_val_DB_p0;
+	wire				resp_rdy_DB_p0;
+	wire	[31:0]		resp_msg_DB_p0;
+
 	// wires connected to processor1
 	
-	wire	[prq-1:0]	inst_net_req_in_msg_proc_d1;
-	wire				inst_net_req_in_domain_d1;
-	wire				inst_net_req_in_val_d1;
-	wire				inst_net_req_in_rdy_d1;
+	wire	[prq-1:0]	inst_cache_req_msg_p1;
+	wire				inst_cache_req_val_p1;
+	wire				inst_cache_req_rdy_p1;
 
-	wire	[prs-1:0]	inst_proc_resp_out_msg_proc_d1;
-	wire				inst_proc_resp_out_val_d1;
-	wire				inst_proc_resp_out_rdy_d1;
+	wire	[prs-1:0]	inst_cache_resp_msg_p1;
+	wire				inst_cache_resp_val_p1;
+	wire				inst_cache_resp_rdy_p1;
 
-	wire	[prq-1:0]	data_net_req_in_msg_proc_d1;
-	wire				data_net_req_in_val_d1;
-	wire				data_net_req_in_rdy_d1;
+	wire	[prq-1:0]	data_cache_req_msg_p1;
+	wire				data_cache_req_val_p1;
+	wire				data_cache_req_rdy_p1;
 
-	wire	[prs-1:0]	data_proc_resp_out_msg_proc_d1;
-	wire				data_proc_resp_out_val_d1;
-	wire				data_proc_resp_out_rdy_d1;
+	wire	[prs-1:0]	data_cache_resp_msg_p1;
+	wire				data_cache_resp_val_p1;
+	wire				data_cache_resp_rdy_p1;
 
 	wire				cacheable_p1;
 	wire				req_in_domain_d1;
 	
-	wire				par_en_p1;
-	wire	[31:0]		par_addr_p1;
-
 	wire				intr_rq_p1;
 	wire				intr_set_p1;
 	wire				intr_ack_p1;
 	wire				intr_val_p1;
+
+	wire				req_val_DB_p1;
+	wire				req_rdy_DB_p1;
+	wire	[5:0]		req_cmd_DB_p1;
+
+	wire				resp_val_DB_p1;
+	wire				resp_rdy_DB_p1;
+	wire	[31:0]		resp_msg_DB_p1;	
 
 	// Processor module claim
 	
@@ -188,24 +201,21 @@ module plab5_mcore_ProcNetCacheMem
 
 		.cacheable		(cacheable_p0),
 
-		.par_en			(par_en_p0),
-		.par_addr		(par_addr_p0),
-		
-		.imemreq_msg	(inst_net_req_in_msg_proc_d0),
-		.imemreq_val	(inst_net_req_in_val_d0),
-		.imemreq_rdy	(inst_net_req_in_rdy_d0),
+		.imemreq_msg	(inst_cache_req_msg_p0),
+		.imemreq_val	(inst_cache_req_val_p0),
+		.imemreq_rdy	(inst_cache_req_rdy_p0),
 
-		.imemresp_msg	(inst_proc_resp_out_msg_proc_d0),
-		.imemresp_val	(inst_proc_resp_out_val_d0),
-		.imemresp_rdy	(inst_proc_resp_out_rdy_d0),
+		.imemresp_msg	(inst_cache_resp_msg_p0),
+		.imemresp_val	(inst_cache_resp_val_p0),
+		.imemresp_rdy	(inst_cache_resp_rdy_p0),
 
-		.dmemreq_msg	(data_net_req_in_msg_proc_d0),
-		.dmemreq_val	(data_net_req_in_val_d0),
-		.dmemreq_rdy	(data_net_req_in_rdy_d0),
+		.dmemreq_msg	(data_cache_req_msg_p0),
+		.dmemreq_val	(data_cache_req_val_p0),
+		.dmemreq_rdy	(data_cache_req_rdy_p0),
 
-		.dmemresp_msg	(data_proc_resp_out_msg_proc_d0),
-		.dmemresp_val	(data_proc_resp_out_val_d0),
-		.dmemresp_rdy	(data_proc_resp_out_rdy_d0),
+		.dmemresp_msg	(data_cache_resp_msg_p0),
+		.dmemresp_val	(data_cache_resp_val_p0),
+		.dmemresp_rdy	(data_cache_resp_rdy_p0),
 
 		.from_mngr_msg	(proc0_from_mngr_msg),
 		.from_mngr_val	(proc0_from_mngr_val),
@@ -239,24 +249,21 @@ module plab5_mcore_ProcNetCacheMem
 
 		.cacheable		(cacheable_p1),
 
-		.par_en			(par_en_p1),
-		.par_addr		(par_addr_p1),
-		
-		.imemreq_msg	(inst_net_req_in_msg_proc_d1),
-		.imemreq_val	(inst_net_req_in_val_d1),
-		.imemreq_rdy	(inst_net_req_in_rdy_d1),
+		.imemreq_msg	(inst_cache_req_msg_p1),
+		.imemreq_val	(inst_cache_req_val_p1),
+		.imemreq_rdy	(inst_cache_req_rdy_p1),
 
-		.imemresp_msg	(inst_proc_resp_out_msg_proc_d1),
-		.imemresp_val	(inst_proc_resp_out_val_d1),
-		.imemresp_rdy	(inst_proc_resp_out_rdy_d1),
+		.imemresp_msg	(inst_cache_resp_msg_p1),
+		.imemresp_val	(inst_cache_resp_val_p1),
+		.imemresp_rdy	(inst_cache_resp_rdy_p1),
 
-		.dmemreq_msg	(data_net_req_in_msg_proc_d1),
-		.dmemreq_val	(data_net_req_in_val_d1),
-		.dmemreq_rdy	(data_net_req_in_rdy_d1),
+		.dmemreq_msg	(data_cache_req_msg_p1),
+		.dmemreq_val	(data_cache_req_val_p1),
+		.dmemreq_rdy	(data_cache_req_rdy_p1),
 
-		.dmemresp_msg	(data_proc_resp_out_msg_proc_d1),
-		.dmemresp_val	(data_proc_resp_out_val_d1),
-		.dmemresp_rdy	(data_proc_resp_out_rdy_d1),
+		.dmemresp_msg	(data_cache_resp_msg_p1),
+		.dmemresp_val	(data_cache_resp_val_p1),
+		.dmemresp_rdy	(data_cache_resp_rdy_p1),
 
 		.from_mngr_msg	(proc1_from_mngr_msg),
 		.from_mngr_val	(proc1_from_mngr_val),
@@ -286,27 +293,193 @@ module plab5_mcore_ProcNetCacheMem
 		.intr_val_p1	(intr_val_p1)
 	);
 
+	// Declare private cache wires  
+	
+	wire [mrq-1:0]		inst_net_req_in_msg_proc_d0;
+	wire				inst_net_req_in_val_d0;
+	wire				inst_net_req_in_rdy_d0;
+
+	wire [mrs-1:0]		inst_proc_resp_out_msg_proc_d0;
+	wire			    inst_proc_resp_out_val_d0;
+	wire				inst_proc_resp_out_rdy_d0;	
+	wire				inst_proc_resp_out_fail_d0;
+
+	wire [mrq-1:0]		inst_net_req_in_msg_proc_d1;
+	wire				inst_net_req_in_val_d1;
+	wire				inst_net_req_in_rdy_d1;
+
+	wire [mrs-1:0]		inst_proc_resp_out_msg_proc_d1;
+	wire				inst_proc_resp_out_val_d1;
+	wire				inst_proc_resp_out_rdy_d1;
+	wire				inst_proc_resp_out_fail_d1;
+
+	wire [mrq-1:0]		data_net_req_in_msg_proc_d0;
+	wire				data_net_req_in_val_d0;
+	wire				data_net_req_in_rdy_d0;
+
+	wire [mrs-1:0]		data_proc_resp_out_msg_proc_d0;
+	wire				data_proc_resp_out_val_d0;
+	wire				data_proc_resp_out_rdy_d0;
+	wire				data_proc_resp_out_fail_d0;
+
+	wire [mrq-1:0]		data_net_req_in_msg_proc_d1;
+	wire				data_net_req_in_val_d1;
+	wire				data_net_req_in_rdy_d1;
+
+	wire [mrs-1:0]		data_proc_resp_out_msg_proc_d1;
+	wire				data_proc_resp_out_val_d1;
+	wire				data_proc_resp_out_rdy_d1;
+	wire				data_proc_resp_out_fail_d1;
+
+	// private instruction cache for processor0
+	
+	plab3_mem_BlockingL1Cache
+	#(
+		.p_mem_nbytes	(p_l1_inst_nbytes),
+		.p_num_banks	(1),
+		.p_opaque_nbits (o)
+	)
+	inst_l1cache_p0
+	(
+		.clk			(clk),
+		.reset			(reset),
+
+		.cachereq_msg	(inst_cache_req_msg_p0),
+		.cachereq_val	(inst_cache_req_val_p0),
+		.cachereq_rdy	(inst_cache_req_rdy_p0),
+
+		.cacheresp_msg	(inst_cache_resp_msg_p0),
+		.cacheresp_val	(inst_cache_resp_val_p0),
+		.cacheresp_rdy	(inst_cache_resp_rdy_p0),
+
+		.memreq_msg		(inst_net_req_in_msg_proc_d0),
+		.memreq_val		(inst_net_req_in_val_d0),
+		.memreq_rdy		(inst_net_req_in_rdy_d0),
+
+		.fail			(inst_proc_resp_out_fail_d0),
+		.memresp_msg	(inst_proc_resp_out_msg_proc_d0),
+		.memresp_val	(inst_proc_resp_out_val_d0),
+		.memresp_rdy	(inst_proc_resp_out_rdy_d0)
+	);
+
+	// private instruction cache for processor1
+	
+	plab3_mem_BlockingL1Cache
+	#(
+		.p_mem_nbytes	(p_l1_inst_nbytes),
+		.p_num_banks	(1),
+		.p_opaque_nbits	(o)
+	)
+	inst_l1cache_p1
+	(
+		.clk			(clk),
+		.reset			(reset),
+
+		.cachereq_msg	(inst_cache_req_msg_p1),
+		.cachereq_val	(inst_cache_req_val_p1),
+		.cachereq_rdy	(inst_cache_req_rdy_p1),
+
+		.cacheresp_msg	(inst_cache_resp_msg_p1),
+		.cacheresp_val	(inst_cache_resp_val_p1),
+		.cacheresp_rdy	(inst_cache_resp_rdy_p1),
+
+		.memreq_msg		(inst_net_req_in_msg_proc_d1),
+		.memreq_val		(inst_net_req_in_val_d1),
+		.memreq_rdy		(inst_net_req_in_rdy_d1),
+
+		.fail			(inst_proc_resp_out_fail_d1),
+		.memresp_msg	(inst_proc_resp_out_msg_proc_d1),
+		.memresp_val	(inst_proc_resp_out_val_d1),
+		.memresp_rdy	(inst_proc_resp_out_rdy_d1)
+	);
+
+	// private data cache for processor0
+	
+	plab3_mem_BlockingL1Cache
+	#(
+		.p_mem_nbytes	(p_l1_data_nbytes),
+		.p_num_banks	(1),
+		.p_opaque_nbits	(o)
+	)
+	data_l1cache_p0
+	(
+		.clk			(clk),
+		.reset			(reset),
+
+		.cachereq_msg	(data_cache_req_msg_p0),
+		.cachereq_val	(data_cache_req_val_p0),
+		.cachereq_rdy	(data_cache_req_rdy_p0),
+
+		.cacheresp_msg	(data_cache_resp_msg_p0),
+		.cacheresp_val	(data_cache_resp_val_p0),
+		.cacheresp_rdy	(data_cache_resp_rdy_p0),
+
+		.memreq_msg		(data_net_req_in_msg_proc_d0),
+		.memreq_val		(data_net_req_in_val_d0),
+		.memreq_rdy		(data_net_req_in_rdy_d0),
+
+		.fail			(data_proc_resp_out_fail_d0),
+		.memresp_msg	(data_proc_resp_out_msg_proc_d0),
+		.memresp_val	(data_proc_resp_out_val_d0),
+		.memresp_rdy	(data_proc_resp_out_rdy_d0)
+	);
+
+	// private data cache for processor1
+	
+	plab3_mem_BlockingL1Cache
+	#(
+		.p_mem_nbytes	(p_l1_data_nbytes),
+		.p_num_banks	(1),
+		.p_opaque_nbits	(o)
+	)
+	data_l1cache_p1
+	(
+		.clk			(clk),
+		.reset			(reset),
+
+		.cachereq_msg	(data_cache_req_msg_p1),
+		.cachereq_val	(data_cache_req_val_p1),
+		.cachereq_rdy	(data_cache_req_rdy_p1),
+
+		.cacheresp_msg	(data_cache_resp_msg_p1),
+		.cacheresp_val	(data_cache_resp_val_p1),
+		.cacheresp_rdy	(data_cache_resp_rdy_p1),
+
+		.memreq_msg		(data_net_req_in_msg_proc_d1),
+		.memreq_val		(data_net_req_in_val_d1),
+		.memreq_rdy		(data_net_req_in_rdy_d1),
+
+		.fail			(data_proc_resp_out_fail_d1),
+		.memresp_msg	(data_proc_resp_out_msg_proc_d1),
+		.memresp_val	(data_proc_resp_out_val_d1),
+		.memresp_rdy	(data_proc_resp_out_rdy_d1)
+	);
+
 	// network wires
 	wire   inst_net_resp_out_domain_d0;
 	wire   inst_net_resp_out_domain_d1;
 	wire   data_net_resp_out_domain_d0;
 	wire   data_net_resp_out_domain_d1;
 
-	wire [prs-1:0]	inst_net_resp_out_msg_proc_d0;
+	wire [mrs-1:0]	inst_net_resp_out_msg_proc_d0;
 	wire			inst_net_resp_out_val_d0;
 	wire			inst_net_resp_out_rdy_d0;
+	wire			inst_net_resp_out_fail_d0;
 
-	wire [prs-1:0]	inst_net_resp_out_msg_proc_d1;
+	wire [mrs-1:0]	inst_net_resp_out_msg_proc_d1;
 	wire			inst_net_resp_out_val_d1;
 	wire			inst_net_resp_out_rdy_d1;
+	wire			inst_net_resp_out_fail_d1;
 
-	wire [prs-1:0]	data_net_resp_out_msg_proc_d0;
+	wire [mrs-1:0]	data_net_resp_out_msg_proc_d0;
 	wire			data_net_resp_out_val_d0;
 	wire			data_net_resp_out_rdy_d0;
+	wire			data_net_resp_out_fail_d0;
 
-	wire [prs-1:0]	data_net_resp_out_msg_proc_d1;
+	wire [mrs-1:0]	data_net_resp_out_msg_proc_d1;
 	wire			data_net_resp_out_val_d1;
 	wire			data_net_resp_out_rdy_d1;
+	wire			data_net_resp_out_fail_d1;
 
 	// processor0 instruction response access control
 	`ifdef PROC_ACC_SECURE
@@ -317,7 +490,7 @@ module plab5_mcore_ProcNetCacheMem
 	#(
 		.p_opaque_nbits		(o),
 		.p_addr_nbits		(a),
-		.p_data_nbits		(d)
+		.p_data_nbits		(l)
 	)
 	inst_resp_acc_p0
 	(
@@ -328,10 +501,12 @@ module plab5_mcore_ProcNetCacheMem
 		.net_resp_val		(inst_net_resp_out_val_d0),
 		.net_resp_rdy		(inst_net_resp_out_rdy_d0),
 		.net_resp_msg		(inst_net_resp_out_msg_proc_d0),
+		.net_resp_fail		(inst_net_resp_out_fail_d0),
 
 		.proc_resp_val		(inst_proc_resp_out_val_d0),
 		.proc_resp_rdy		(inst_proc_resp_out_rdy_d0),
-		.proc_resp_msg		(inst_proc_resp_out_msg_proc_d0)
+		.proc_resp_msg		(inst_proc_resp_out_msg_proc_d0),
+		.proc_resp_fail		(inst_proc_resp_out_fail_d0)
 	);
 
 	// processor1 instruction response access control
@@ -343,7 +518,7 @@ module plab5_mcore_ProcNetCacheMem
 	#(
 		.p_opaque_nbits		(o),
 		.p_addr_nbits		(a),
-		.p_data_nbits		(d)
+		.p_data_nbits		(l)
 	)
 	inst_resp_acc_p1
 	(
@@ -354,10 +529,12 @@ module plab5_mcore_ProcNetCacheMem
 		.net_resp_val		(inst_net_resp_out_val_d1),
 		.net_resp_rdy		(inst_net_resp_out_rdy_d1),
 		.net_resp_msg		(inst_net_resp_out_msg_proc_d1),
+		.net_resp_fail		(inst_net_resp_out_fail_d1),
 
 		.proc_resp_val		(inst_proc_resp_out_val_d1),
 		.proc_resp_rdy		(inst_proc_resp_out_rdy_d1),
-		.proc_resp_msg		(inst_proc_resp_out_msg_proc_d1)
+		.proc_resp_msg		(inst_proc_resp_out_msg_proc_d1),
+		.proc_resp_fail		(inst_proc_resp_out_fail_d1)
 	);
 
 	// processor0 data response access control
@@ -369,7 +546,7 @@ module plab5_mcore_ProcNetCacheMem
 	#(
 		.p_opaque_nbits		(o),
 		.p_addr_nbits		(a),
-		.p_data_nbits		(d)
+		.p_data_nbits		(l)
 	)
 	data_resp_acc_p0
 	(
@@ -380,10 +557,12 @@ module plab5_mcore_ProcNetCacheMem
 		.net_resp_val		(data_net_resp_out_val_d0),
 		.net_resp_rdy		(data_net_resp_out_rdy_d0),
 		.net_resp_msg		(data_net_resp_out_msg_proc_d0),
+		.net_resp_fail		(data_net_resp_out_fail_d0),
 
 		.proc_resp_val		(data_proc_resp_out_val_d0),
 		.proc_resp_rdy		(data_proc_resp_out_rdy_d0),
-		.proc_resp_msg		(data_proc_resp_out_msg_proc_d0)
+		.proc_resp_msg		(data_proc_resp_out_msg_proc_d0),
+		.proc_resp_fail		(data_proc_resp_out_fail_d0)
 	);
 
 	// processor1 data response access control
@@ -395,7 +574,7 @@ module plab5_mcore_ProcNetCacheMem
 	#(
 		.p_opaque_nbits		(o),
 		.p_addr_nbits		(a),
-		.p_data_nbits		(d)
+		.p_data_nbits		(l)
 	)
 	data_resp_acc_p1
 	(
@@ -406,61 +585,65 @@ module plab5_mcore_ProcNetCacheMem
 		.net_resp_val		(data_net_resp_out_val_d1),
 		.net_resp_rdy		(data_net_resp_out_rdy_d1),
 		.net_resp_msg		(data_net_resp_out_msg_proc_d1),
+		.net_resp_fail		(data_net_resp_out_fail_d1),
 
 		.proc_resp_val		(data_proc_resp_out_val_d1),
 		.proc_resp_rdy		(data_proc_resp_out_rdy_d1),
-		.proc_resp_msg		(data_proc_resp_out_msg_proc_d1)
+		.proc_resp_msg		(data_proc_resp_out_msg_proc_d1),
+		.proc_resp_fail		(data_proc_resp_out_fail_d1)
 	);
 	
 	// declare cache-related wires
 	// req0/resp0 connected to router0, req1/resp1 connected to router1
 	
-	wire	[crqc-1:0]		inst_cachereq0_control;
-	wire	[crqd-1:0]		inst_cachereq0_data;
+	wire	[mrqc-1:0]		inst_cachereq0_control;
+	wire	[mrqd-1:0]		inst_cachereq0_data;
 	wire					inst_cachereq0_val;
 	wire					inst_cachereq0_rdy;
 	wire					inst_cachereq0_domain;
 
-	wire	[crsc-1:0]		inst_cacheresp0_control;
-	wire	[crsd-1:0]		inst_cacheresp0_data;
+	wire	[mrsc-1:0]		inst_cacheresp0_control;
+	wire	[mrsd-1:0]		inst_cacheresp0_data;
 	wire					inst_cacheresp0_val;
 	wire					inst_cacheresp0_rdy;
 	wire					inst_cacheresp0_domain;
 
-	wire	[crqc-1:0]		inst_cachereq1_control;
-	wire	[crqd-1:0]		inst_cachereq1_data;
+	wire	[mrqc-1:0]		inst_cachereq1_control;
+	wire	[mrqd-1:0]		inst_cachereq1_data;
 	wire					inst_cachereq1_val;
 	wire					inst_cachereq1_rdy;
 	wire					inst_cachereq1_domain;
 
-	wire	[crsc-1:0]		inst_cacheresp1_control;
-	wire	[crsd-1:0]		inst_cacheresp1_data;
+	wire	[mrsc-1:0]		inst_cacheresp1_control;
+	wire	[mrsd-1:0]		inst_cacheresp1_data;
 	wire					inst_cacheresp1_val;
 	wire					inst_cacheresp1_rdy;
+	wire					inst_cacheresp1_fail;
 	wire					inst_cacheresp1_domain;
 
-	wire	[crqc-1:0]		data_cachereq0_control;
-	wire	[crqd-1:0]		data_cachereq0_data;
+	wire	[mrqc-1:0]		data_cachereq0_control;
+	wire	[mrqd-1:0]		data_cachereq0_data;
 	wire					data_cachereq0_val;
 	wire					data_cachereq0_rdy;
 	wire					data_cachereq0_domain;
 
-	wire	[crsc-1:0]		data_cacheresp0_control;
-	wire	[crsd-1:0]		data_cacheresp0_data;
+	wire	[mrsc-1:0]		data_cacheresp0_control;
+	wire	[mrsd-1:0]		data_cacheresp0_data;
 	wire					data_cacheresp0_val;
 	wire					data_cacheresp0_rdy;
 	wire					data_cacheresp0_domain;
 
-	wire	[crqc-1:0]		data_cachereq1_control;
-	wire	[crqd-1:0]		data_cachereq1_data;
+	wire	[mrqc-1:0]		data_cachereq1_control;
+	wire	[mrqd-1:0]		data_cachereq1_data;
 	wire					data_cachereq1_val;
 	wire					data_cachereq1_rdy;
 	wire					data_cachereq1_domain;
 
-	wire	[crsc-1:0]		data_cacheresp1_control;
-	wire	[crsd-1:0]		data_cacheresp1_data;
+	wire	[mrsc-1:0]		data_cacheresp1_control;
+	wire	[mrsd-1:0]		data_cacheresp1_data;
 	wire					data_cacheresp1_val;
 	wire					data_cacheresp1_rdy;
+	wire					data_cacheresp1_fail;
 	wire					data_cacheresp1_domain;
 
 	//assign  inst_cacheresp0_domain = inst_cachereq0_domain;
@@ -477,7 +660,7 @@ module plab5_mcore_ProcNetCacheMem
 	#(
 		.p_mem_opaque_nbits			(o),
 		.p_mem_addr_nbits			(a),
-		.p_mem_data_nbits			(d),
+		.p_mem_data_nbits			(l),
 
 		.p_num_ports				(p_num_cores),
 
@@ -506,11 +689,13 @@ module plab5_mcore_ProcNetCacheMem
 		.resp_in_domain_p0			(inst_cacheresp0_domain),
 		.resp_in_val_p0				(inst_cacheresp0_val),
 		.resp_in_rdy_p0				(inst_cacheresp0_rdy),
+		.resp_in_fail_p0			(inst_L2_fail),
 
 		.resp_out_msg_p0			(inst_net_resp_out_msg_proc_d0),
 		.resp_out_domain_p0			(inst_net_resp_out_domain_d0),
 		.resp_out_val_p0			(inst_net_resp_out_val_d0),
 		.resp_out_rdy_p0			(inst_net_resp_out_rdy_d0),
+		.resp_out_fail_p0			(inst_net_resp_out_fail_d0),
 
 		.req_in_msg_p1				(inst_net_req_in_msg_proc_d1),
 		.req_in_domain_p1			(req_in_domain_d1),
@@ -528,11 +713,13 @@ module plab5_mcore_ProcNetCacheMem
 		.resp_in_domain_p1			(inst_cacheresp1_domain),
 		.resp_in_val_p1				(inst_cacheresp1_val),
 		.resp_in_rdy_p1				(inst_cacheresp1_rdy),
+		.resp_in_fail_p1			(inst_cacheresp1_fail),
 
 		.resp_out_msg_p1			(inst_net_resp_out_msg_proc_d1),
 		.resp_out_domain_p1			(inst_net_resp_out_domain_d1),
 		.resp_out_val_p1			(inst_net_resp_out_val_d1),
-		.resp_out_rdy_p1			(inst_net_resp_out_rdy_d1)
+		.resp_out_rdy_p1			(inst_net_resp_out_rdy_d1),
+		.resp_out_fail_p1			(inst_net_resp_out_fail_d1)
 
 	);
 
@@ -540,7 +727,7 @@ module plab5_mcore_ProcNetCacheMem
 	#(
 		.p_mem_opaque_nbits			(o),
 		.p_mem_addr_nbits			(a),
-		.p_mem_data_nbits			(d),
+		.p_mem_data_nbits			(l),
 
 		.p_num_ports				(p_num_cores),
 
@@ -569,11 +756,13 @@ module plab5_mcore_ProcNetCacheMem
 		.resp_in_domain_p0			(data_cacheresp0_domain),
 		.resp_in_val_p0				(data_cacheresp0_val),
 		.resp_in_rdy_p0				(data_cacheresp0_rdy),
+		.resp_in_fail_p0			(data_L2_fail),
 
 		.resp_out_msg_p0			(data_net_resp_out_msg_proc_d0),
 		.resp_out_domain_p0			(data_net_resp_out_domain_d0),
 		.resp_out_val_p0			(data_net_resp_out_val_d0),
 		.resp_out_rdy_p0			(data_net_resp_out_rdy_d0),
+		.resp_out_fail_p0			(data_net_resp_out_fail_d0),
 
 		.req_in_msg_p1				(data_net_req_in_msg_proc_d1),
 		.req_in_domain_p1			(req_in_domain_d1),
@@ -591,20 +780,25 @@ module plab5_mcore_ProcNetCacheMem
 		.resp_in_domain_p1			(data_cacheresp1_domain),
 		.resp_in_val_p1				(data_cacheresp1_val),
 		.resp_in_rdy_p1				(data_cacheresp1_rdy),
+		.resp_in_fail_p1			(data_cacheresp1_fail),
 
 		.resp_out_msg_p1			(data_net_resp_out_msg_proc_d1),
 		.resp_out_domain_p1			(data_net_resp_out_domain_d1),
 		.resp_out_val_p1			(data_net_resp_out_val_d1),
-		.resp_out_rdy_p1			(data_net_resp_out_rdy_d1)
+		.resp_out_rdy_p1			(data_net_resp_out_rdy_d1),
+		.resp_out_fail_p1			(data_net_resp_out_fail_d1)
 
 	);
 
 	// declare cache's wires
 	
-	wire [`VC_MEM_REQ_MSG_NBITS(o,a,d)-1:0]	inst_cachereq0_msg;
-	wire [`VC_MEM_RESP_MSG_NBITS(o,d)-1:0]	inst_cacheresp0_msg;
-	wire [`VC_MEM_REQ_MSG_NBITS(o,a,d)-1:0]	data_cachereq0_msg;
-	wire [`VC_MEM_RESP_MSG_NBITS(o,d)-1:0]	data_cacheresp0_msg;
+	wire [`VC_MEM_REQ_MSG_NBITS(o,a,l)-1:0]	inst_cachereq0_msg;
+	wire [`VC_MEM_RESP_MSG_NBITS(o,l)-1:0]	inst_cacheresp0_msg;
+	wire [`VC_MEM_REQ_MSG_NBITS(o,a,l)-1:0]	data_cachereq0_msg;
+	wire [`VC_MEM_RESP_MSG_NBITS(o,l)-1:0]	data_cacheresp0_msg;
+
+	wire									inst_L2_fail;
+	wire									data_L2_fail;
 
 	wire [`VC_MEM_REQ_MSG_NBITS(o,a,l)-1:0]	inst_cache2memreq0_msg;
 	wire									inst_cache2memreq0_val;
@@ -631,10 +825,10 @@ module plab5_mcore_ProcNetCacheMem
 
 	// shared instruction cache
 	
-	/*plab3_mem_BlockingCacheSec_fsm1
+	plab3_mem_BlockingCacheSec_fsm1
 	#(
 		.mode			    (0),
-		.p_mem_nbytes		(p_inst_nbytes),
+		.p_mem_nbytes		(p_l2_inst_nbytes),
 		.p_num_banks		(1),
 		.p_opaque_nbits		(o)
 	)
@@ -643,13 +837,12 @@ module plab5_mcore_ProcNetCacheMem
 		.clk				(clk),
 		.reset				(reset),
 
-		//.cacheable			(1'b1),
-
 		.procreq_msg		(inst_cachereq0_msg),
 		.procreq_val		(inst_cachereq0_val),
 		.procreq_domain		(inst_cachereq0_domain),
 		.procreq_rdy		(inst_cachereq0_rdy),
 
+		.fail				(inst_L2_fail),
 		.procresp_msg		(inst_cacheresp0_msg),
 		.procresp_val		(inst_cacheresp0_val),
 		.procresp_domain	(inst_cacheresp0_domain),
@@ -665,11 +858,11 @@ module plab5_mcore_ProcNetCacheMem
 		.memresp_domain		(inst_mem2cacheresp0_domain),
 		.memresp_val		(inst_mem2cacheresp0_val),
 		.memresp_rdy		(inst_mem2cacheresp0_rdy)
-	);*/
-    plab3_mem_BlockingCacheAlt_Sectag
+	);
+    /*plab3_mem_BlockingCacheAlt_Sectag
 	#(
 		.mode				(0),
-		.p_mem_nbytes		(p_inst_nbytes),
+		.p_mem_nbytes		(p_l2_inst_nbytes),
 		.p_num_banks		(1),
 		.p_opaque_nbits		(o)
 	)
@@ -698,7 +891,7 @@ module plab5_mcore_ProcNetCacheMem
 		.memresp_domain		(inst_mem2cacheresp0_domain),
 		.memresp_val		(inst_mem2cacheresp0_val),
 		.memresp_rdy		(inst_mem2cacheresp0_rdy)
-	);
+	);*/
 
 	// shared data cache
 	//`ifdef CACHE_SECURE
@@ -709,7 +902,7 @@ module plab5_mcore_ProcNetCacheMem
 	plab3_mem_BlockingCacheSec_fsm1
 	#(
 		.mode				(1),
-		.p_mem_nbytes		(p_data_nbytes),
+		.p_mem_nbytes		(p_l2_data_nbytes),
 		.p_num_banks		(1),
 		.p_opaque_nbits		(o)
 	)
@@ -718,13 +911,12 @@ module plab5_mcore_ProcNetCacheMem
 		.clk				(clk),
 		.reset				(reset),
 
-		//.cacheable			(cacheable_p0),
-
 		.procreq_msg		(data_cachereq0_msg),
 		.procreq_val		(data_cachereq0_val),
 		.procreq_domain		(data_cachereq0_domain),
 		.procreq_rdy		(data_cachereq0_rdy),
 
+		.fail				(data_L2_fail),
 		.procresp_msg		(data_cacheresp0_msg),
 		.procresp_val		(data_cacheresp0_val),
 		.procresp_domain	(data_cacheresp0_domain),
@@ -824,9 +1016,6 @@ module plab5_mcore_ProcNetCacheMem
 		.clk					(clk),
 		.reset					(reset),
 
-		.par_en					(0),
-		.par_addr				(par_addr_p1),
-		
 		.req_sec_level			(inst_cache2memreq0_domain),
 		.resp_sec_level			(inst_mem2cacheresp0_domain),
 		.insecure				(inst_insecure),
@@ -867,9 +1056,6 @@ module plab5_mcore_ProcNetCacheMem
 		.clk					(clk),
 		.reset					(reset),
 
-		.par_en					(par_en_p0),
-		.par_addr				(par_addr_p0),
-		
 		.req_sec_level			(data_cache2memreq0_domain),
 		.resp_sec_level			(data_mem2cacheresp0_domain),
 		.insecure				(data_insecure),
