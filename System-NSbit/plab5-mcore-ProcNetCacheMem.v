@@ -18,6 +18,9 @@
 `include "plab5-mcore-debug.v"
 `include "plab5-mcore-proc-acc.v"
 `include "plab5-mcore-proc-acc-insecure.v"
+`include "plab5-mcore-DMA-controller.v"
+`include "plab5-mcore-Debug-Interface.v"
+`include "plab5-mcore-mem-arbiter.v"
 `include "plab5-mcore-mem-addr-ctrl.v"
 `include "plab5-mcore-mem-addr-ctrl-FSM.v"
 `include "plab5-mcore-MemNet-sep.v"
@@ -136,13 +139,9 @@ module plab5_mcore_ProcNetCacheMem
 	wire				intr_ack_p0;
 	wire				intr_val_p0;
 
-	wire				req_val_DB_p0;
-	wire				req_rdy_DB_p0;
-	wire	[5:0]		req_cmd_DB_p0;
-	
-	wire				resp_val_DB_p0;
-	wire				resp_rdy_DB_p0;
-	wire	[31:0]		resp_msg_DB_p0;
+	wire	[prq-1:0]	debug_msg_p0;
+	wire				debug_val_p0;
+	wire				debug_rdy_p0;
 
 	// wires connected to processor1
 	
@@ -170,13 +169,9 @@ module plab5_mcore_ProcNetCacheMem
 	wire				intr_ack_p1;
 	wire				intr_val_p1;
 
-	wire				req_val_DB_p1;
-	wire				req_rdy_DB_p1;
-	wire	[5:0]		req_cmd_DB_p1;
-
-	wire				resp_val_DB_p1;
-	wire				resp_rdy_DB_p1;
-	wire	[31:0]		resp_msg_DB_p1;	
+	wire	[prq-1:0]	debug_msg_p1;
+	wire				debug_val_p1;
+	wire				debug_rdy_p1;
 
 	// Processor module claim
 	
@@ -216,6 +211,10 @@ module plab5_mcore_ProcNetCacheMem
 		.dmemresp_msg	(data_cache_resp_msg_p0),
 		.dmemresp_val	(data_cache_resp_val_p0),
 		.dmemresp_rdy	(data_cache_resp_rdy_p0),
+
+		.debug_msg		(debug_msg_p0),
+		.debug_val		(debug_val_p0),
+		.debug_rdy		(debug_rdy_p0),
 
 		.from_mngr_msg	(proc0_from_mngr_msg),
 		.from_mngr_val	(proc0_from_mngr_val),
@@ -264,6 +263,10 @@ module plab5_mcore_ProcNetCacheMem
 		.dmemresp_msg	(data_cache_resp_msg_p1),
 		.dmemresp_val	(data_cache_resp_val_p1),
 		.dmemresp_rdy	(data_cache_resp_rdy_p1),
+
+		.debug_msg		(debug_msg_p1),
+		.debug_val		(debug_val_p1),
+		.debug_rdy		(debug_rdy_p1),
 
 		.from_mngr_msg	(proc1_from_mngr_msg),
 		.from_mngr_val	(proc1_from_mngr_val),
@@ -651,8 +654,7 @@ module plab5_mcore_ProcNetCacheMem
 
 	assign  inst_cachereq1_rdy	= 1;
 	assign	inst_cacheresp1_val = 1;
-	assign  data_cachereq1_rdy	= 1;
-	assign  data_cacheresp1_val = 1;
+	//assign  data_cacheresp1_val = 1;
 
 	// inst refill net
 
@@ -859,39 +861,6 @@ module plab5_mcore_ProcNetCacheMem
 		.memresp_val		(inst_mem2cacheresp0_val),
 		.memresp_rdy		(inst_mem2cacheresp0_rdy)
 	);
-    /*plab3_mem_BlockingCacheAlt_Sectag
-	#(
-		.mode				(0),
-		.p_mem_nbytes		(p_l2_inst_nbytes),
-		.p_num_banks		(1),
-		.p_opaque_nbits		(o)
-	)
-	icache
-	(
-		.clk				(clk),
-		.reset				(reset),
-
-		.cachereq_msg		(inst_cachereq0_msg),
-		.cachereq_val		(inst_cachereq0_val),
-		.cachereq_domain	(inst_cachereq0_domain),
-		.cachereq_rdy		(inst_cachereq0_rdy),
-
-		.cacheresp_msg		(inst_cacheresp0_msg),
-		.cacheresp_val		(inst_cacheresp0_val),
-		.cacheresp_domain	(inst_cacheresp0_domain),
-		.cacheresp_rdy		(inst_cacheresp0_rdy),
-
-		.memreq_msg			(inst_cache2memreq0_msg),
-		.memreq_domain		(inst_cache2memreq0_domain),
-		.memreq_val			(inst_cache2memreq0_val),
-		.memreq_rdy			(inst_cache2memreq0_rdy),
-
-		.insecure			(inst_insecure),
-		.memresp_msg		(inst_mem2cacheresp0_msg),
-		.memresp_domain		(inst_mem2cacheresp0_domain),
-		.memresp_val		(inst_mem2cacheresp0_val),
-		.memresp_rdy		(inst_mem2cacheresp0_rdy)
-	);*/
 
 	// shared data cache
 	//`ifdef CACHE_SECURE
@@ -934,41 +903,121 @@ module plab5_mcore_ProcNetCacheMem
 		.memresp_rdy		(data_mem2cacheresp0_rdy)
 	);
 	
-   /*plab3_mem_BlockingCacheAlt
-   #(
-		.mode				(1),
-		.p_mem_nbytes		(p_data_nbytes),
-		.p_num_banks		(1),
-		.p_opaque_nbits		(o)
+    // Direct Memory Access Controller
+	
+	// declare DMA controller's wires
+	wire				DMA_ctrl_ack;
+	wire [a-1:0]		DMA_ctrl_src_addr;
+	wire [a-1:0]		DMA_ctrl_dest_addr;
+	wire [l-1:0]		DMA_ctrl_debug_data;
+
+	wire [mrqc-1:0]		data_dma2memreq_control;
+	wire [mrqd-1:0]		data_dma2memreq_data;
+	wire				data_dma2memreq_val;
+	wire				data_dma2memreq_rdy;
+	wire				data_dma2memreq_domain;
+
+	wire [mrsc-1:0]		data_mem2dmaresp_control;
+	wire [mrsd-1:0]		data_mem2dmaresp_data;
+	wire				data_mem2dmaresp_val;
+	wire				data_mem2dmaresp_rdy;
+	wire				data_mem2dmaresp_domain;
+
+	assign DMA_ctrl_src_addr = data_cachereq1_control[4 +: a]; 
+	assign DMA_ctrl_dest_addr = data_cachereq1_data[a-1:0];
+	assign data_cacheresp1_val = DMA_ctrl_ack;
+	assign data_cacheresp1_data = 'hx;
+	assign data_cacheresp1_domain = 1'b0;
+	assign data_cacheresp1_fail = 1'b0;
+
+	plab5_mcore_DMA_Controller
+	#(
+		.p_opaque_nbits	(o),
+		.p_addr_nbits	(a),
+		.p_data_nbits	(l)
 	)
-	dcache
+	DMA_ctrl
 	(
-		.clk				(clk),
-		.reset				(reset),
+		.clk			(clk),
+		.reset			(reset),
 
-		.cachereq_msg		(data_cachereq0_msg),
-		.cachereq_val		(data_cachereq0_val),
-		.cachereq_domain	(data_cachereq0_domain),
-		.cachereq_rdy		(data_cachereq0_rdy),
+		.val			(data_cachereq1_val),
+		.rdy			(data_cachereq1_rdy),
+		.domain			(data_cachereq1_domain),
+		.src_addr		(DMA_ctrl_src_addr),
+		.dest_addr		(DMA_ctrl_dest_addr),
+		.req_control	(data_cachereq1_control),
+		.resp_control	(data_cacheresp1_control),
+		.inst			(0),
+		.ack			(DMA_ctrl_ack),
+		.resp_domain	(data_cacheresp1_domain),
 
-		.cacheresp_msg		(data_cacheresp0_msg),
-		.cacheresp_val		(data_cacheresp0_val),
-		.cacheresp_domain	(data_cacheresp0_domain),
-		.cacheresp_rdy		(data_cacheresp0_rdy),
+		.db_val			(db_start),
+		.db_domain		(db_domain),
+		.db_src_addr	(db_out_src_addr),
+		.db_dest_addr	(db_out_dest_addr),
+		.db_inst		(db_inst),
+		.debug_data		(DMA_ctrl_debug_data),
 
-		.memreq_msg			(data_cache2memreq0_msg),
-		.memreq_domain		(data_cache2memreq0_domain),
-		.memreq_val			(data_cache2memreq0_val),
-		.memreq_rdy			(data_cache2memreq0_rdy),
+		.mem_req_val	(data_dma2memreq_val),
+		.mem_req_rdy	(data_dma2memreq_rdy),
+		.mem_req_control(data_dma2memreq_control),
+		.mem_req_data	(data_dma2memreq_data),
+		.mem_req_domain	(data_dma2memreq_domain),
 
-		.insecure			(data_insecure),
-		.memresp_msg		(data_mem2cacheresp0_msg),
-		.memresp_domain		(data_mem2cacheresp0_domain),
-		.memresp_val		(data_mem2cacheresp0_val),
-		.memresp_rdy		(data_mem2cacheresp0_rdy)
-	);*/
+		.mem_resp_val	(data_mem2dmaresp_val),
+		.mem_resp_rdy	(data_mem2dmaresp_rdy),
+		.mem_resp_control(data_mem2dmaresp_control),
+		.mem_resp_data	(data_mem2dmaresp_data),
+		.mem_resp_domain(data_mem2dmaresp_domain)
+	);
 
-	// declare address/access control wire
+	// Debug Module associated with DMA controller
+	
+	// declare debug interface's wires
+	
+	wire			db_start;
+	wire			db_domain;
+	wire			db_inst;
+	wire [a-1:0]	db_out_src_addr;
+	wire [a-1:0]	db_out_dest_addr;
+	wire			db_result_rdy;
+	wire [l-1:0]	db_result_data;	
+
+	wire			db_val;
+	wire [a-1:0]	db_in_src_addr;
+	wire [a-1:0]	db_in_dest_addr;
+
+	assign db_in_src_addr  = debug_msg_p0[`VC_MEM_REQ_MSG_ADDR_FIELD(o,a,d)];
+	assign db_in_dest_addr = debug_msg_p0[`VC_MEM_REQ_MSG_DATA_FIELD(o,a,d)];
+	
+	plab5_mcore_Debug_Interface
+	#(
+		.p_addr_nbits	(a),
+		.p_data_nbits	(l)
+	)
+	Debug_interface
+	(
+		.clk			(clk),
+		.reset			(reset),
+
+		.start			(db_start),
+		.inst			(db_inst),
+		.src_addr		(db_out_src_addr),
+		.dest_addr		(db_out_dest_addr),
+		.domain			(db_domain),
+		.result_rdy		(db_result_rdy),
+		.db_result		(db_result_data),
+
+		.val			(debug_val_p0),
+		.db_src_addr	(db_in_src_addr),
+		.db_dest_addr	(db_in_dest_addr),
+		.db_domain		(req_in_domain_d0),
+		.ack			(DMA_ctrl_ack),
+		.read_data		(DMA_ctrl_debug_data)
+	);
+
+	// declare address access control wire
 	
 	wire [mrqc-1:0]			inst_cache2memreq0_control;
 	wire [mrqd-1:0]			inst_cache2memreq0_data;
@@ -1041,6 +1090,69 @@ module plab5_mcore_ProcNetCacheMem
 		.mem_resp_rdy			(inst_memresp0_rdy)
 	);
 
+	// mem accesses arbiter for data main memory part
+	
+	// declare related wires
+	wire					data_arb2memreq_val;
+	wire					data_arb2memreq_rdy;	
+	wire [mrqc-1:0]			data_arb2memreq_control;
+	wire [mrqd-1:0]			data_arb2memreq_data;
+	wire					data_arb2memreq_domain;
+
+	wire					data_mem2arbresp_val;
+	wire					data_mem2arbresp_rdy;
+	wire [mrsc-1:0]			data_mem2arbresp_control;
+	wire [mrsd-1:0]			data_mem2arbresp_data;
+	wire					data_mem2arbresp_domain;
+
+	plab5_mcore_mem_arbiter
+	#(
+		.p_opaque_nbits			(o),
+		.p_addr_nbits			(a),
+		.p_data_nbits			(l)
+	)
+	data_mem_arbiter
+	(
+		.clk					(clk),
+		.reset					(reset),
+
+		.req0_val				(data_cache2memreq0_val),
+		.req0_rdy				(data_cache2memreq0_rdy),
+		.req0_control			(data_cache2memreq0_control),
+		.req0_data				(data_cache2memreq0_data),
+		.req0_domain			(data_cache2memreq0_domain),
+
+		.req1_val				(data_dma2memreq_val),
+		.req1_rdy				(data_dma2memreq_rdy),
+		.req1_control			(data_dma2memreq_control),
+		.req1_data				(data_dma2memreq_data),
+		.req1_domain			(data_dma2memreq_domain),
+
+		.req_val				(data_arb2memreq_val),
+		.req_rdy				(data_arb2memreq_rdy),
+		.req_control			(data_arb2memreq_control),
+		.req_data				(data_arb2memreq_data),
+		.req_domain				(data_arb2memreq_domain),
+
+		.resp0_val				(data_mem2cacheresp0_val),
+		.resp0_rdy				(data_mem2cacheresp0_rdy),
+		.resp0_control			(data_mem2cacheresp0_control),
+		.resp0_data				(data_mem2cacheresp0_data),
+		.resp0_domain			(data_mem2cacheresp0_domain),
+
+		.resp1_val				(data_mem2dmaresp_val),
+		.resp1_rdy				(data_mem2dmaresp_rdy),
+		.resp1_control			(data_mem2dmaresp_control),
+		.resp1_data				(data_mem2dmaresp_data),
+		.resp1_domain			(data_mem2dmaresp_domain),
+
+		.resp_val				(data_mem2arbresp_val),
+		.resp_rdy				(data_mem2arbresp_rdy),
+		.resp_control			(data_mem2arbresp_control),
+		.resp_data				(data_mem2arbresp_data),
+		.resp_domain			(data_mem2arbresp_domain)
+	);
+
 	// data memory address/access control module
 
 	plab5_mcore_mem_addr_ctrl_fsm
@@ -1056,24 +1168,24 @@ module plab5_mcore_ProcNetCacheMem
 		.clk					(clk),
 		.reset					(reset),
 
-		.req_sec_level			(data_cache2memreq0_domain),
-		.resp_sec_level			(data_mem2cacheresp0_domain),
+		.req_sec_level			(data_arb2memreq_domain),
+		.resp_sec_level			(data_mem2arbresp_domain),
 		.insecure				(data_insecure),
 
-		.cache2mem_req_control	(data_cache2memreq0_control),
-		.cache2mem_req_data		(data_cache2memreq0_data),
-		.cache2mem_req_val		(data_cache2memreq0_val),
-		.cache2mem_req_rdy		(data_cache2memreq0_rdy),
+		.cache2mem_req_control	(data_arb2memreq_control),
+		.cache2mem_req_data		(data_arb2memreq_data),
+		.cache2mem_req_val		(data_arb2memreq_val),
+		.cache2mem_req_rdy		(data_arb2memreq_rdy),
 
 		.mem_req_control		(data_memreq0_control),
 		.mem_req_data			(data_memreq0_data),
 		.mem_req_val			(data_memreq0_val),
 		.mem_req_rdy			(data_memreq0_rdy),
 
-		.mem2cache_resp_control	(data_mem2cacheresp0_control),
-		.mem2cache_resp_data	(data_mem2cacheresp0_data),
-		.mem2cache_resp_val		(data_mem2cacheresp0_val),
-		.mem2cache_resp_rdy		(data_mem2cacheresp0_rdy),
+		.mem2cache_resp_control	(data_mem2arbresp_control),
+		.mem2cache_resp_data	(data_mem2arbresp_data),
+		.mem2cache_resp_val		(data_mem2arbresp_val),
+		.mem2cache_resp_rdy		(data_mem2arbresp_rdy),
 
 		.mem_resp_control		(data_memresp0_control),
 		.mem_resp_data			(data_memresp0_data),
@@ -1095,6 +1207,11 @@ module plab5_mcore_ProcNetCacheMem
 	wire				data_memreq0_rdy;
 	wire				data_memreq0_domain;
 
+	wire [mrqc-1:0]		dma_memreq_control;
+	wire [mrqd-1:0]		dma_memreq_data;
+	wire				dma_memreq_val;
+	wire				dma_memreq_rdy;
+
 	wire [mrsc-1:0]		inst_memresp0_control;
 	wire [mrsd-1:0]		inst_memresp0_data;
 	wire				inst_memresp0_val;
@@ -1106,6 +1223,12 @@ module plab5_mcore_ProcNetCacheMem
 	wire				data_memresp0_val;
 	wire				data_memresp0_rdy;
 	wire				data_memresp0_domain;
+
+	wire [mrsc-1:0]		dma_memresp_control;
+	wire [mrsd-1:0]		dma_memresp_data;
+	wire				dma_memresp_val;
+	wire				dma_memresp_rdy;
+	wire				dma_memresp_domain;
 
 	// shared instruction main memory
 	
