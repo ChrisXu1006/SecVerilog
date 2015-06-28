@@ -98,7 +98,8 @@ module plab3_mem_BlockingL1CacheCtrl
   localparam STATE_SPEC_ACCESS		  = 5'd13;
   localparam STATE_EMPTY_RESP		  = 5'd14;
   localparam STATE_PRELW_ACCESS		  = 5'd15;
-  localparam STATE_INIT_DATA_ACCESS   = 5'd16;
+  localparam STATE_DIRMEM_ACCESS	  = 5'd16;
+  localparam STATE_INIT_DATA_ACCESS   = 5'd17;
 
   //----------------------------------------------------------------------
   // State
@@ -150,6 +151,9 @@ module plab3_mem_BlockingL1CacheCtrl
 								 state_next = STATE_SPEC_ACCESS;
 		else if ( cachereq_type == `VC_MEM_REQ_MSG_TYPE_PRELW )
 								 state_next = STATE_PRELW_ACCESS;
+		else if ( cachereq_type == `VC_MEM_REQ_MSG_TYPE_DIRMEM)
+								 state_next = STATE_DIRMEM_ACCESS;
+
         else if ( is_init      ) state_next = STATE_INIT_DATA_ACCESS;
         else if ( read_hit     ) state_next = STATE_READ_DATA_ACCESS;
         else if ( write_hit    ) state_next = STATE_WRITE_DATA_ACCESS;
@@ -207,7 +211,10 @@ module plab3_mem_BlockingL1CacheCtrl
 	
 	  STATE_PRELW_ACCESS:
 			state_next = STATE_EMPTY_RESP;
-
+		
+	  STATE_DIRMEM_ACCESS:
+			state_next = STATE_EMPTY_RESP;
+	
       STATE_WAIT:
              if ( out_go       ) state_next = STATE_IDLE;
 
@@ -337,6 +344,7 @@ module plab3_mem_BlockingL1CacheCtrl
   localparam m_e     = `VC_MEM_REQ_MSG_TYPE_WRITE; // write to memory in an _e_vict
   localparam m_r     = `VC_MEM_REQ_MSG_TYPE_READ;  // write to memory in a _r_efill
   localparam m_p	 = `VC_MEM_REQ_MSG_TYPE_PRELW; // prefetch intructions
+  localparam m_d	 = `VC_MEM_REQ_MSG_TYPE_DIRMEM;// prefetch intructions
 
   reg tag_array_wen;
   reg tag_array_ren;
@@ -412,6 +420,7 @@ module plab3_mem_BlockingL1CacheCtrl
 	  STATE_SPEC_ACCESS:		   cs( 0,   0,    1,  0,   0,    0,   r_x,   0,    0,    0,    0,    0,   0,   m_e, x,	  0,    x,	  0,    0,    0		  );
 	  STATE_EMPTY_RESP:			   cs( 0,   0,    0,  1,   0,    0,   r_x,	 0,    0,    0,    0,    0,   0,   m_x, x,    0,    x,    0,    0,    0       );
 	  STATE_PRELW_ACCESS:		   cs( 0,   0,    1,  0,   0,    0,   r_x,   0,    0,    0,    0,    0,   0,   m_p, x,	  0,    x,	  0,    0,    0		  );
+	  STATE_DIRMEM_ACCESS:		   cs( 0,   0,    1,  0,   0,    0,   r_x,   0,    0,    0,    0,    0,   0,   m_d, x,	  0,    x,	  0,    0,    0		  );
       STATE_WAIT:                  cs( 0,   1,    0,  0,   0,    0,   r_x,   0,    0,    0,    0,    0,   0,   m_x, x,    0,    x,    0,    0,    0       );
 
     endcase
