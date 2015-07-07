@@ -19,6 +19,7 @@
 `include "plab5-mcore-proc-acc.v"
 `include "plab5-mcore-proc-acc-insecure.v"
 `include "plab5-mcore-DMA-checker.v"
+`include "plab5-mcore-DMA-checker-insecure.v"
 `include "plab5-mcore-DMA-controller.v"
 `include "plab5-mcore-Debug-Interface.v"
 `include "plab5-mcore-mem-arbiter.v"
@@ -913,7 +914,11 @@ module plab5_mcore_ProcNetCacheMem
 	assign data_cacheresp1_domain = 1'b0;
 	assign data_cacheresp1_fail = 1'b0;
 	
-	plab5_mcore_DMA_checker
+	`ifdef DMA_CHECKER_SECURE
+		plab5_mcore_DMA_checker
+	`elsif DMA_CHECKER_INSECURE
+		plab5_mcore_DMA_checker_insecure
+	`endif
 	#(
 		.p_opaque_nbits	(o),
 		.p_addr_nbits	(a),

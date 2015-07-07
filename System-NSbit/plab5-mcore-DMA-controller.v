@@ -84,6 +84,9 @@ module plab5_mcore_DMA_Controller
 	wire						inst_reg_out;
 	wire	[p_data_nbits-1:0]	mem_resp_data_reg_out;
 	wire	[c_req_cnbits-1:0]	req_control_reg_out;
+
+	wire						domain_reg_out;
+	wire						db_domain_reg_out;
 	wire						cur_domain;
 
 	vc_EnResetReg#(p_addr_nbits) src_addr_reg
@@ -146,9 +149,26 @@ module plab5_mcore_DMA_Controller
 		.reset	(reset),
 		.en		(dmareq_en),
 		.d		(domain),
-		.q		(cur_domain)
+		.q		(domain_reg_out)
 	);
-	
+
+	vc_EnResetReg db_domain_reg
+	(
+		.clk	(clk),
+		.reset	(reset),
+		.en		(dmareq_en),
+		.d		(db_domain),
+		.q		(db_domain_reg_out)
+	);
+
+	vc_Mux2	domain_mux
+	(
+		.in0	(domain_reg_out),
+		.in1	(db_domain_reg_out),
+		.sel	(status),
+		.out	(cur_domain)
+	);
+
 	assign resp_control[14:12] = req_control_reg_out[46:44];
     assign resp_control[11:4]  = req_control_reg_out[43:36];
 	assign resp_control[3:0]   = req_control_reg_out[3:0];	
