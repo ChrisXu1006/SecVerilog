@@ -37,21 +37,19 @@ module plab5_mcore_DMA_Controller
 	input						clk,
 	input						reset,
 
+	output						domain,
+
 	// ports connected to core
 	input						val,			// indicate there is a request
 	output	reg					rdy,			
-	input						domain,			// indicate dma request security level	
 	input	[p_addr_nbits-1:0]	src_addr,		// source memory address
 	input	[p_addr_nbits-1:0]	dest_addr,		// destination memory address
 	input	[c_req_cnbits-1:0]	req_control,	// request information from on-chip network
-	output	[c_resp_cnbits-1:0]	resp_control,	// response infomration to on-chip network
 	input						inst,			// instruction type for normal use
 	output	reg					ack,			// when operations done, notify core
-	output	reg					resp_domain,	
 
 	// ports connected to debug interface
 	input						db_val,			// indicate there is a debug request
-	input						db_domain,		// indicate debug  request security level
 	input	[p_addr_nbits-1:0]	db_src_addr,	// debug source memory address
 	input	[p_addr_nbits-1:0]	db_dest_addr,	// debug destination mmeoyr address
 	input						db_inst,		// intruction type for debug use
@@ -84,10 +82,6 @@ module plab5_mcore_DMA_Controller
 	wire						inst_reg_out;
 	wire	[p_data_nbits-1:0]	mem_resp_data_reg_out;
 	wire	[c_req_cnbits-1:0]	req_control_reg_out;
-
-	wire						domain_reg_out;
-	wire						db_domain_reg_out;
-	wire						cur_domain;
 
 	vc_EnResetReg#(p_addr_nbits) src_addr_reg
 	(
@@ -143,36 +137,6 @@ module plab5_mcore_DMA_Controller
 		.q		(req_control_reg_out)
 	);
 
-	vc_EnResetReg domain_reg
-	(
-		.clk	(clk),
-		.reset	(reset),
-		.en		(dmareq_en),
-		.d		(domain),
-		.q		(domain_reg_out)
-	);
-
-	vc_EnResetReg db_domain_reg
-	(
-		.clk	(clk),
-		.reset	(reset),
-		.en		(dmareq_en),
-		.d		(db_domain),
-		.q		(db_domain_reg_out)
-	);
-
-	vc_Mux2	domain_mux
-	(
-		.in0	(domain_reg_out),
-		.in1	(db_domain_reg_out),
-		.sel	(status),
-		.out	(cur_domain)
-	);
-
-	assign resp_control[14:12] = req_control_reg_out[46:44];
-    assign resp_control[11:4]  = req_control_reg_out[43:36];
-	assign resp_control[3:0]   = req_control_reg_out[3:0];	
-
 	vc_EnResetReg#(p_data_nbits) mem_resp_data_reg
 	(
 		.clk	(clk),
@@ -214,6 +178,11 @@ module plab5_mcore_DMA_Controller
 		.deq_rdy		(mem_req_rdy),
 		.deq_msg		(mem_req_data)
 	);
+
+	// security register in DMA controller
+	reg	secure_reg = 1;
+
+	assign domain = secure_reg;
 
     //----------------------------------------------------------------------
 	// Control Unit of DMA controller
@@ -302,49 +271,33 @@ module plab5_mcore_DMA_Controller
 	// State Outputs
 	always @(*) begin
 
+		rdy = 1'b0;
 		ack = 1'b0;
-		mem_req_domain = cur_domain;
-		resp_domain	= cur_domain;
+		enq_en = 1'b0;
+		dmareq_en = 1'b0;
+		mem_req_domain = 1'b1;
+		mem_req_val  = 1'b0;
+		mem_req_type = 3'hx;
+		mem_req_addr = 'hx;
 		
 		case ( state_reg )
 
 			STATE_IDLE: begin
 				rdy			 = 1'b1;
-				ack			 = 1'b0;
 				dmareq_en	 = 1'b1;
-				enq_en		 = 1'b0;
 				status		 = 1'bx;
-				mem_req_val	 = 1'b0;
-				mem_req_type = 3'hx;
-				mem_req_addr = 32'hx;
 			end
 
 			STATE_DEBUG_REG: begin
-				rdy			 = 1'b0;
-				ack			 = 1'b0;
-				dmareq_en	 = 1'b0;
 				enq_en		 = 1'b0;
-				mem_req_val	 = 1'b0;
-				mem_req_type = 3'hx;
-				mem_req_addr = 32'hx;
 				status		 = 1'b1;
 			end
 
 			STATE_NET_REG: begin
-				rdy			 = 1'b0;
-				ack			 = 1'b0;
-				dmareq_en	 = 1'b0;
-				enq_en		 = 1'b0;
-				mem_req_val	 = 1'b0;
-				mem_req_type = 3'hx;
-				mem_req_addr = 32'hx;
 				status		 = 1'b0;
 			end
 
 			STATE_READ_MEM_REQ: begin
-				rdy			 = 1'b0;
-				ack			 = 1'b0;
-				dmareq_en	 = 1'b0;
 				enq_en		 = 1'b0;
 				mem_req_val	 = 1'b1;
 				mem_req_type = 3'h0;
@@ -354,31 +307,11 @@ module plab5_mcore_DMA_Controller
 					mem_req_addr = db_src_addr_reg_out;
 			end
 
-			STATE_READ_MEM_WAIT: begin
-				rdy			 = 1'b0;
-				ack			 = 1'b0;
-				dmareq_en	 = 1'b0;
-				enq_en		 = 1'b0;
-				mem_req_val	 = 1'b0;
-				mem_req_type = 3'hx;
-				mem_req_addr = 32'hx;
-			end
-
 			STATE_READ_MEM_DONE: begin
-				rdy			 = 1'b0;
-				ack			 = 1'b0;
-				dmareq_en	 = 1'b0;
 				enq_en		 = 1'b1;
-				mem_req_val	 = 1'b0;
-				mem_req_type = 3'hx;
-				mem_req_addr = 32'hx;
 			end
 
 			STATE_WRITE_MEM_REQ: begin
-				rdy			 = 1'b0;
-				ack			 = 1'b0;
-				dmareq_en	 = 1'b0;
-				enq_en		 = 1'b0;
 				mem_req_val	 = 1'b1;
 				mem_req_type = 3'h1;
 				if ( status === 1'b0 )
@@ -387,44 +320,16 @@ module plab5_mcore_DMA_Controller
 					mem_req_addr = db_dest_addr_reg_out;
 			end
 
-			STATE_WRITE_MEM_WAIT: begin
-				rdy			 = 1'b0;
-				ack			 = 1'b0;
-				dmareq_en	 = 1'b0;
-				enq_en		 = 1'b0;
-				mem_req_val	 = 1'b0;
-				mem_req_type = 3'hx;
-				mem_req_addr = 32'hx;
-			end
-
 			STATE_WRITE_MEM_DONE: begin
-				rdy			 = 1'b0;
-				ack			 = 1'b0;
-				dmareq_en	 = 1'b0;
 				enq_en		 = 1'b0;
-				mem_req_val	 = 1'b0;
-				mem_req_type = 3'hx;
-				mem_req_addr = 32'hx;
 			end
 
 			STATE_ACK: begin
-				rdy			 = 1'b0;
 				ack			 = 1'b1;
-				dmareq_en	 = 1'b0;
-				enq_en		 = 1'b0;
-				mem_req_val	 = 1'b0;
-				mem_req_type = 3'hx;
-				mem_req_addr = 32'hx;
 			end
 
 			STATE_DEBUG_RES: begin
-				rdy			 = 1'b0;
 				ack			 = 1'b1;
-				dmareq_en	 = 1'b0;
-				enq_en		 = 1'b0;
-				mem_req_val	 = 1'b0;
-				mem_req_type = 3'hx;
-				mem_req_addr = 32'hx;
 				debug_data	 = mem_resp_data_reg_out;
 			end
 		endcase		
