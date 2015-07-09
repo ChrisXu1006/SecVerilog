@@ -19,7 +19,7 @@
 `include "plab5-mcore-proc-acc.v"
 `include "plab5-mcore-proc-acc-insecure.v"
 `include "plab5-mcore-DMA-checker.v"
-`include "plab5-mcore-DMA-checker-insecure.v"
+`include "plab5-mcore-Debug-checker.v"
 `include "plab5-mcore-DMA-controller.v"
 `include "plab5-mcore-Debug-Interface.v"
 `include "plab5-mcore-mem-arbiter.v"
@@ -914,11 +914,7 @@ module plab5_mcore_ProcNetCacheMem
 	assign data_cacheresp1_domain = 1'b0;
 	assign data_cacheresp1_fail = 1'b0;
 	
-	`ifdef DMA_CHECKER_SECURE
-		plab5_mcore_DMA_checker
-	`elsif DMA_CHECKER_INSECURE
-		plab5_mcore_DMA_checker_insecure
-	`endif
+	plab5_mcore_DMA_checker
 	#(
 		.p_opaque_nbits	(o),
 		.p_addr_nbits	(a),
@@ -940,33 +936,16 @@ module plab5_mcore_ProcNetCacheMem
 		.noc_ack			(data_cacheresp1_val),
 		.noc_resp_domain	(data_cacheresp1_domain),
 
-		.debug_val			(db_start),
-		.debug_domain		(db_domain),
-		.debug_src_addr		(db_out_src_addr),
-		.debug_dest_addr	(db_out_dest_addr),
-		.debug_inst			(db_inst),
-		.debug_ack			(db_ack),
-		.debug_data			(db_data),
-
 		.dma_val			(dmactrl_val),
 		.dma_rdy			(dmactrl_rdy),
 		.dma_domain			(dmactrl_domain),
 		.dma_src_addr		(dmactrl_src_addr),
 		.dma_dest_addr		(dmactrl_dest_addr),
 		.dma_req_control	(dmactrl_req_control),
-		.dma_resp_control	(dmactrl_resp_control),
 		.dma_inst			(dmactrl_inst),
-		.dma_ack			(dmactrl_ack),
-		.dma_resp_domain	(dmactrl_resp_domain),
-
-		.dma_db_val			(dmactrl_db_val),
-		.dma_db_domain		(dmactrl_db_domain),
-		.dma_db_src_addr	(dmactrl_db_src_addr),
-		.dma_db_dest_addr	(dmactrl_db_dest_addr),
-		.dma_db_inst		(dmactrl_db_inst),
-		.dma_db_debug_data	(dmactrl_debug_data)
+		.dma_ack			(dmactrl_ack)
 	);
-	
+
     // Direct Memory Access Controller
 	
 	// declare DMA controller's wires
@@ -976,7 +955,6 @@ module plab5_mcore_ProcNetCacheMem
 	wire [a-1:0]		dmactrl_src_addr;
 	wire [a-1:0]		dmactrl_dest_addr;
 	wire [mrqc-1:0]		dmactrl_req_control;
-	wire [mrsc-1:0]		dmactrl_resp_control;
 	wire				dmactrl_inst;
 	wire				dmactrl_ack;
 	wire				dmactrl_resp_domain;
@@ -1011,19 +989,17 @@ module plab5_mcore_ProcNetCacheMem
 		.clk				(clk),
 		.reset				(reset),
 
+		.domain				(dmactrl_domain),
+
 		.val				(dmactrl_val),
 		.rdy				(dmactrl_rdy),
-		.domain				(dmactrl_domain),
 		.src_addr			(dmactrl_src_addr),
 		.dest_addr			(dmactrl_dest_addr),
 		.req_control		(dmactrl_req_control),
-		.resp_control		(dmactrl_resp_control),
 		.inst				(dmactrl_inst),
 		.ack				(dmactrl_ack),
-		.resp_domain		(dmactrl_resp_domain),
 
 		.db_val				(dmactrl_db_val),
-		.db_domain			(dmactrl_db_domain),
 		.db_src_addr		(dmactrl_db_src_addr),
 		.db_dest_addr		(dmactrl_db_dest_addr),
 		.db_inst			(dmactrl_db_inst),
@@ -1062,6 +1038,34 @@ module plab5_mcore_ProcNetCacheMem
 
 	assign db_in_src_addr  = debug_msg_p0[`VC_MEM_REQ_MSG_ADDR_FIELD(o,a,d)];
 	assign db_in_dest_addr = debug_msg_p0[`VC_MEM_REQ_MSG_DATA_FIELD(o,a,d)];
+	
+	plab5_mcore_Debug_checker
+	#(
+		.p_opaque_nbits		(o),
+		.p_addr_nbits		(a),
+		.p_data_nbits		(l)
+	)
+	Debug_checker
+	(
+		.clk				(clk),
+		.reset				(reset),
+
+		.debug_val			(db_start),
+		.debug_domain		(db_domain),
+		.debug_src_addr		(db_out_src_addr),
+		.debug_dest_addr	(db_out_dest_addr),
+		.debug_inst			(db_inst),
+		.debug_ack			(db_ack),
+		.debug_data			(db_data),
+
+		.dma_domain			(dmactrl_domain),
+		.dma_ack			(dmactrl_ack),
+		.dma_db_val			(dmactrl_db_val),
+		.dma_db_src_addr	(dmactrl_db_src_addr),
+		.dma_db_dest_addr	(dmactrl_db_dest_addr),
+		.dma_db_inst		(dmactrl_db_inst),
+		.dma_db_debug_data	(dmactrl_debug_data)
+	);
 	
 	plab5_mcore_Debug_Interface
 	#(
