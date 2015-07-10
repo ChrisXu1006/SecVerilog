@@ -19,8 +19,9 @@ sub print_fail {
 
 # type check all files with .v extension in current directory
 # first generate the z3 files
-my @files = ("plab3-mem-BlockingCacheAlt.v");
-#my @files = ("plab5-mcore-top.v","plab5-mcore-ProcNet-Sep1.v", "plab5-mcore-proc-acc.v","plab5-mcore-mem-acc.v", "plab5-mcore-TestMem_1port.v", "plab5-mcore-proc2mem-trans.v", "plab5-mcore-MemNet-sep.v", "plab5-mcore-mem-net-req.v", "plab5-mcore-mem-net-resp.v","plab4-net-RingNetAlt-sep.v","plab4-net-RouterAlt-Sep.v","plab4-net-demux.v","plab4-net-RouterInputCtrl-Arb-Sep.v","plab4-net-RouterAdaptiveInputTerminalCtrl-Sep.v","plab4-net-RouterOutputCtrl-Sep-insecure.v","plab4-net-RouterInputCtrl.v","vc-RRArb.v","vc-crossbar3.v","vc-mux3.v","vc-mux2-dd.v");
+# my @files = ("plab4-net-RouterAlt-Sep.v");
+my @files = ("plab5-mcore-ProcNetCacheMemDebug.v","plab5-mcore-proc-acc.v","plab5-mcore-mem-addr-ctrl-FSM.v","plab5-mcore-TestMem_uni.v","plab5-mcore-MemNet-sep.v","plab5-mcore-DMA-checker.v","plab5-mcore-DMA-controller.v","plab5-mcore-Debug-checker.v","plab5-mcore-Debug-Interface.v","plab5-mcore-mem-arbiter.v","plab5-mcore-mem-net-req.v","plab5-mcore-mem-net-resp.v","plab4-net-RingNetAlt-sep.v","plab4-net-RouterAlt-Sep.v","plab4-net-demux.v","plab4-net-RouterInputCtrl-Arb-Sep.v","plab4-net-RouterAdaptiveInputTerminalCtrl-Sep.v","plab4-net-RouterOutputCtrl-Sep.v","plab4-net-RouterInputCtrl.v","vc-RRArb.v","vc-crossbar3.v","vc-mux3.v","vc-mux2-dd.v","plab3-mem-BlockingL1Cache.v","plab3-mem-BlockingL1CacheCtrl.v","plab3-mem-BlockingL1CacheDpath.v","plab3-mem-BlockingCacheSec-FMS1.v","plab3-mem-PrefetchBuffer.v","plab3-mem-PrefetchBufferCtrl.v","plab3-mem-PrefetchBufferDpath.v","plab3-mem-BlockingCacheAlt.v","plab3-mem-BlockingCacheAltDpath.v","plab3-mem-BlockingCacheAltCtrl.v","plab3-mem-DecodeWben.v");
+#my @files = ("plab5-mcore-ProcNetCacheMem.v","plab5-mcore-proc-acc.v","plab5-mcore-mem-addr-ctrl-FSM.v","plab5-mcore-TestMem_uni.v","plab5-mcore-MemNet-sep.v","plab5-mcore-mem-net-req.v","plab5-mcore-mem-net-resp.v","plab4-net-RingNetAlt-sep.v","plab4-net-RouterAlt-Sep.v","plab4-net-demux.v","plab4-net-RouterInputCtrl-Arb-Sep.v","plab4-net-RouterAdaptiveInputTerminalCtrl-Sep.v","plab4-net-RouterOutputCtrl-Sep.v","plab4-net-RouterInputCtrl.v","vc-RRArb.v","vc-crossbar3.v","vc-mux3.v","vc-mux2-dd.v","plab3-mem-BlockingCacheSec-FMS1.v","plab3-mem-PrefetchBuffer.v","plab3-mem-PrefetchBufferCtrl.v","plab3-mem-PrefetchBufferDpath.v","plab3-mem-BlockingCacheAlt.v","plab3-mem-BlockingCacheAltDpath.v","plab3-mem-BlockingCacheAltCtrl.v","plab3-mem-DecodeWben.v");
 #my @files = ("plab4-net-RingNetAlt-sep.v","plab4-net-demux.v","plab4-net-RouterAlt.v", "plab4-net-RouterInputCtrl-Arb.v", "plab4-net-RouterAdaptiveInputTerminalCtrl.v", "plab4-net-RouterOutputCtrl.v", "plab4-net-RouterInputCtrl.v", "plab4-net-AdaptiveRouteCompute.v", "vc-crossbar3.v","vc-crossbar3-sd.v", "vc-mux3.v", "vc-mux3-sd.v","vc-mux2-sd.v", "vc-queues.v", "vc-mem-msgs.v");
 foreach my $file (@files) {
   if (-f $file and $file =~ /\.v$/) {
@@ -70,7 +71,7 @@ foreach my $file (@files) {
       if (/^sat/) {
         $assert = @assertions[$counter];
         $errors .= $assert;
-	$fail_counter ++;
+	    $fail_counter ++;
         $counter ++;
       }
       elsif (/^unsat/) {

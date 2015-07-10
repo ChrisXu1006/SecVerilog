@@ -9,11 +9,10 @@
 `include "plab3-mem-BlockingCacheAltCtrl.v"
 `include "plab3-mem-BlockingCacheAltDpath.v"
 
-
 module plab3_mem_BlockingCacheAlt
 #(
-  parameter mode = 0,					   // 0 for instruction, 1 for data
-
+  parameter mode = 0,	// 0 for instruction, 1 for data
+  
   parameter p_mem_nbytes = 256,            // Cache size in bytes
   parameter p_num_banks  = 0,              // Total number of cache banks
 
@@ -31,34 +30,33 @@ module plab3_mem_BlockingCacheAlt
   input                                         {L} clk,
   input                                         {L} reset,
 
-  input                                         {L} domain,
-
   // Cache Request
 
-  input [`VC_MEM_REQ_MSG_NBITS(o,abw,dbw)-1:0]  {Domain domain} cachereq_msg,
-  input                                         {Domain domain} cachereq_val,
-  output                                        {Domain domain} cachereq_rdy,
+  input [`VC_MEM_REQ_MSG_NBITS(o,abw,dbw)-1:0]  {Domain cachereq_domain}    cachereq_msg,
+  input                                         {Domain cachereq_domain}    cachereq_val,
+  input											{L}                         cachereq_domain,
+  output                                        {Domain cachereq_domain}    cachereq_rdy,
 
   // Cache Response
 
-  output [`VC_MEM_RESP_MSG_NBITS(o,dbw)-1:0]    {Domain domain} cacheresp_msg,
-  output                                        {Domain domain} cacheresp_val,
-  input                                         {Domain domain} cacheresp_rdy,
+  output [`VC_MEM_RESP_MSG_NBITS(o,dbw)-1:0]    {Domain cacheresp_domain}   cacheresp_msg,
+  output                                        {Domain cacheresp_domain}   cacheresp_val,
+  output										{L}                         cacheresp_domain,
+  input                                         {Domain cacheresp_domain}   cacheresp_rdy,
 
   // Memory Request
 
-  output [`VC_MEM_REQ_MSG_NBITS(o,abw,clw)-1:0] {Domain domain} memreq_msg,
-  output                                        {Domain domain} memreq_val,
-  input                                         {Domain domain} memreq_rdy,
-
-  // Imply Insecure memory request
-  input											{Domain domain} insecure,
+  output [`VC_MEM_REQ_MSG_NBITS(o,abw,clw)-1:0] {Domain memreq_domain}      memreq_msg,
+  output										{L}                         memreq_domain,
+  output                                        {Domain memreq_domain}      memreq_val,
+  input                                         {Domain memreq_domain}      memreq_rdy,
 
   // Memory Response
 
-  input [`VC_MEM_RESP_MSG_NBITS(o,clw)-1:0]     {Domain domain} memresp_msg,
-  input                                         {Domain domain} memresp_val,
-  output                                        {Domain domain} memresp_rdy
+  input [`VC_MEM_RESP_MSG_NBITS(o,clw)-1:0]     {Domain memresp_domain}     memresp_msg,
+  input											{L}                         memresp_domain,
+  input                                         {Domain memresp_domain}     memresp_val,
+  output                                        {Domain memresp_domain}     memresp_rdy
 );
 
   // calculate the index shift amount based on number of banks
@@ -70,30 +68,32 @@ module plab3_mem_BlockingCacheAlt
   //----------------------------------------------------------------------
 
   // control signals (ctrl->dpath)
-  wire [1:0]                                   {Domain domain} amo_sel;
-  wire                                         {Domain domain} cachereq_en;
-  wire                                         {Domain domain} memresp_en;
-  wire                                         {Domain domain} is_refill;
-  wire                                         {Domain domain} tag_array_0_wen;
-  wire                                         {Domain domain} tag_array_0_ren;
-  wire                                         {Domain domain} tag_array_1_wen;
-  wire                                         {Domain domain} tag_array_1_ren;
-  wire                                         {Domain domain} way_sel;
-  wire                                         {Domain domain} data_array_wen;
-  wire                                         {Domain domain} data_array_ren;
-  wire [clw/8-1:0]                             {Domain domain} data_array_wben;
-  wire                                         {Domain domain} read_data_reg_en;
-  wire                                         {Domain domain} read_tag_reg_en;
-  wire [$clog2(clw/dbw)-1:0]                   {Domain domain} read_byte_sel;
-  wire [`VC_MEM_RESP_MSG_TYPE_NBITS(o,clw)-1:0] {Domain domain} memreq_type;
-  wire [`VC_MEM_RESP_MSG_TYPE_NBITS(o,dbw)-1:0] {Domain domain} cacheresp_type;
+  wire [1:0]                                   {Domain cachereq_domain} amo_sel;
+  wire                                         {Domain cachereq_domain} cachereq_en;
+  wire                                         {Domain cachereq_domain} memresp_en;
+  wire                                         {Domain cachereq_domain} is_refill;
+  wire                                         {Domain cachereq_domain} tag_array_0_wen;
+  wire                                         {Domain cachereq_domain} tag_array_0_ren;
+  wire                                         {Domain cachereq_domain} tag_array_1_wen;
+  wire                                         {Domain cachereq_domain} tag_array_1_ren;
+  wire                                         {Domain cachereq_domain} way_sel;
+  wire                                         {Domain cachereq_domain} data_array_wen;
+  wire                                         {Domain cachereq_domain} data_array_ren;
+  wire [clw/8-1:0]                             {Domain cachereq_domain} data_array_wben;
+  wire                                         {Domain cachereq_domain} read_data_reg_en;
+  wire                                         {Domain cachereq_domain} read_tag_reg_en;
+  wire [$clog2(clw/dbw)-1:0]                   {Domain cachereq_domain} read_byte_sel;
+  wire [`VC_MEM_RESP_MSG_TYPE_NBITS(o,clw)-1:0]{Domain memreq_domain}   memreq_type;
+  wire [`VC_MEM_RESP_MSG_TYPE_NBITS(o,dbw)-1:0]{Domain cacheresp_domain} cacheresp_type;
 
 
   // status signals (dpath->ctrl)
-  wire [`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw)-1:0] {Domain domain} cachereq_type;
-  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] {Domain domain} cachereq_addr;
-  wire                                             {Domain domain} tag_match_0;
-  wire                                             {Domain domain} tag_match_1;
+  wire [`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw)-1:0] {Domain cachereq_domain} cachereq_type;
+  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] {Domain cachereq_domain} cachereq_addr;
+  wire                                             {Domain cachereq_domain} tag_match_0;
+  wire                                             {Domain cachereq_domain} tag_match_1;
+  wire											   {L}                      nsbit_match_0;
+  wire											   {L}                      nsbit_match_1;
 
   //----------------------------------------------------------------------
   // Control
@@ -110,27 +110,27 @@ module plab3_mem_BlockingCacheAlt
    .clk               (clk),
    .reset             (reset),
 
-   .domain            (domain),
-
    // Cache Request
 
+   .cachereq_domain	  (cachereq_domain),
    .cachereq_val      (cachereq_val),
    .cachereq_rdy      (cachereq_rdy),
 
    // Cache Response
 
+   .cacheresp_domain  (cacheresp_domain),
    .cacheresp_val     (cacheresp_val),
    .cacheresp_rdy     (cacheresp_rdy),
 
    // Memory Request
-
+	
+   .memreq_domain	  (memreq_domain),
    .memreq_val        (memreq_val),
    .memreq_rdy        (memreq_rdy),
 
    // Memory Response
 
-   .insecure		  (insecure),
-
+   .memresp_domain	  (memresp_domain),
    .memresp_val       (memresp_val),
    .memresp_rdy       (memresp_rdy),
 
@@ -157,7 +157,9 @@ module plab3_mem_BlockingCacheAlt
    .cachereq_type     (cachereq_type),
    .cachereq_addr     (cachereq_addr),
    .tag_match_0       (tag_match_0),
-   .tag_match_1       (tag_match_1)
+   .tag_match_1       (tag_match_1),
+   .nsbit_match_0	  (nsbit_match_0),
+   .nsbit_match_1	  (nsbit_match_1)
   );
 
   //----------------------------------------------------------------------
@@ -175,23 +177,24 @@ module plab3_mem_BlockingCacheAlt
    .clk               (clk),
    .reset             (reset),
 
-   .domain            (domain),
-
    // Cache Request
 
    .cachereq_msg      (cachereq_msg),
+   .cachereq_domain	  (cachereq_domain),
 
    // Cache Response
 
    .cacheresp_msg     (cacheresp_msg),
+   .cacheresp_domain  (cacheresp_domain),
 
    // Memory Request
 
+   .memreq_domain     (memreq_domain),
    .memreq_msg        (memreq_msg),
 
    // Memory Response
 
-   .insecure		  (insecure),
+   .memresp_domain    (memresp_domain),
    .memresp_msg       (memresp_msg),
 
    // control signals (ctrl->dpath)
@@ -217,8 +220,24 @@ module plab3_mem_BlockingCacheAlt
    .cachereq_type     (cachereq_type),
    .cachereq_addr     (cachereq_addr),
    .tag_match_0       (tag_match_0),
-   .tag_match_1       (tag_match_1)
+   .tag_match_1       (tag_match_1),
+   .nsbit_match_0	  (nsbit_match_0),
+   .nsbit_match_1	  (nsbit_match_1)
   );
+
+
+  //----------------------------------------------------------------------
+  // Debug part
+  //----------------------------------------------------------------------
+  
+  always @(posedge clk) begin
+	
+	if(mode == 1'b1 && cachereq_val == 1'b1) begin
+		$display("Cache Req Info, Address: %x, Req Domain: %d",
+				cachereq_addr, cachereq_domain);
+	end
+  
+  end 
 
 endmodule
 

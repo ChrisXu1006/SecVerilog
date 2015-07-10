@@ -160,12 +160,12 @@ module plab4_net_RouterAlt_Sep
     .clk                (clk),
     .reset              (reset),
 
-    .domain             (0),
-
+    .enq_domain         (0),
     .enq_val            (in0_val_d1),
     .enq_rdy            (in0_rdy_control_d1),
     .enq_msg            (in0_msg_control_d1),
 
+    .deq_domain         (0),
     .deq_val            (in0_deq_val_control_d1),
     .deq_rdy            (in0_deq_rdy_d1),
     .deq_msg            (in0_deq_msg_control_d1),
@@ -184,12 +184,12 @@ module plab4_net_RouterAlt_Sep
     .clk                (clk),
     .reset              (reset),
 
-    .domain             (1),
-
+    .enq_domain         (1),
     .enq_val            (in0_val_d2),
     .enq_rdy            (in0_rdy_control_d2),
     .enq_msg            (in0_msg_control_d2),
 
+    .deq_domain         (1),
     .deq_val            (in0_deq_val_control_d2),
     .deq_rdy            (in0_deq_rdy_d2),
     .deq_msg            (in0_deq_msg_control_d2),
@@ -228,12 +228,12 @@ module plab4_net_RouterAlt_Sep
     .clk                (clk),
     .reset              (reset),
 
-    .domain             (0),
-
+    .enq_domain         (0),
     .enq_val            (in0_val_d1),
     .enq_rdy            (in0_rdy_data_d1),
     .enq_msg            (in0_msg_data_d1),
 
+    .deq_domain         (0),
     .deq_val            (in0_deq_val_data_d1),
     .deq_rdy            (in0_deq_rdy_d1),
     .deq_msg            (in0_deq_msg_data_d1),
@@ -252,12 +252,12 @@ module plab4_net_RouterAlt_Sep
     .clk                (clk),
     .reset              (reset),
 
-    .domain             (1),
-
+    .enq_domain         (1),
     .enq_val            (in0_val_d2),
     .enq_rdy            (in0_rdy_data_d2),
     .enq_msg            (in0_msg_data_d2),
 
+    .deq_domain         (1),
     .deq_val            (in0_deq_val_data_d2),
     .deq_rdy            (in0_deq_rdy_d2),
     .deq_msg            (in0_deq_msg_data_d2),
@@ -296,12 +296,12 @@ module plab4_net_RouterAlt_Sep
     .clk        (clk),
     .reset      (reset),
 
-    .domain     (domain),
-
+    .enq_domain (domain),
     .enq_val    (in1_val),
     .enq_rdy    (in1_rdy_control),
     .enq_msg    (in1_msg_control),
 
+    .deq_domain (domain),
     .deq_val    (in1_deq_val_control),
     .deq_rdy    (in1_deq_rdy),
     .deq_msg    (in1_deq_msg_control)
@@ -318,12 +318,12 @@ module plab4_net_RouterAlt_Sep
     .clk        (clk),
     .reset      (reset),
 
-    .domain     (domain),
-
+    .enq_domain (domain),
     .enq_val    (in1_val),
     .enq_rdy    (in1_rdy_data),
     .enq_msg    (in1_msg_data),
 
+    .deq_domain (domain),
     .deq_val    (in1_deq_val_data),
     .deq_rdy    (in1_deq_rdy),
     .deq_msg    (in1_deq_msg_data)
@@ -342,12 +342,12 @@ module plab4_net_RouterAlt_Sep
     .clk                (clk),
     .reset              (reset),
 
-    .domain             (0),
-
+    .enq_domain         (0),
     .enq_val            (in2_val_d1),
     .enq_rdy            (in2_rdy_control_d1),
     .enq_msg            (in2_msg_control_d1),
 
+    .deq_domain         (0),
     .deq_val            (in2_deq_val_control_d1),
     .deq_rdy            (in2_deq_rdy_d1),
     .deq_msg            (in2_deq_msg_control_d1),
@@ -366,12 +366,12 @@ module plab4_net_RouterAlt_Sep
     .clk                (clk),
     .reset              (reset),
 
-    .domain             (1),
-
+    .enq_domain         (1),
     .enq_val            (in2_val_d2),
     .enq_rdy            (in2_rdy_control_d2),
     .enq_msg            (in2_msg_control_d2),
 
+    .deq_domain         (1),
     .deq_val            (in2_deq_val_control_d2),
     .deq_rdy            (in2_deq_rdy_d2),
     .deq_msg            (in2_deq_msg_control_d2),
@@ -410,12 +410,12 @@ module plab4_net_RouterAlt_Sep
     .clk                (clk),
     .reset              (reset),
 
-    .domain             (0),
-
+    .enq_domain         (0),
     .enq_val            (in2_val_d1),
     .enq_rdy            (in2_rdy_data_d1),
     .enq_msg            (in2_msg_data_d1),
 
+    .deq_domain         (0),
     .deq_val            (in2_deq_val_data_d1),
     .deq_rdy            (in2_deq_rdy_d1),
     .deq_msg            (in2_deq_msg_data_d1),
@@ -434,12 +434,12 @@ module plab4_net_RouterAlt_Sep
     .clk                (clk),
     .reset              (reset),
 
-    .domain             (1),
-
+    .enq_domain         (1),
     .enq_val            (in2_val_d2),
     .enq_rdy            (in2_rdy_data_d2),
     .enq_msg            (in2_msg_data_d2),
 
+    .deq_domain         (1),
     .deq_val            (in2_deq_val_data_d2),
     .deq_rdy            (in2_deq_rdy_d2),
     .deq_msg            (in2_deq_msg_data_d2),

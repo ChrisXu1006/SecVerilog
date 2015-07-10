@@ -65,7 +65,7 @@ module vc_Mux4
 )(
   input                    {L} domain,
   input      [p_nbits-1:0] {Domain domain} in0, in1, in2, in3,
-  input              [1:0] {L} sel,
+  input              [1:0] {Domain domain} sel,
   output reg [p_nbits-1:0] {Domain domain} out
 );
 

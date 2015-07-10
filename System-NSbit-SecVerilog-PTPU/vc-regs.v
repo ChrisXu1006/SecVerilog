@@ -99,7 +99,7 @@ module vc_EnResetReg
   input                {L} domain, //security level
   output [p_nbits-1:0] {Domain domain} q,     // Data output
   input  [p_nbits-1:0] {Domain domain} d,     // Data input (sampled on rising clk edge)
-  input                {L} en     // Enable input (sampled on rising clk edge)
+  input                {Domain domain} en     // Enable input (sampled on rising clk edge)
 );
 
   reg [p_nbits-1:0]    {Domain domain} q;

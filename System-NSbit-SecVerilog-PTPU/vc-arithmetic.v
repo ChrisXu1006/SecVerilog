@@ -137,7 +137,7 @@ module vc_EqComparator
   input                {L} domain,
   input  [p_nbits-1:0] {Domain domain} in0,
   input  [p_nbits-1:0] {Domain domain} in1,
-  output               {L} out
+  output               {Domain domain} out
 );
 
   assign out = ( in0 == in1 );
@@ -169,9 +169,10 @@ module vc_GtComparator
 #(
   parameter p_nbits = 1
 )(
-  input  [p_nbits-1:0] in0,
-  input  [p_nbits-1:0] in1,
-  output               out
+  input                {L}  domain,
+  input  [p_nbits-1:0] {Domain domain} in0,
+  input  [p_nbits-1:0] {Domain domain} in1,
+  output               {Domain domain} out
 );
 
   assign out = ( in0 > in1 );

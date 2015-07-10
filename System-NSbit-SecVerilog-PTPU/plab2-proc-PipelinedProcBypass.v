@@ -50,6 +50,12 @@ module plab2_proc_PipelinedProcBypass
   input                                       {Control sec_domain} dmemresp_val,
   output                                      {Control sec_domain} dmemresp_rdy,
 
+  // Debug Interface Port
+  
+  output [`VC_MEM_REQ_MSG_NBITS(8,32,32)-1:0] {Domain sec_domain}  debug_msg,
+  output                                      {Domain sec_domain}  debug_val,
+  input                                       {Domain sec_domain}  debug_rdy,
+
   // From mngr streaming port
 
   input [`PLAB2_PROC_FROM_MNGR_MSG_NBITS-1:0] {Domain  sec_domain} from_mngr_msg,

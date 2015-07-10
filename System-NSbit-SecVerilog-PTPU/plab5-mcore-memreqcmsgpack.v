@@ -22,14 +22,14 @@ module plab5_mcore_MemReqCMsgPack
     input                                               {L} domain,
 	// Input bits
 	
-	input	[`VC_MEM_REQ_MSG_TYPE_NBITS(o,a,d)-1:0]		{Control domain}	type,
-	input	[`VC_MEM_REQ_MSG_OPAQUE_NBITS(o,a,d)-1:0]	{Control domain}	opaque,
-	input	[`VC_MEM_REQ_MSG_ADDR_NBITS(o,a,d)-1:0]		{Control domain}	addr,
-	input	[`VC_MEM_REQ_MSG_LEN_NBITS(o,a,d)-1:0]		{Control domain}	len,
+	input	[`VC_MEM_REQ_MSG_TYPE_NBITS(o,a,d)-1:0]		{Domain domain}	type,
+	input	[`VC_MEM_REQ_MSG_OPAQUE_NBITS(o,a,d)-1:0]	{Domain domain}	opaque,
+	input	[`VC_MEM_REQ_MSG_ADDR_NBITS(o,a,d)-1:0]		{Domain domain}	addr,
+	input	[`VC_MEM_REQ_MSG_LEN_NBITS(o,a,d)-1:0]		{Domain domain}	len,
 
 	// output message
 	
-	output	[c-1:0]										{Control domain}	msg
+	output	[c-1:0]										{Domain domain}	msg
 );
 	
 	assign	msg[c - 1 : l + a + o]		= type;

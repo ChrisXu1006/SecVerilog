@@ -2,14 +2,14 @@
 // Alternative Blocking Cache Control
 //=========================================================================
 
-`ifndef PLAB3_MEM_BLOCKING_CACHE_ALT_CTRL_V
-`define PLAB3_MEM_BLOCKING_CACHE_ALT_CTRL_V
+`ifndef PLAB3_MEM_BLOCKING_L1_CACHE_CTRL_V
+`define PLAB3_MEM_BLOCKING_L1_CACHE_CTRL_V
 
 `include "plab3-mem-DecodeWben.v"
 `include "vc-mem-msgs.v"
 `include "vc-assert.v"
 
-module plab3_mem_BlockingCacheAltCtrl
+module plab3_mem_BlockingL1CacheCtrl
 #(
   parameter size    = 256,            // Cache size in bytes
 
@@ -30,7 +30,6 @@ module plab3_mem_BlockingCacheAltCtrl
   input                                               {L} reset,
 
   input                                               {L} domain,
-
   // Cache Request
 
   input                                               {Domain domain} cachereq_val,
@@ -48,7 +47,7 @@ module plab3_mem_BlockingCacheAltCtrl
 
   // Memory Response
 
-  input												  {Domain domain} insecure,
+  input												  {Domain domain} fail,
 
   input                                               {Domain domain} memresp_val,
   output reg                                          {Domain domain} memresp_rdy,
@@ -65,7 +64,7 @@ module plab3_mem_BlockingCacheAltCtrl
   output                                              {Domain domain} way_sel,
   output reg                                          {Domain domain} data_array_wen,
   output reg                                          {Domain domain} data_array_ren,
-  // width of cacheline divided by number of bits per  byte
+  // width of cacheline divided by number of bits per byte
   output reg [clw/8-1:0]                              {Domain domain} data_array_wben,
   output reg                                          {Domain domain} read_data_reg_en,
   output reg                                          {Domain domain} read_tag_reg_en,
@@ -84,20 +83,24 @@ module plab3_mem_BlockingCacheAltCtrl
   // State Definitions
   //----------------------------------------------------------------------
 
-  localparam STATE_IDLE               = 4'd0;
-  localparam STATE_TAG_CHECK          = 4'd1;
-  localparam STATE_READ_DATA_ACCESS   = 4'd2;
-  localparam STATE_WRITE_DATA_ACCESS  = 4'd3;
-  localparam STATE_WAIT               = 4'd4;
-  localparam STATE_REFILL_REQUEST     = 4'd5;
-  localparam STATE_REFILL_WAIT        = 4'd6;
-  localparam STATE_REFILL_UPDATE      = 4'd7;
-  localparam STATE_EVICT_PREPARE      = 4'd8;
-  localparam STATE_EVICT_REQUEST      = 4'd9;
-  localparam STATE_EVICT_WAIT         = 4'd10;
-  localparam STATE_AMO_READ_DATA_ACCESS  = 4'd11;
-  localparam STATE_AMO_WRITE_DATA_ACCESS = 4'd12;
-  localparam STATE_INIT_DATA_ACCESS   = 4'd15;
+  localparam STATE_IDLE               = 5'd0;
+  localparam STATE_TAG_CHECK          = 5'd1;
+  localparam STATE_READ_DATA_ACCESS   = 5'd2;
+  localparam STATE_WRITE_DATA_ACCESS  = 5'd3;
+  localparam STATE_WAIT               = 5'd4;
+  localparam STATE_REFILL_REQUEST     = 5'd5;
+  localparam STATE_REFILL_WAIT        = 5'd6;
+  localparam STATE_REFILL_UPDATE      = 5'd7;
+  localparam STATE_EVICT_PREPARE      = 5'd8;
+  localparam STATE_EVICT_REQUEST      = 5'd9;
+  localparam STATE_EVICT_WAIT         = 5'd10;
+  localparam STATE_AMO_READ_DATA_ACCESS  = 5'd11;
+  localparam STATE_AMO_WRITE_DATA_ACCESS = 5'd12;
+  localparam STATE_SPEC_ACCESS		  = 5'd13;
+  localparam STATE_EMPTY_RESP		  = 5'd14;
+  localparam STATE_PRELW_ACCESS		  = 5'd15;
+  localparam STATE_DIRMEM_ACCESS	  = 5'd16;
+  localparam STATE_INIT_DATA_ACCESS   = 5'd17;
 
   //----------------------------------------------------------------------
   // State
@@ -105,7 +108,7 @@ module plab3_mem_BlockingCacheAltCtrl
 
   always @( posedge clk ) begin
     if ( reset ) begin
-      state_reg <= 4'd0;
+      state_reg <= STATE_IDLE;
     end
     else begin
       state_reg <= state_next;
@@ -121,7 +124,7 @@ module plab3_mem_BlockingCacheAltCtrl
   wire {Domain domain} hit_0        = is_valid_0 && tag_match_0;
   wire {Domain domain} hit_1        = is_valid_1 && tag_match_1;
   wire {Domain domain} hit          = hit_0 || hit_1;
-  wire {Domain domain} is_read      = (cachereq_type == `VC_MEM_REQ_MSG_TYPE_READ) || (cachereq_type == `VC_MEM_REQ_MSG_TYPE_PRELW);
+  wire {Domain domain} is_read      = cachereq_type == `VC_MEM_REQ_MSG_TYPE_READ;
   wire {Domain domain} is_write     = cachereq_type == `VC_MEM_REQ_MSG_TYPE_WRITE;
   wire {Domain domain} is_init      = cachereq_type == `VC_MEM_REQ_MSG_TYPE_WRITE_INIT;
   wire {Domain domain} is_amo       = amo_sel != 0;
@@ -133,8 +136,8 @@ module plab3_mem_BlockingCacheAltCtrl
   wire {Domain domain} refill       = (miss_0 && !is_dirty_0 && !lru_way) || (miss_1 && !is_dirty_1 && lru_way);
   wire {Domain domain} evict        = (miss_0 && is_dirty_0 && !lru_way) || (miss_1 && is_dirty_1 && lru_way);
 
-  reg [3:0] {Domain domain} state_reg;
-  reg [3:0] {Domain domain} state_next;
+  reg [4:0] {Domain domain} state_reg;
+  reg [4:0] {Domain domain} state_next;
 
   always @(*) begin
 
@@ -142,58 +145,79 @@ module plab3_mem_BlockingCacheAltCtrl
     case ( state_reg )
 
       STATE_IDLE:
-             if ( in_go        ) state_next = 4'd1;
+             if ( in_go        ) state_next = STATE_TAG_CHECK;
 
       STATE_TAG_CHECK:
-             if ( is_init      ) state_next = 4'd15;
-        else if ( read_hit     ) state_next = 4'd2;
-        else if ( write_hit    ) state_next = 4'd3;
-        else if ( amo_hit      ) state_next = 4'd11;
-        else if ( refill       ) state_next = 4'd5;
-        else if ( evict        ) state_next = 4'd8;
+			 if ( cachereq_addr <= 32'h0004 )
+								 state_next = STATE_SPEC_ACCESS;
+		else if ( cachereq_type == `VC_MEM_REQ_MSG_TYPE_PRELW )
+								 state_next = STATE_PRELW_ACCESS;
+		else if ( cachereq_type == `VC_MEM_REQ_MSG_TYPE_DIRMEM)
+								 state_next = STATE_DIRMEM_ACCESS;
+
+        else if ( is_init      ) state_next = STATE_INIT_DATA_ACCESS;
+        else if ( read_hit     ) state_next = STATE_READ_DATA_ACCESS;
+        else if ( write_hit    ) state_next = STATE_WRITE_DATA_ACCESS;
+        else if ( amo_hit      ) state_next = STATE_AMO_READ_DATA_ACCESS;
+        else if ( refill       ) state_next = STATE_REFILL_REQUEST;
+        else if ( evict        ) state_next = STATE_EVICT_PREPARE;
 
       STATE_READ_DATA_ACCESS:
-        state_next = 4'd4;
+        state_next = STATE_WAIT;
 
       STATE_WRITE_DATA_ACCESS:
-        state_next = 4'd4;
+        state_next = STATE_WAIT;
 
       STATE_INIT_DATA_ACCESS:
-        state_next = 4'd4;
+        state_next = STATE_WAIT;
 
       STATE_AMO_READ_DATA_ACCESS:
-        state_next = 4'd12;
+        state_next = STATE_AMO_WRITE_DATA_ACCESS;
 
       STATE_AMO_WRITE_DATA_ACCESS:
-        state_next = 4'd4;
+        state_next = STATE_WAIT;
 
       STATE_REFILL_REQUEST:
-             if ( memreq_rdy   ) state_next = 4'd6;
-        else if ( !memreq_rdy  ) state_next = 4'd5;
+             if ( memreq_rdy   ) state_next = STATE_REFILL_WAIT;
+        else if ( !memreq_rdy  ) state_next = STATE_REFILL_REQUEST;
 
       STATE_REFILL_WAIT:
-			 if ( insecure	   ) state_next = 4'd4;
-        else if ( memresp_val  ) state_next = 4'd7;
-        else if ( !memresp_val ) state_next = 4'd6;
+			 if ( fail && memresp_val)		 
+								 state_next = STATE_EMPTY_RESP;
+        else if ( memresp_val  ) state_next = STATE_REFILL_UPDATE;
+        else if ( !memresp_val ) state_next = STATE_REFILL_WAIT;
 
       STATE_REFILL_UPDATE:
-             if ( is_read      ) state_next = 4'd2;
-        else if ( is_write     ) state_next = 4'd3;
-        else if ( is_amo       ) state_next = 4'd11;
+             if ( is_read      ) state_next = STATE_READ_DATA_ACCESS;
+        else if ( is_write     ) state_next = STATE_WRITE_DATA_ACCESS;
+        else if ( is_amo       ) state_next = STATE_AMO_READ_DATA_ACCESS;
 
       STATE_EVICT_PREPARE:
-        state_next = 4'd9;
+        state_next = STATE_EVICT_REQUEST;
 
       STATE_EVICT_REQUEST:
-             if ( memreq_rdy   ) state_next = 4'd10;
-        else if ( !memreq_rdy  ) state_next = 4'd9;
+             if ( memreq_rdy   ) state_next = STATE_EVICT_WAIT;
+        else if ( !memreq_rdy  ) state_next = STATE_EVICT_REQUEST;
 
       STATE_EVICT_WAIT:
-             if ( memresp_val  ) state_next = 4'd5;
-        else if ( !memresp_val ) state_next = 4'd10;
+             if ( memresp_val  ) state_next = STATE_REFILL_REQUEST;
+        else if ( !memresp_val ) state_next = STATE_EVICT_WAIT;
 
+	
+	  STATE_SPEC_ACCESS:
+			state_next = STATE_EMPTY_RESP;
+	  
+	  STATE_EMPTY_RESP:
+			if ( memresp_val ) state_next = STATE_WAIT;
+	
+	  STATE_PRELW_ACCESS:
+			state_next = STATE_EMPTY_RESP;
+		
+	  STATE_DIRMEM_ACCESS:
+			state_next = STATE_EMPTY_RESP;
+	
       STATE_WAIT:
-             if ( out_go       ) state_next = 4'd0;
+             if ( out_go       ) state_next = STATE_IDLE;
 
     endcase
 
@@ -244,6 +268,7 @@ module plab3_mem_BlockingCacheAltCtrl
   (
     .clk        (clk),
     .reset      (reset),
+    .domain     (domain),
     .read_addr  (cachereq_idx),
     .read_data  (is_dirty_0),
     .write_en   (dirty_bits_write_en_0),
@@ -255,6 +280,7 @@ module plab3_mem_BlockingCacheAltCtrl
   (
     .clk        (clk),
     .reset      (reset),
+    .domain     (domain),
     .read_addr  (cachereq_idx),
     .read_data  (is_dirty_1),
     .write_en   (dirty_bits_write_en_1),
@@ -270,6 +296,7 @@ module plab3_mem_BlockingCacheAltCtrl
   (
     .clk        (clk),
     .reset      (reset),
+    .domain     (domain),
     .read_addr  (cachereq_idx),
     .read_data  (lru_way),
     .write_en   (lru_bits_write_en),
@@ -299,6 +326,7 @@ module plab3_mem_BlockingCacheAltCtrl
   (
     .clk    (clk),
     .reset  (reset),
+    .domain (domain),
     .en     (way_record_en),
     .d      (way_record_in),
     .q      (way_sel)
@@ -317,12 +345,14 @@ module plab3_mem_BlockingCacheAltCtrl
   localparam r_m     = 1'd1; // fill data array from _m_em
 
   // Parameters for memreq_type_mux
-  localparam m_x     = 1'dx;
+  localparam m_x     = 3'dx;
   localparam m_e     = `VC_MEM_REQ_MSG_TYPE_WRITE; // write to memory in an _e_vict
   localparam m_r     = `VC_MEM_REQ_MSG_TYPE_READ;  // write to memory in a _r_efill
+  localparam m_p	 = `VC_MEM_REQ_MSG_TYPE_PRELW; // prefetch intructions
+  localparam m_d	 = `VC_MEM_REQ_MSG_TYPE_DIRMEM;// prefetch intructions
 
-  reg tag_array_wen;
-  reg tag_array_ren;
+  reg {Domain domain} tag_array_wen;
+  reg {Domain domain} tag_array_ren;
 
   task cs
   (
@@ -339,7 +369,7 @@ module plab3_mem_BlockingCacheAltCtrl
    input cs_data_array_ren,
    input cs_read_data_reg_en,
    input cs_read_tag_reg_en,
-   input cs_memreq_type,
+   input [2:0] cs_memreq_type,
    input cs_valid_bit_in,
    input cs_valid_bits_write_en,
    input cs_dirty_bit_in,
@@ -392,6 +422,10 @@ module plab3_mem_BlockingCacheAltCtrl
       STATE_EVICT_PREPARE:         cs( 0,   0,    0,  0,   0,    0,   r_x,   0,    1,    0,    1,    1,   1,   m_x, x,    0,    x,    0,    0,    0       );
       STATE_EVICT_REQUEST:         cs( 0,   0,    1,  0,   0,    0,   r_x,   0,    0,    0,    0,    0,   0,   m_e, x,    0,    x,    0,    0,    0       );
       STATE_EVICT_WAIT:            cs( 0,   0,    0,  1,   0,    0,   r_x,   0,    0,    0,    0,    0,   0,   m_x, x,    0,    x,    0,    0,    0       );
+	  STATE_SPEC_ACCESS:		   cs( 0,   0,    1,  0,   0,    0,   r_x,   0,    0,    0,    0,    0,   0,   m_e, x,	  0,    x,	  0,    0,    0		  );
+	  STATE_EMPTY_RESP:			   cs( 0,   0,    0,  1,   0,    0,   r_x,	 0,    0,    0,    0,    0,   0,   m_x, x,    0,    x,    0,    0,    0       );
+	  STATE_PRELW_ACCESS:		   cs( 0,   0,    1,  0,   0,    0,   r_x,   0,    0,    0,    0,    0,   0,   m_p, x,	  0,    x,	  0,    0,    0		  );
+	  STATE_DIRMEM_ACCESS:		   cs( 0,   0,    1,  0,   0,    0,   r_x,   0,    0,    0,    0,    0,   0,   m_d, x,	  0,    x,	  0,    0,    0		  );
       STATE_WAIT:                  cs( 0,   1,    0,  0,   0,    0,   r_x,   0,    0,    0,    0,    0,   0,   m_x, x,    0,    x,    0,    0,    0       );
 
     endcase
@@ -420,6 +454,7 @@ module plab3_mem_BlockingCacheAltCtrl
 
   plab3_mem_DecoderWben#(2) wben_decoder
   (
+    .domain (domain),
     .in  (cachereq_offset),
     .out (wben_decoder_out)
   );

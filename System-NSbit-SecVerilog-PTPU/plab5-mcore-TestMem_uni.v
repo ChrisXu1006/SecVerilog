@@ -120,10 +120,10 @@ module plab5_mcore_TestMem_Uni
 	// memory (helping to avoid combinational loops) and also preserve our
 	// registered input policy.
 
-	wire						{Domain memresp_domain} memreq_val_M;
-	wire						{Domain memresp_domain} memreq_rdy_M;
-	wire [c_req_cnbits-1:0]	    {Domain memresp_domain} memreq_control_M;
-	wire [c_req_dnbits-1:0]	    {Domain  memresp_domain} memreq_data_M;
+	wire						{Domain memresp_domain_M} memreq_val_M;
+	wire						{Domain memresp_domain_M} memreq_rdy_M;
+	wire [c_req_cnbits-1:0]	    {Domain memresp_domain_M} memreq_control_M;
+	wire [c_req_dnbits-1:0]	    {Domain memresp_domain_M} memreq_data_M;
 
 	vc_Queue
 	#(
@@ -133,15 +133,16 @@ module plab5_mcore_TestMem_Uni
 	)
 	memreq_control_queue
 	(
-		.clk     (clk),
-		.reset   (reset),
-        .domain  (memreq_domain),
-		.enq_val (memreq_val),
-		.enq_rdy (memreq_rdy),
-		.enq_msg (memreq_control),
-		.deq_val (memreq_val_M),
-		.deq_rdy (memreq_rdy_M),
-		.deq_msg (memreq_control_M)
+		.clk        (clk),
+		.reset      (reset),
+        .enq_domain (memreq_domain),
+		.enq_val    (memreq_val),
+		.enq_rdy    (memreq_rdy),
+		.enq_msg    (memreq_control),
+        .deq_domain (memresp_domain_M),
+		.deq_val    (memreq_val_M),
+		.deq_rdy    (memreq_rdy_M),
+		.deq_msg    (memreq_control_M)
 	);
 
 	vc_Queue
@@ -152,28 +153,30 @@ module plab5_mcore_TestMem_Uni
 	)
 	memreq_data_queue
 	(
-		.clk     (clk),
-		.reset   (reset),
-        .domain  (memreq_domain),
-		.enq_val (memreq_val),
-		.enq_rdy (memreq_rdy),
-		.enq_msg (memreq_data),
-		.deq_val (memreq_val_M),
-		.deq_rdy (memreq_rdy_M),
-		.deq_msg (memreq_data_M)
+		.clk        (clk),
+		.reset      (reset),
+        .enq_domain (memreq_domain),
+		.enq_val    (memreq_val),
+		.enq_rdy    (memreq_rdy),
+		.enq_msg    (memreq_data),
+        .deq_domain (memresp_domain_M),
+		.deq_val    (memreq_val_M),
+		.deq_rdy    (memreq_rdy_M),
+		.deq_msg    (memreq_data_M)
 	);
 
 	//----------------------------------------------------------------------
 	// Unpack the request messages
 	//----------------------------------------------------------------------
 
-	wire [c_req_type_nbits-1:0]   {Domain memresp_domain} memreq_msg_type_M;
-	wire [c_req_opaque_nbits-1:0] {Domain memresp_domain} memreq_msg_opaque_M;
-	wire [c_req_addr_nbits-1:0]   {Domain memresp_domain} memreq_msg_addr_M;
-	wire [c_req_len_nbits-1:0]    {Domain memresp_domain} memreq_msg_len_M;
+	wire [c_req_type_nbits-1:0]   {Domain memresp_domain_M} memreq_msg_type_M;
+	wire [c_req_opaque_nbits-1:0] {Domain memresp_domain_M} memreq_msg_opaque_M;
+	wire [c_req_addr_nbits-1:0]   {Domain memresp_domain_M} memreq_msg_addr_M;
+	wire [c_req_len_nbits-1:0]    {Domain memresp_domain_M} memreq_msg_len_M;
 
 	plab5_mcore_MemReqCMsgUnpack#(o,a,d) memreq_cmsg_unpack
 	(
+        .domain (memresp_domain_M),
 		.msg    (memreq_control_M),
 		.type   (memreq_msg_type_M),
 		.opaque (memreq_msg_opaque_M),
@@ -190,9 +193,11 @@ module plab5_mcore_TestMem_Uni
 
 	// Delay the domain due to registered data
 	reg {L} memreq_domain_M;
+	reg {L} memresp_domain_M;
 
 	always @(posedge clk) begin
-		memresp_domain <= memreq_domain;
+		memresp_domain   <= memreq_domain;
+        memresp_domain_M <= memreq_domain;
 	end
 	//----------------------------------------------------------------------
 	// Handle request and create response
@@ -201,36 +206,36 @@ module plab5_mcore_TestMem_Uni
 	// Handle case where length is zero which actually represents a full
 	// width access.
 
-	wire [c_req_len_nbits:0] {Domain memresp_domain} memreq_msg_len_modified_M
+	wire [c_req_len_nbits:0] {Domain memresp_domain_M} memreq_msg_len_modified_M
 	= ( memreq_msg_len_M == 0 ) ? (128/8) : memreq_msg_len_M;
 
 	// Caculate the physical byte address for the request. Notice that we
 	// truncate the higher order bits that are beyond the size of the
 	// physical memory.
 
-	wire [c_physical_addr_nbits-1:0] {Domain memresp_domain} physical_byte_addr_M
+	wire [c_physical_addr_nbits-1:0] {Domain memresp_domain_M} physical_byte_addr_M
 	= memreq_msg_addr_M[c_physical_addr_nbits-1:0];
 
 	// Cacluate the address belongs to which part
-	wire [1:0] {Domain memresp_domain} part = memreq_msg_addr_M[15:14];
+	wire [1:0] {Domain memresp_domain_M} part = memreq_msg_addr_M[15:14];
 
 	// Cacluate the block address and block offset
 
-	wire [c_physical_block_addr_nbits-1:0] {Domain memresp_domain} physical_block_addr_M
+	wire [c_physical_block_addr_nbits-1:0] {Domain memresp_domain_M} physical_block_addr_M
     = physical_byte_addr_M/16 - (1<<16)/64*part;
 
-	wire [c_block_offset_nbits-1:0] {Domain memresp_domain} block_offset_M
+	wire [c_block_offset_nbits-1:0] {Domain memresp_domain_M} block_offset_M
     = physical_byte_addr_M[c_block_offset_nbits-1:0];
 
 	// Read the data
-	reg [p_data_nbits-1:0] {Domain memresp_domain} read_block_M;
+	reg [p_data_nbits-1:0] {Domain memresp_domain_M} read_block_M;
 
 	always @(*) begin
-		if ( (part-(mode<<1)) == 1'b0) begin
+		if ( (part-(mode<<1)) == 1'b0 && memresp_domain_M == 1'b0) begin
 			read_block_M = m_pub[physical_block_addr_M];
 		end
 
-		else if ( (part-(mode<<1)) == 1'b1 && memresp_domain == 1'b1 ) begin
+		else if ( (part-(mode<<1)) == 1'b1 && memresp_domain_M == 1'b1 ) begin
 			read_block_M = m_sec[physical_block_addr_M];
 		end
 
@@ -239,19 +244,19 @@ module plab5_mcore_TestMem_Uni
 		end
 	end
 
-	wire [c_resp_data_nbits-1:0] {Domain memresp_domain} read_data_M
+	wire [c_resp_data_nbits-1:0] {Domain memresp_domain_M} read_data_M
 	= read_block_M >> (block_offset_M*8);
 
 	// Write the data if required. This is a sequential always block so
 	// that the write happens on the next edge.
 
-	wire {Domain memresp_domain} write_en_M = memreq_val_M &&
+	wire {Domain memresp_domain_M} write_en_M = memreq_val_M &&
          ( memreq_msg_type_M == c_write || memreq_msg_type_M == c_write_init );
 
 	// Note: amos need to happen once, so we only enable the amo transaction
 	// when both val and rdy is high
 
-	wire {Domain memresp_domain} amo_en_M = memreq_val_M && memreq_rdy_M &&
+	wire {Domain memresp_domain_M} amo_en_M = memreq_val_M && memreq_rdy_M &&
                                   ( memreq_msg_type_M == c_amo_and
                                  || memreq_msg_type_M == c_amo_add
                                  || memreq_msg_type_M == c_amo_or  );
@@ -325,17 +330,18 @@ module plab5_mcore_TestMem_Uni
 	// Pack the response message
 	//----------------------------------------------------------------------
 
-	wire [c_resp_cnbits-1:0] {Domain memresp_domain} memresp_control_M;
+	wire [c_resp_cnbits-1:0] {Domain memresp_domain_M} memresp_control_M;
 
 	plab5_mcore_MemRespCMsgPack#(o,d) memresp_msg_pack
 	(
+        .domain (memresp_domain_M),
 		.type   (memreq_msg_type_M),
 		.opaque (memreq_msg_opaque_M),
 		.len    (memreq_msg_len_M),
 		.msg    (memresp_control_M)
 	);
 
-	wire [c_resp_dnbits-1:0]	{Domain memresp_domain} memresp_data_M = read_data_M;
+	wire [c_resp_dnbits-1:0]	{Domain memresp_domain_M} memresp_data_M = read_data_M;
 	//----------------------------------------------------------------------
 	// Memory response buffers
 	//----------------------------------------------------------------------
@@ -347,21 +353,22 @@ module plab5_mcore_TestMem_Uni
 
 	vc_Queue
 	#(
-		.p_type      (`VC_QUEUE_BYPASS),
+		.p_type      (`VC_QUEUE_PIPE),
 		.p_msg_nbits (c_resp_cnbits),
 		.p_num_msgs  (1)
 	)
 	memresp_control_queue
 	(
-		.clk     (clk),
-		.reset   (reset),
-        .domain  (memresp_domain),
-		.enq_val (memreq_val_M),
-		.enq_rdy (memreq_rdy_M),
-		.enq_msg (memresp_control_M),
-		.deq_val (memresp_val),
-		.deq_rdy (memresp_rdy),
-		.deq_msg (memresp_control)
+		.clk        (clk),
+		.reset      (reset),
+        .enq_domain (memresp_domain_M),
+		.enq_val    (memreq_val_M),
+		.enq_rdy    (memreq_rdy_M),
+		.enq_msg    (memresp_control_M),
+        .deq_domain (memresp_domain),
+		.deq_val    (memresp_val),
+		.deq_rdy    (memresp_rdy),
+		.deq_msg    (memresp_control)
 	);
 
 	vc_Queue
@@ -372,15 +379,16 @@ module plab5_mcore_TestMem_Uni
 	)
 	memresp_data_queue
 	(
-		.clk     (clk),
-		.reset   (reset),
-        .domain  (memresp_domain),
-		.enq_val (memreq_val_M),
-		.enq_rdy (memreq_rdy_M),
-		.enq_msg (memresp_data_M),
-		.deq_val (memresp_val),
-		.deq_rdy (memresp_rdy),
-		.deq_msg (memresp_data)
+		.clk        (clk),
+		.reset      (reset),
+        .enq_domain (memresp_domain_M),
+		.enq_val    (memreq_val_M),
+		.enq_rdy    (memreq_rdy_M),
+		.enq_msg    (memresp_data_M),
+        .deq_domain (memresp_domain),
+		.deq_val    (memresp_val),
+		.deq_rdy    (memresp_rdy),
+		.deq_msg    (memresp_data)
 	);
 	//----------------------------------------------------------------------
 	// General assertions

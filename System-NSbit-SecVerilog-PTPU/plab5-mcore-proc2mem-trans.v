@@ -29,16 +29,17 @@ module plab5_mcore_proc2mem_trans
 )
 (
     // input security domain
-    input   {L} domain,
+    input   {L} req_domain,
+    input   {L} resp_domain,
 	// input request message from process side
-	input	[proc_reqmsg_nbits-1:0]	{Domain domain} proc_req_msg,
+	input	[proc_reqmsg_nbits-1:0]	{Domain req_domain} proc_req_msg,
 	// input respond message from memory side
-	input	[mem_respmsg_nbits-1:0]	{Domain domain} mem_resp_msg,
+	input	[mem_respmsg_nbits-1:0]	{Domain resp_domain} mem_resp_msg,
 
 	// output request message to memory
-	output	[mem_reqmsg_nbits-1:0]	{Domain domain} mem_req_msg,
+	output	[mem_reqmsg_nbits-1:0]	{Domain req_domain} mem_req_msg,
 	// output response message to memory
-	output	[proc_respmsg_nbits-1:0]{Domain domain} proc_resp_msg
+	output	[proc_respmsg_nbits-1:0]{Domain resp_domain} proc_resp_msg
 );
 
 	// translate request message

@@ -30,14 +30,14 @@ module plab5_mcore_proc_resp_acc
 	input						{L} proc_sec_level,
 
 	// inputs from network
-	input						{Control resp_sec_level} net_resp_val,
-	output reg					{Control resp_sec_level} net_resp_rdy,
-	input	   [resp_nbits-1:0] {Domain  resp_sec_level} net_resp_msg,
+	input						{Domain resp_sec_level} net_resp_val,
+	output reg					{Domain resp_sec_level} net_resp_rdy,
+	input	   [resp_nbits-1:0] {Domain resp_sec_level} net_resp_msg,
 
 	// output to processor
-	output reg					{Control proc_sec_level} proc_resp_val,
-	input						{Control proc_sec_level} proc_resp_rdy,
-	output reg [resp_nbits-1:0]	{Domain  proc_sec_level} proc_resp_msg
+	output reg					{Domain proc_sec_level} proc_resp_val,
+	input						{Domain proc_sec_level} proc_resp_rdy,
+	output reg [resp_nbits-1:0]	{Domain proc_sec_level} proc_resp_msg
 );
 
 	always @(*) begin

@@ -18,8 +18,9 @@ module plab3_mem_DecoderWben
   // Local constants not meant to be set from outside the module
   parameter c_out_nbits = (1 << (p_in_nbits+2))
 )(
-  input  [p_in_nbits-1:0]  in,
-  output [c_out_nbits-1:0] out
+  input                    {L}              domain,
+  input  [p_in_nbits-1:0]  {Domain domain}  in,
+  output [c_out_nbits-1:0] {Domain domain}  out
 );
 
   genvar i;

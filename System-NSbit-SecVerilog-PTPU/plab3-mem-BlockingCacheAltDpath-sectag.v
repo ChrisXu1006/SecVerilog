@@ -28,67 +28,66 @@ module plab3_mem_BlockingCacheAltDpath
   parameter o = p_opaque_nbits
 )
 (
-  input                                              {L} clk,
-  input                                              {L} reset,
-
-  input                                              {L} domain,
+  input                                              clk,
+  input                                              reset,
 
   // Cache Request
 
-  input [`VC_MEM_REQ_MSG_NBITS(o,abw,dbw)-1:0]       {Domain domain} cachereq_msg,
+  input [`VC_MEM_REQ_MSG_NBITS(o,abw,dbw)-1:0]       cachereq_msg,
+  input												 cachereq_domain,
 
   // Cache Response
 
-  output [`VC_MEM_RESP_MSG_NBITS(o,dbw)-1:0]         {Domain domain} cacheresp_msg,
+  output [`VC_MEM_RESP_MSG_NBITS(o,dbw)-1:0]         cacheresp_msg,
+  output											 cacheresp_domain,
 
   // Memory Request
 
-  output [`VC_MEM_REQ_MSG_NBITS(o,abw,clw)-1:0]      {Domain domain} memreq_msg,
+  output [`VC_MEM_REQ_MSG_NBITS(o,abw,clw)-1:0]      memreq_msg,
 
   // Memory Response
 
-  input												 {Domain domain} insecure,
-  input [`VC_MEM_RESP_MSG_NBITS(o,clw)-1:0]          {Domain domain} memresp_msg,
+  input [`VC_MEM_RESP_MSG_NBITS(o,clw)-1:0]          memresp_msg,
 
   // control signals (ctrl->dpath)
-  input [1:0]                                        {Domain domain} amo_sel,
-  input                                              {Domain domain} cachereq_en,
-  input                                              {Domain domain} memresp_en,
-  input                                              {Domain domain} is_refill,
-  input                                              {Domain domain} tag_array_0_wen,
-  input                                              {Domain domain} tag_array_0_ren,
-  input                                              {Domain domain} tag_array_1_wen,
-  input                                              {Domain domain} tag_array_1_ren,
-  input                                              {Domain domain} way_sel,
-  input                                              {Domain domain} data_array_wen,
-  input                                              {Domain domain} data_array_ren,
+  input [1:0]                                        amo_sel,
+  input                                              cachereq_en,
+  input                                              memresp_en,
+  input                                              is_refill,
+  input                                              tag_array_0_wen,
+  input                                              tag_array_0_ren,
+  input                                              tag_array_1_wen,
+  input                                              tag_array_1_ren,
+  input                                              way_sel,
+  input                                              data_array_wen,
+  input                                              data_array_ren,
   // width of cacheline divided by number of bits per byte
-  input [clw/8-1:0]                                  {Domain domain} data_array_wben,
-  input                                              {Domain domain} read_data_reg_en,
-  input                                              {Domain domain} read_tag_reg_en,
-  input [$clog2(clw/dbw)-1:0]                        {Domain domain} read_byte_sel,
-  input [`VC_MEM_RESP_MSG_TYPE_NBITS(o,clw)-1:0]     {Domain domain} memreq_type,
-  input [`VC_MEM_RESP_MSG_TYPE_NBITS(o,dbw)-1:0]     {Domain domain} cacheresp_type,
+  input [clw/8-1:0]                                  data_array_wben,
+  input                                              read_data_reg_en,
+  input                                              read_tag_reg_en,
+  input [$clog2(clw/dbw)-1:0]                        read_byte_sel,
+  input [`VC_MEM_RESP_MSG_TYPE_NBITS(o,clw)-1:0]     memreq_type,
+  input [`VC_MEM_RESP_MSG_TYPE_NBITS(o,dbw)-1:0]     cacheresp_type,
 
   // status signals (dpath->ctrl)
-  output [`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw)-1:0] {Domain domain} cachereq_type,
-  output [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] {Domain domain} cachereq_addr,
-  output                                             {Domain domain} tag_match_0,
-  output                                             {Domain domain} tag_match_1
+  output [`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw)-1:0] cachereq_type,
+  output [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] cachereq_addr,
+  output                                             tag_match_0,
+  output                                             tag_match_1,
+  output											 nsbit_match_0,
+  output											 nsbit_match_1
 );
 
   // Unpack cache request
 
-  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0]   {Domain domain} cachereq_addr_out;
-  wire [`VC_MEM_REQ_MSG_DATA_NBITS(o,abw,dbw)-1:0]   {Domain domain} cachereq_data_out;
-  wire [`VC_MEM_REQ_MSG_OPAQUE_NBITS(o,abw,dbw)-1:0] {Domain domain} cachereq_opaque_out;
-  wire [`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw)-1:0]   {Domain domain} cachereq_type_out;
-  wire [`VC_MEM_REQ_MSG_LEN_NBITS(o,abw,dbw)-1:0]    {Domain domain} cachereq_len_out;
+  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0]   cachereq_addr_out;
+  wire [`VC_MEM_REQ_MSG_DATA_NBITS(o,abw,dbw)-1:0]   cachereq_data_out;
+  wire [`VC_MEM_REQ_MSG_OPAQUE_NBITS(o,abw,dbw)-1:0] cachereq_opaque_out;
+  wire [`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw)-1:0]   cachereq_type_out;
+  wire [`VC_MEM_REQ_MSG_LEN_NBITS(o,abw,dbw)-1:0]    cachereq_len_out;
 
   vc_MemReqMsgUnpack#(o,abw,dbw) cachereq_msg_unpack
   (
-    .domain (domain),
-
     .msg    (cachereq_msg),
 
     .type   (cachereq_type_out),
@@ -100,35 +99,29 @@ module plab3_mem_BlockingCacheAltDpath
 
   // Unpack memory response
 
-  wire [`VC_MEM_RESP_MSG_DATA_NBITS(o,clw)-1:0]      {Domain domain} memresp_data_out;
-  wire [`VC_MEM_RESP_MSG_OPAQUE_NBITS(o,clw)-1:0]    {Domain domain} memresp_opaque_out;
-  wire [`VC_MEM_RESP_MSG_TYPE_NBITS(o,clw)-1:0]      {Domain domain} memresp_type_out;
-  wire [`VC_MEM_RESP_MSG_LEN_NBITS(o,clw)-1:0]       {Domain domain} memresp_len_out;
+  wire [`VC_MEM_RESP_MSG_DATA_NBITS(o,clw)-1:0]      memresp_data_out;
 
   vc_MemRespMsgUnpack#(o,clw) memresp_msg_unpack
   (
-    .domain (domain),
-
     .msg    (memresp_msg),
 
-    .opaque (memresp_opaque_out),
-    .type   (memresp_type_out),
-    .len    (memresp_len_out),
+    .opaque (),
+    .type   (),
+    .len    (),
     .data   (memresp_data_out)
   );
 
   // Register the unpacked cachereq_msg
 
-  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0]   {Domain domain} cachereq_addr_reg_out;
-  wire [`VC_MEM_REQ_MSG_DATA_NBITS(o,abw,dbw)-1:0]   {Domain domain} cachereq_data_reg_out;
-  wire [`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw)-1:0]   {Domain domain} cachereq_type_reg_out;
-  wire [`VC_MEM_REQ_MSG_OPAQUE_NBITS(o,abw,dbw)-1:0] {Domain domain} cachereq_opaque_reg_out;
+  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0]   cachereq_addr_reg_out;
+  wire [`VC_MEM_REQ_MSG_DATA_NBITS(o,abw,dbw)-1:0]   cachereq_data_reg_out;
+  wire [`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw)-1:0]   cachereq_type_reg_out;
+  wire [`VC_MEM_REQ_MSG_OPAQUE_NBITS(o,abw,dbw)-1:0] cachereq_opaque_reg_out;
 
   vc_EnResetReg #(`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw), 0) cachereq_type_reg
   (
     .clk    (clk),
     .reset  (reset),
-    .domain (domain),
     .en     (cachereq_en),
     .d      (cachereq_type_out),
     .q      (cachereq_type_reg_out)
@@ -138,7 +131,6 @@ module plab3_mem_BlockingCacheAltDpath
   (
     .clk    (clk),
     .reset  (reset),
-    .domain (domain),
     .en     (cachereq_en),
     .d      (cachereq_addr_out),
     .q      (cachereq_addr_reg_out)
@@ -148,7 +140,6 @@ module plab3_mem_BlockingCacheAltDpath
   (
     .clk    (clk),
     .reset  (reset),
-    .domain (domain),
     .en     (cachereq_en),
     .d      (cachereq_opaque_out),
     .q      (cachereq_opaque_reg_out)
@@ -158,7 +149,6 @@ module plab3_mem_BlockingCacheAltDpath
   (
     .clk    (clk),
     .reset  (reset),
-    .domain (domain),
     .en     (cachereq_en),
     .d      (cachereq_data_out),
     .q      (cachereq_data_reg_out)
@@ -169,13 +159,12 @@ module plab3_mem_BlockingCacheAltDpath
 
   // Register the unpacked data from memresp_msg
 
-  wire [clw-1:0]                              {Domain domain}   memresp_data_reg_out;
+  wire [clw-1:0]                                   memresp_data_reg_out;
 
   vc_EnResetReg #(clw, 0) memresp_data_reg
   (
     .clk    (clk),
     .reset  (reset),
-    .domain (domain),
     .en     (memresp_en),
     .d      (memresp_data_out),
     .q      (memresp_data_reg_out)
@@ -184,12 +173,11 @@ module plab3_mem_BlockingCacheAltDpath
   // Generate cachereq write data which will be the data field or some
   // calculation with the read data for amos
 
-  wire [`VC_MEM_REQ_MSG_DATA_NBITS(o,abw,dbw)-1:0] {Domain domain} cachereq_write_data;
-  wire [`VC_MEM_REQ_MSG_DATA_NBITS(o,abw,dbw)-1:0] {Domain domain} read_byte_sel_mux_out;
+  wire [`VC_MEM_REQ_MSG_DATA_NBITS(o,abw,dbw)-1:0] cachereq_write_data;
+  wire [`VC_MEM_REQ_MSG_DATA_NBITS(o,abw,dbw)-1:0] read_byte_sel_mux_out;
 
   vc_Mux4 #(dbw) amo_sel_mux
   (
-    .domain (domain),
     .in0  (cachereq_data_reg_out),
     .in1  (cachereq_data_reg_out + read_byte_sel_mux_out),
     .in2  (cachereq_data_reg_out & read_byte_sel_mux_out),
@@ -201,7 +189,7 @@ module plab3_mem_BlockingCacheAltDpath
 
   // Replicate cachereq_write_data
 
-  wire [`VC_MEM_REQ_MSG_DATA_NBITS(o,abw,dbw)*clw/dbw-1:0] {Domain domain} cachereq_write_data_replicated;
+  wire [`VC_MEM_REQ_MSG_DATA_NBITS(o,abw,dbw)*clw/dbw-1:0] cachereq_write_data_replicated;
 
   genvar i;
   generate
@@ -212,7 +200,7 @@ module plab3_mem_BlockingCacheAltDpath
 
   // Refill mux
 
-  wire [`VC_MEM_RESP_MSG_DATA_NBITS(o,clw)-1:0] {Domain domain} refill_mux_out;
+  wire [`VC_MEM_RESP_MSG_DATA_NBITS(o,clw)-1:0] refill_mux_out;
 
   vc_Mux2 #(clw) refill_mux
   (
@@ -228,57 +216,53 @@ module plab3_mem_BlockingCacheAltDpath
   //     index: $clog2(nblocks) - 1 bits wide
   //     nbits: width of tag = width of addr - $clog2(nblocks) - 4
   //     entries: 256*8/128 = 16
-  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-4-1:0] {Domain domain} cachereq_tag;
+  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-4-1:0] cachereq_tag;
   // Index is 3 bits to account for the way number
-  wire [2:0]                                         {Domain domain} cachereq_idx;
+  wire [idw-2:0]									 cachereq_idx;
 
   assign cachereq_tag = cachereq_addr_reg_out[`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:4];
   // -1 for way
-  assign cachereq_idx = cachereq_addr_reg_out[4+p_idx_shamt +: 3];
+  assign cachereq_idx = cachereq_addr_reg_out[4+idw-1+p_idx_shamt:4+p_idx_shamt];
 
   // Tag array
-  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] {Domain domain} tag_array_0_read_out;
+  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] tag_array_0_read_out;
 
   vc_CombinationalSRAM_1rw #(`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw),nblocks/2) tag_array_0
   (
     .clk           (clk),
     .reset         (reset),
-    .in_domain     (domain),
     .read_addr     (cachereq_idx),
     .read_data     (tag_array_0_read_out),
-    //.out_domain    (domain),
     .write_en      (tag_array_0_wen),
     .read_en       (tag_array_0_ren),
     .write_byte_en (4'b1111),
     .write_addr    (cachereq_idx),
-    .write_data    ( { 4'h0, cachereq_tag } )
+    .write_data    ( { 3'h0, cachereq_domain, cachereq_tag } )
   );
 
   // Tag array 1
-  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] {Domain domain} tag_array_1_read_out;
+  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] tag_array_1_read_out;
 
   vc_CombinationalSRAM_1rw #(`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw),nblocks/2) tag_array_1
   (
     .clk           (clk),
     .reset         (reset),
-    .in_domain     (domain),
     .read_addr     (cachereq_idx),
     .read_data     (tag_array_1_read_out),
     .write_en      (tag_array_1_wen),
     .read_en       (tag_array_1_ren),
     .write_byte_en (4'b1111),
     .write_addr    (cachereq_idx),
-    .write_data    ( { 4'h0, cachereq_tag } )
+    .write_data    ( { 3'h0, cachereq_domain, cachereq_tag } )
   );
 
-  wire [clw-1:0] {Domain domain} data_array_read_out;
+  wire [clw-1:0] data_array_read_out;
 
   // Data array
   vc_CombinationalSRAM_1rw #(clw, nblocks) data_array
   (
     .clk           (clk),
     .reset         (reset),
-    .in_domain     (domain),
     // Whether way_sel is appended or prepended does not matter since
     // it's just a matter of how the cachelines are actually organized in
     // the data_array
@@ -307,8 +291,24 @@ module plab3_mem_BlockingCacheAltDpath
     .out (tag_match_1)
   );
 
+  // Eq comparator to check for NS-bit matching (nsbit_compare_0)
+  vc_EqComparator #(1)	NSbit_compare_0
+  (
+	.in0	(cachereq_domain),
+	.in1	(tag_array_0_read_out[28:28]),
+	.out	(nsbit_match_0)
+  );
+
+  // Eq comparator to check for NS-bit matching (nsbit_compare_1)
+  vc_EqComparator #(1)	NSbit_compare_1
+  (
+	.in0	(cachereq_domain),
+	.in1	(tag_array_1_read_out[28:28]),
+	.out	(nsbit_match_1)
+  );
+
   // Mux that selects between the ways for requesting from memory
-  wire [27:0]    {Domain domain} way_sel_mux_out;
+  wire [27:0]    way_sel_mux_out;
 
   vc_Mux2 #(`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-4) way_sel_mux
   (
@@ -320,13 +320,12 @@ module plab3_mem_BlockingCacheAltDpath
 
   // Read data register
 
-  wire [clw-1:0]  {Domain domain} read_data_reg_out;
+  wire [clw-1:0]   read_data_reg_out;
 
   vc_EnResetReg #(clw, 0) read_data_reg
   (
     .clk    (clk),
     .reset  (reset),
-    .domain (domain),
     .en     (read_data_reg_en),
     .d      (data_array_read_out),
     .q      (read_data_reg_out)
@@ -334,13 +333,12 @@ module plab3_mem_BlockingCacheAltDpath
 
   // Read data register
 
-  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-4-1:0]   {Domain domain} read_tag_reg_out;
+  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-4-1:0]   read_tag_reg_out;
 
   vc_EnResetReg #(`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-4, 0) read_tag_reg
   (
     .clk    (clk),
     .reset  (reset),
-    .domain (domain),
     .en     (read_tag_reg_en),
     .d      (way_sel_mux_out),
     .q      (read_tag_reg_out)
@@ -348,7 +346,7 @@ module plab3_mem_BlockingCacheAltDpath
 
   // Memreq Type Mux
 
-  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-4-1:0] {Domain domain} memreq_type_mux_out;
+  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-4-1:0] memreq_type_mux_out;
 
   vc_Mux2 #(`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-4) memreq_type_mux
   (
@@ -361,14 +359,13 @@ module plab3_mem_BlockingCacheAltDpath
 
   // Pack address for memory request
 
-  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,clw)-1:0] {Domain domain} memreq_addr;
+  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,clw)-1:0] memreq_addr;
   assign memreq_addr = { memreq_type_mux_out, 4'b0000 };
 
   // Select byte for cache response
 
   vc_Mux4 #(dbw) read_byte_sel_mux
   (
-    .domain(domain),
     .in0  (read_data_reg_out[dbw-1:0]),
     .in1  (read_data_reg_out[2*dbw-1:1*dbw]),
     .in2  (read_data_reg_out[3*dbw-1:2*dbw]),
@@ -377,31 +374,22 @@ module plab3_mem_BlockingCacheAltDpath
     .out  (read_byte_sel_mux_out)
   );
 
-  wire [`VC_MEM_RESP_MSG_DATA_NBITS(o,dbw)-1:0]	{Domain domain} read_byte_sec_mux_out;
-  vc_Mux2 #(dbw) sec_mux
-  (
-	.in0  (read_byte_sel_mux_out),
-	.in1  ('hx),
-	.sel  (insecure),
-	.out  (read_byte_sec_mux_out)
-  );
-
   // Pack cache response
 
   vc_MemRespMsgPack#(o,dbw) cacheresp_msg_pack
   (
-    .domain (domain),
     .type   (cacheresp_type),
     .opaque (cachereq_opaque_reg_out),
     .len    (0),
-    .data   (read_byte_sec_mux_out),
+    .data   (read_byte_sel_mux_out),
     .msg    (cacheresp_msg)
   );
+
+  assign cacheresp_domain = cachereq_domain;
 
   // Pack cache response
   vc_MemReqMsgPack#(o,abw,clw) memreq_msg_pack
   (
-    .domain (domain),
     .type   (memreq_type),
     .opaque (0),
     .addr   (memreq_addr),

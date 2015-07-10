@@ -110,9 +110,11 @@
 `define VC_MEM_REQ_MSG_TYPE_NBITS(o_,a_,d_) 3
 `define VC_MEM_REQ_MSG_TYPE_READ     3'd0
 `define VC_MEM_REQ_MSG_TYPE_WRITE    3'd1
+`define VC_MEM_REQ_MSG_TYPE_PRELW    3'd6
+`define VC_MEM_REQ_MSG_TYPE_DIRMEM   3'd2
 
 // write no-refill
-`define VC_MEM_REQ_MSG_TYPE_WRITE_INIT 3'd2
+`define VC_MEM_REQ_MSG_TYPE_WRITE_INIT 3'd7
 `define VC_MEM_REQ_MSG_TYPE_AMO_ADD    3'd3
 `define VC_MEM_REQ_MSG_TYPE_AMO_AND    3'd4
 `define VC_MEM_REQ_MSG_TYPE_AMO_OR     3'd5

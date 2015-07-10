@@ -2,18 +2,16 @@
 // Alternative Blocking Cache
 //=========================================================================
 
-`ifndef PLAB3_MEM_BLOCKING_CACHE_ALT_V
-`define PLAB3_MEM_BLOCKING_CACHE_ALT_V
+`ifndef PLAB3_MEM_BLOCKING_L1_CACHE_V
+`define PLAB3_MEM_BLOCKING_L1_CACHE_V
 
 `include "vc-mem-msgs.v"
-`include "plab3-mem-BlockingCacheAltCtrl.v"
-`include "plab3-mem-BlockingCacheAltDpath.v"
+`include "plab3-mem-BlockingL1CacheCtrl.v"
+`include "plab3-mem-BlockingL1CacheDpath.v"
 
 
-module plab3_mem_BlockingCacheAlt
+module plab3_mem_BlockingL1Cache
 #(
-  parameter mode = 0,					   // 0 for instruction, 1 for data
-
   parameter p_mem_nbytes = 256,            // Cache size in bytes
   parameter p_num_banks  = 0,              // Total number of cache banks
 
@@ -51,10 +49,9 @@ module plab3_mem_BlockingCacheAlt
   output                                        {Domain domain} memreq_val,
   input                                         {Domain domain} memreq_rdy,
 
-  // Imply Insecure memory request
-  input											{Domain domain} insecure,
-
   // Memory Response
+
+  input											{Domain domain} fail,
 
   input [`VC_MEM_RESP_MSG_NBITS(o,clw)-1:0]     {Domain domain} memresp_msg,
   input                                         {Domain domain} memresp_val,
@@ -70,21 +67,21 @@ module plab3_mem_BlockingCacheAlt
   //----------------------------------------------------------------------
 
   // control signals (ctrl->dpath)
-  wire [1:0]                                   {Domain domain} amo_sel;
-  wire                                         {Domain domain} cachereq_en;
-  wire                                         {Domain domain} memresp_en;
-  wire                                         {Domain domain} is_refill;
-  wire                                         {Domain domain} tag_array_0_wen;
-  wire                                         {Domain domain} tag_array_0_ren;
-  wire                                         {Domain domain} tag_array_1_wen;
-  wire                                         {Domain domain} tag_array_1_ren;
-  wire                                         {Domain domain} way_sel;
-  wire                                         {Domain domain} data_array_wen;
-  wire                                         {Domain domain} data_array_ren;
-  wire [clw/8-1:0]                             {Domain domain} data_array_wben;
-  wire                                         {Domain domain} read_data_reg_en;
-  wire                                         {Domain domain} read_tag_reg_en;
-  wire [$clog2(clw/dbw)-1:0]                   {Domain domain} read_byte_sel;
+  wire [1:0]									{Domain domain} amo_sel;
+  wire                                         	{Domain domain} cachereq_en;
+  wire                                         	{Domain domain} memresp_en;
+  wire                                         	{Domain domain} is_refill;
+  wire                                         	{Domain domain} tag_array_0_wen;
+  wire                                         	{Domain domain} tag_array_0_ren;
+  wire                                         	{Domain domain} tag_array_1_wen;
+  wire                                         	{Domain domain} tag_array_1_ren;
+  wire                                         	{Domain domain} way_sel;
+  wire                                         	{Domain domain} data_array_wen;
+  wire                                         	{Domain domain} data_array_ren;
+  wire [clw/8-1:0]                             	{Domain domain} data_array_wben;
+  wire                                         	{Domain domain} read_data_reg_en;
+  wire                                         	{Domain domain} read_tag_reg_en;
+  wire [$clog2(clw/dbw)-1:0]                   	{Domain domain} read_byte_sel;
   wire [`VC_MEM_RESP_MSG_TYPE_NBITS(o,clw)-1:0] {Domain domain} memreq_type;
   wire [`VC_MEM_RESP_MSG_TYPE_NBITS(o,dbw)-1:0] {Domain domain} cacheresp_type;
 
@@ -99,7 +96,7 @@ module plab3_mem_BlockingCacheAlt
   // Control
   //----------------------------------------------------------------------
 
-  plab3_mem_BlockingCacheAltCtrl
+  plab3_mem_BlockingL1CacheCtrl
   #(
     .size                   (p_mem_nbytes),
     .p_idx_shamt            (c_idx_shamt),
@@ -129,7 +126,7 @@ module plab3_mem_BlockingCacheAlt
 
    // Memory Response
 
-   .insecure		  (insecure),
+   .fail			  (fail),
 
    .memresp_val       (memresp_val),
    .memresp_rdy       (memresp_rdy),
@@ -164,7 +161,7 @@ module plab3_mem_BlockingCacheAlt
   // Datapath
   //----------------------------------------------------------------------
 
-  plab3_mem_BlockingCacheAltDpath
+  plab3_mem_BlockingL1CacheDpath
   #(
     .size                   (p_mem_nbytes),
     .p_idx_shamt            (c_idx_shamt),
@@ -191,7 +188,6 @@ module plab3_mem_BlockingCacheAlt
 
    // Memory Response
 
-   .insecure		  (insecure),
    .memresp_msg       (memresp_msg),
 
    // control signals (ctrl->dpath)

@@ -69,7 +69,25 @@
 ; assertions to be verified
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign out = {{(p_out_nbits)-(p_in_nbits){0}}, in} @./vc-arithmetic.v:89
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign type = msg[((((d)-(1))+($clog2((d)/(8))))+(o))+(3):((((d)-(1))+($clog2((d)/(8))))+(o))+(1)] @./vc-mem-msgs.v:386
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign opaque = msg[(((d)-(1))+($clog2((d)/(8))))+(o):(((d)-(1))+($clog2((d)/(8))))+(1)] @./vc-mem-msgs.v:387
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign len = msg[((d)-(1))+($clog2((d)/(8))):((d)-(1))+(1)] @./vc-mem-msgs.v:388
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign data = msg[(d)-(1):0] @./vc-mem-msgs.v:389
 (check-sat)
 (pop)
 

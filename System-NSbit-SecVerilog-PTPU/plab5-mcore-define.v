@@ -19,3 +19,6 @@
 
 // MACROS to control secure or insecure cache design
 `define CACHE_INSECURE
+
+// MACROS to control secure or insecure DMA checker
+`define DMA_CHECKER_SECURE
