@@ -15,6 +15,20 @@ module plab2_proc_PipelinedProcBypassCtrl
   input clk,
   input reset,
 
+  // default security domain
+  input			def_domain,
+  // output security domain
+  output reg	out_domain,
+  
+  // Interrupt port
+  output reg	intr_rq,
+  output		intr_set,
+  input			intr_ack,
+  input			intr_val,
+
+  // output for setting cache control register
+  output reg	cacheable,
+
   // Instruction Memory Port
 
   output        imemreq_val,
@@ -33,6 +47,10 @@ module plab2_proc_PipelinedProcBypassCtrl
 
   input                                            dmemresp_val,
   output                                           dmemresp_rdy,
+
+  // Debug Interface
+  output		debug_val,
+  input			debug_rdy,
 
   // mngr communication port
 
@@ -208,6 +226,13 @@ module plab2_proc_PipelinedProcBypassCtrl
   localparam n = 1'd0;
   localparam y = 1'd1;
 
+  // Set Control register specifiers
+  localparam none		= 3'd0;
+  localparam chmod		= 3'd1;
+  localparam debug		= 3'd2;
+  localparam setintr	= 3'd3;
+  localparam intr		= 3'd4;
+
   // Register specifiers
 
   localparam rx = 5'bx;
@@ -280,6 +305,8 @@ module plab2_proc_PipelinedProcBypassCtrl
   localparam ad       = 3'd3; // amo.add
   localparam an       = 3'd4; // amo.add
   localparam ao       = 3'd5; // amo.add
+  localparam pl		  = 3'd6; // prefetch
+  localparam dma	  = 3'd7; // direct memory access
 
   // Multiply Request Type
 
@@ -316,6 +343,7 @@ module plab2_proc_PipelinedProcBypassCtrl
   reg [4:0] rf_waddr_D;
   reg       mtc_D;
   reg       mfc_D;
+  reg [2:0]	mod_D;
 
   task cs
   (
@@ -334,7 +362,8 @@ module plab2_proc_PipelinedProcBypassCtrl
     input       cs_rf_wen,
     input [4:0] cs_rf_waddr,
     input       cs_mtc,
-    input       cs_mfc
+    input       cs_mfc,
+	input [2:0]	cs_mod
   );
   begin
     inst_val_D       = cs_val;
@@ -353,6 +382,7 @@ module plab2_proc_PipelinedProcBypassCtrl
     rf_waddr_D       = cs_rf_waddr;
     mtc_D            = cs_mtc;
     mfc_D            = cs_mfc;
+	mod_D			 = cs_mod;
   end
   endtask
 
@@ -362,57 +392,62 @@ module plab2_proc_PipelinedProcBypassCtrl
     casez ( inst_D )
 
       //                          j    br       op0      rs op1      rt alu      mul    xmux  dmm wbmux rf
-      //                      val type type     muxsel   en muxsel   en fn       type   sel   typ sel   wen wa  mtc  mfc
-      `PISA_INST_NOP     :cs( y,  j_n, br_none, am_x,    n, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n   );
+      //                      val type type     muxsel   en muxsel   en fn       type   sel   typ sel   wen wa  mtc  mfc mod
+      `PISA_INST_NOP     :cs( y,  j_n, br_none, am_x,    n, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_m, n,  rx, n,   n,  none     );
 
-      `PISA_INST_ADDIU   :cs( y,  j_n, br_none, am_rdat, y, bm_si,   n, alu_add, mul_n, xm_a, nr, wm_a, y,  rt, n,   n   );
-      `PISA_INST_SLTI    :cs( y,  j_n, br_none, am_rdat, y, bm_si,   n, alu_lt,  mul_n, xm_a, nr, wm_a, y,  rt, n,   n   );
-      `PISA_INST_SLTIU   :cs( y,  j_n, br_none, am_rdat, y, bm_si,   n, alu_ltu, mul_n, xm_a, nr, wm_a, y,  rt, n,   n   );
-      `PISA_INST_ORI     :cs( y,  j_n, br_none, am_rdat, y, bm_zi,   n, alu_or,  mul_n, xm_a, nr, wm_a, y,  rt, n,   n   );
-      `PISA_INST_ANDI    :cs( y,  j_n, br_none, am_rdat, y, bm_zi,   n, alu_and, mul_n, xm_a, nr, wm_a, y,  rt, n,   n   );
-      `PISA_INST_XORI    :cs( y,  j_n, br_none, am_rdat, y, bm_zi,   n, alu_xor, mul_n, xm_a, nr, wm_a, y,  rt, n,   n   );
-      `PISA_INST_SRA     :cs( y,  j_n, br_none, am_samt, n, bm_rdat, y, alu_sra, mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_SRL     :cs( y,  j_n, br_none, am_samt, n, bm_rdat, y, alu_srl, mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_SLL     :cs( y,  j_n, br_none, am_samt, n, bm_rdat, y, alu_sll, mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_LUI     :cs( y,  j_n, br_none, am_16,   y, bm_si,   y, alu_sll, mul_n, xm_a, nr, wm_a, y,  rt, n,   n   );
+      `PISA_INST_CHMOD   :cs( y,  j_n, br_none, am_x,    n, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n,  chmod    );
+      `PISA_INST_DEBUG   :cs( y,  j_n, br_none, am_rdat, y, bm_si,   y, alu_add, mul_n, xm_a, nr, wm_x, n,  rx, n,   n,  debug    );
 
-      `PISA_INST_ADDU    :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_add, mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_SUBU    :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_sub, mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_SLT     :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_lt,  mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_SLTU    :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_ltu, mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_AND     :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_and, mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_OR      :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_or,  mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_NOR     :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_nor, mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_XOR     :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_xor, mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_SRAV    :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_sra, mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_SRLV    :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_srl, mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_SLLV    :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_sll, mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
+      `PISA_INST_ADDIU   :cs( y,  j_n, br_none, am_rdat, y, bm_si,   n, alu_add, mul_n, xm_a, nr, wm_a, y,  rt, n,   n,  none     );
+      `PISA_INST_SLTI    :cs( y,  j_n, br_none, am_rdat, y, bm_si,   n, alu_lt,  mul_n, xm_a, nr, wm_a, y,  rt, n,   n,  none     );
+      `PISA_INST_SLTIU   :cs( y,  j_n, br_none, am_rdat, y, bm_si,   n, alu_ltu, mul_n, xm_a, nr, wm_a, y,  rt, n,   n,  none     );
+      `PISA_INST_ORI     :cs( y,  j_n, br_none, am_rdat, y, bm_zi,   n, alu_or,  mul_n, xm_a, nr, wm_a, y,  rt, n,   n,  none     );
+      `PISA_INST_ANDI    :cs( y,  j_n, br_none, am_rdat, y, bm_zi,   n, alu_and, mul_n, xm_a, nr, wm_a, y,  rt, n,   n,  none     );
+      `PISA_INST_XORI    :cs( y,  j_n, br_none, am_rdat, y, bm_zi,   n, alu_xor, mul_n, xm_a, nr, wm_a, y,  rt, n,   n,  none     );
+      `PISA_INST_SRA     :cs( y,  j_n, br_none, am_samt, n, bm_rdat, y, alu_sra, mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_SRL     :cs( y,  j_n, br_none, am_samt, n, bm_rdat, y, alu_srl, mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_SLL     :cs( y,  j_n, br_none, am_samt, n, bm_rdat, y, alu_sll, mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_LUI     :cs( y,  j_n, br_none, am_16,   y, bm_si,   y, alu_sll, mul_n, xm_a, nr, wm_a, y,  rt, n,   n,  none     );
 
-      `PISA_INST_MUL     :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_x,   mul_m, xm_m, nr, wm_a, y,  rd, n,   n   );
+      `PISA_INST_ADDU    :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_add, mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_SUBU    :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_sub, mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_SLT     :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_lt,  mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_SLTU    :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_ltu, mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_AND     :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_and, mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_OR      :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_or,  mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_NOR     :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_nor, mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_XOR     :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_xor, mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_SRAV    :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_sra, mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_SRLV    :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_srl, mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_SLLV    :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_sll, mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
 
-      `PISA_INST_BNE     :cs( y,  j_n, br_bne,  am_rdat, y, bm_rdat, y, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n   );
-      `PISA_INST_BEQ     :cs( y,  j_n, br_beq,  am_rdat, y, bm_rdat, y, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n   );
-      `PISA_INST_BGEZ    :cs( y,  j_n, br_bgez, am_rdat, y, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n   );
-      `PISA_INST_BGTZ    :cs( y,  j_n, br_bgtz, am_rdat, y, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n   );
-      `PISA_INST_BLEZ    :cs( y,  j_n, br_blez, am_rdat, y, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n   );
-      `PISA_INST_BLTZ    :cs( y,  j_n, br_bltz, am_rdat, y, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n   );
+      `PISA_INST_MUL     :cs( y,  j_n, br_none, am_rdat, y, bm_rdat, y, alu_x,   mul_m, xm_m, nr, wm_a, y,  rd, n,   n,  none     );
 
-      `PISA_INST_J       :cs( y,  j_j, br_none, am_x,    n, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n   );
-      `PISA_INST_JR      :cs( y,  j_r, br_none, am_x,    y, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n   );
-      `PISA_INST_JALR    :cs( y,  j_r, br_none, am_x,    y, bm_pc,   n, alu_cp1, mul_n, xm_a, nr, wm_a, y,  rd, n,   n   );
-      `PISA_INST_JAL     :cs( y,  j_j, br_none, am_x,    n, bm_pc,   n, alu_cp1, mul_n, xm_a, nr, wm_a, y,  rL, n,   n   );
+      `PISA_INST_BNE     :cs( y,  j_n, br_bne,  am_rdat, y, bm_rdat, y, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n,  none     );
+      `PISA_INST_BEQ     :cs( y,  j_n, br_beq,  am_rdat, y, bm_rdat, y, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n,  none     );
+      `PISA_INST_BGEZ    :cs( y,  j_n, br_bgez, am_rdat, y, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n,  none     );
+      `PISA_INST_BGTZ    :cs( y,  j_n, br_bgtz, am_rdat, y, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n,  none     );
+      `PISA_INST_BLEZ    :cs( y,  j_n, br_blez, am_rdat, y, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n,  none     );
+      `PISA_INST_BLTZ    :cs( y,  j_n, br_bltz, am_rdat, y, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n,  none     );
 
-      `PISA_INST_LW      :cs( y,  j_n, br_none, am_rdat, y, bm_si,   n, alu_add, mul_n, xm_a, ld, wm_m, y,  rt, n,   n   );
-      `PISA_INST_SW      :cs( y,  j_n, br_none, am_rdat, y, bm_si,   y, alu_add, mul_n, xm_a, st, wm_x, n,  rx, n,   n   );
+      `PISA_INST_J       :cs( y,  j_j, br_none, am_x,    n, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n,  none     );
+      `PISA_INST_JR      :cs( y,  j_r, br_none, am_x,    y, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n,  none     );
+      `PISA_INST_JALR    :cs( y,  j_r, br_none, am_x,    y, bm_pc,   n, alu_cp1, mul_n, xm_a, nr, wm_a, y,  rd, n,   n,  none     );
+      `PISA_INST_JAL     :cs( y,  j_j, br_none, am_x,    n, bm_pc,   n, alu_cp1, mul_n, xm_a, nr, wm_a, y,  rL, n,   n,  none     );
 
-      `PISA_INST_MFC0    :cs( y,  j_n, br_none, am_x,    n, bm_fhst, n, alu_cp1, mul_n, xm_a, nr, wm_a, y,  rt, n,   y   );
-      `PISA_INST_MTC0    :cs( y,  j_n, br_none, am_x,    n, bm_rdat, y, alu_cp1, mul_n, xm_a, nr, wm_a, n,  rx, y,   n   );
+      `PISA_INST_LW      :cs( y,  j_n, br_none, am_rdat, y, bm_si,   n, alu_add, mul_n, xm_a, ld, wm_m, y,  rt, n,   n,  none     );
+      `PISA_INST_SW      :cs( y,  j_n, br_none, am_rdat, y, bm_si,   y, alu_add, mul_n, xm_a, st, wm_x, n,  rx, n,   n,  none     );
+	  `PISA_INST_PRELW	 :cs( y,  j_n, br_none, am_rdat, y, bm_si,   n, alu_add, mul_n, xm_a, pl, wm_x, n,  rx, n,   n,  none     );
+      `PISA_INST_DIRMEM  :cs( y,  j_n, br_none, am_rdat, y, bm_si,   y, alu_add, mul_n, xm_a,dma, wm_x, n,  rx, n,   n,  none     );
+	  		
+      `PISA_INST_MFC0    :cs( y,  j_n, br_none, am_x,    n, bm_fhst, n, alu_cp1, mul_n, xm_a, nr, wm_a, y,  rt, n,   y,  none     );
+      `PISA_INST_MTC0    :cs( y,  j_n, br_none, am_x,    n, bm_rdat, y, alu_cp1, mul_n, xm_a, nr, wm_a, n,  rx, y,   n,  none     );
 
-      `PISA_INST_AMO_ADD :cs( y,  j_n, br_none, am_rdat, y, bm_x,    y, alu_cp0, mul_n, xm_a, ad, wm_m, y,  rd, n,   n   );
-      `PISA_INST_AMO_AND :cs( y,  j_n, br_none, am_rdat, y, bm_x,    y, alu_cp0, mul_n, xm_a, an, wm_m, y,  rd, n,   n   );
-      `PISA_INST_AMO_OR  :cs( y,  j_n, br_none, am_rdat, y, bm_x,    y, alu_cp0, mul_n, xm_a, ao, wm_m, y,  rd, n,   n   );
+      `PISA_INST_AMO_ADD :cs( y,  j_n, br_none, am_rdat, y, bm_x,    y, alu_cp0, mul_n, xm_a, ad, wm_m, y,  rd, n,   n,  none     );
+      `PISA_INST_AMO_AND :cs( y,  j_n, br_none, am_rdat, y, bm_x,    y, alu_cp0, mul_n, xm_a, an, wm_m, y,  rd, n,   n,  none     );
+      `PISA_INST_AMO_OR  :cs( y,  j_n, br_none, am_rdat, y, bm_x,    y, alu_cp0, mul_n, xm_a, ao, wm_m, y,  rd, n,   n,  none     );
 
-      default            :cs( n,  j_x, br_x,    am_x,    n, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n   );
+      default            :cs( n,  j_x, br_x,    am_x,    n, bm_x,    n, alu_x,   mul_n, xm_x, nr, wm_x, n,  rx, n,   n,  none     );
 
     endcase
   end
@@ -569,8 +604,30 @@ module plab2_proc_PipelinedProcBypassCtrl
   //  end
   //end
 
-  assign stall_D = stall_from_mngr_D || stall_hazard_D || stall_mul_req_D;
+  assign stall_D = stall_from_mngr_D || stall_hazard_D || stall_mul_req_D ;
   assign squash_D = squash_j_D;
+
+  assign intr_set = (mod_D === setintr);
+  // set output security domain
+  always @(*) begin
+	// when reset signal is set high, we let output domain signal to be
+	// default domain
+	if ( reset ) 
+		out_domain = def_domain;
+	else if ( mod_D == 3'd1 )
+		out_domain = ~out_domain;
+  end
+
+  // set cacheable signal value
+  always @(*) begin
+	// when reset signal is set high, let cacheable to be high
+	if ( reset )
+		cacheable = 1'b1;
+	else if ( mod_D === 3'd2)
+		cacheable = 1'b1;
+	else if ( mod_D === 3'd3)
+		cacheable = 1'b0;
+  end
 
   //----------------------------------------------------------------------
   // X stage
@@ -615,6 +672,7 @@ module plab2_proc_PipelinedProcBypassCtrl
   reg        to_mngr_val_X;
   reg        stats_en_wen_X;
   reg [2:0]  br_type_X;
+  reg [2:0]	 mod_X;
 
   always @(posedge clk) begin
     if (reset) begin
@@ -632,6 +690,7 @@ module plab2_proc_PipelinedProcBypassCtrl
       to_mngr_val_X   <= to_mngr_val_D;
       stats_en_wen_X  <= stats_en_wen_D;
       br_type_X       <= br_type_D;
+	  mod_X			  <= mod_D;
     end
   end
 
@@ -665,15 +724,35 @@ module plab2_proc_PipelinedProcBypassCtrl
   assign squash_br_X = br_taken_X;
 
   wire dmemreq_val_X;
+  wire debug_val_X;
   wire stall_dmem_X;
+
+  // interrupt logic
+  wire	 intr_rq_X;
+  wire   stall_intr_X;
+
+  always @(posedge clk ) begin
+	if ( reset )
+		intr_rq <= 1'b0;
+	else if ( mod_X === intr && val_X )
+		intr_rq <= 1'b1 && !intr_ack;
+	else
+		intr_rq <= intr_rq;
+  end
+
+  assign intr_rq_X = ( mod_X === intr );  
+  assign stall_intr_X = intr_rq_X && !intr_ack;  
 
   // dmem logic
 
   reg [`VC_MEM_REQ_MSG_TYPE_NBITS(8,32,32)-1:0] dmemreq_msg_type;
 
   assign dmemreq_val_X = val_X && ( dmemreq_type_X != nr );
-
   assign dmemreq_val  = dmemreq_val_X && !stall_XM;
+
+  assign debug_val_X = val_X && ( mod_X === debug ); 
+  assign debug_val = debug_val_X && !stall_XM;
+
   assign stall_dmem_X = dmemreq_val_X && !dmemreq_rdy;
 
   always @(*) begin
@@ -683,6 +762,8 @@ module plab2_proc_PipelinedProcBypassCtrl
       ad: dmemreq_msg_type = `VC_MEM_REQ_MSG_TYPE_AMO_ADD;
       an: dmemreq_msg_type = `VC_MEM_REQ_MSG_TYPE_AMO_AND;
       ao: dmemreq_msg_type = `VC_MEM_REQ_MSG_TYPE_AMO_OR;
+	  pl: dmemreq_msg_type = `VC_MEM_REQ_MSG_TYPE_PRELW;
+	 dma: dmemreq_msg_type = `VC_MEM_REQ_MSG_TYPE_DIRMEM;
       default: dmemreq_msg_type = 'hx;
     endcase
   end
@@ -701,7 +782,7 @@ module plab2_proc_PipelinedProcBypassCtrl
 
   // stall in X if dmem is not rdy
 
-  assign stall_X = stall_dmem_X || stall_mul_resp_X;
+  assign stall_X = stall_dmem_X || stall_mul_resp_X || stall_intr_X;
   assign squash_X = squash_br_X;
 
   //----------------------------------------------------------------------
@@ -743,6 +824,7 @@ module plab2_proc_PipelinedProcBypassCtrl
   reg [4:0]  rf_waddr_M;
   reg        stats_en_wen_M;
   reg        to_mngr_val_M;
+  reg [2:0]	 mod_M;
 
   always @(posedge clk) begin
     if (reset) begin
@@ -756,18 +838,26 @@ module plab2_proc_PipelinedProcBypassCtrl
       rf_waddr_M      <= rf_waddr_X;
       stats_en_wen_M  <= stats_en_wen_X;
       to_mngr_val_M   <= to_mngr_val_X;
+	  mod_M			  <= mod_X;
     end
   end
 
   wire dmemreq_val_M;
   wire stall_dmem_M;
 
-  assign dmemresp_rdy = dmemreq_val_M && !stall_MW;
+  //assign dmemresp_rdy = dmemreq_val_M && !stall_MW;
+  assign dmemresp_rdy = 1'b1;
 
   assign dmemreq_val_M = val_M && ( dmemreq_type_M != nr );
   assign stall_dmem_M = ( dmemreq_val_M && !dmemresp_val );
 
-  assign stall_M = stall_dmem_M;
+  wire intr_rq_M;
+  wire stall_intr_M;
+
+  assign intr_rq_M = val_M && ( mod_M == intr );
+  assign stall_intr_M = ( intr_rq_M && !intr_val );
+
+  assign stall_M = stall_dmem_M || stall_intr_M;
   assign squash_M = 1'b0;
 
   //----------------------------------------------------------------------
@@ -837,4 +927,3 @@ module plab2_proc_PipelinedProcBypassCtrl
 endmodule
 
 `endif
-
