@@ -16,7 +16,8 @@
 module plab2_proc_PipelinedProcBypassDpath
 #(
   parameter p_num_cores = 1,
-  parameter p_core_id   = 0
+  parameter p_core_id   = 0,
+  parameter c_reset_vector = 32'h1000
 )
 (
   input clk,
@@ -77,8 +78,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   output        stats_en
 );
-
-  localparam c_reset_vector = 32'h1000;
+	
   localparam c_reset_inst   = 32'h00000000;
 
   //--------------------------------------------------------------------

@@ -18,13 +18,25 @@
 module plab2_proc_PipelinedProcBypass
 #(
   parameter p_num_cores = 1,
-  parameter p_core_id   = 0
+  parameter p_core_id   = 0,
+  parameter c_reset_vector = 32'h1000
 )
 (
   input                                       clk,
   input                                       reset,
 
   input										  sec_domain,
+  // output req secure level
+  output									  req_domain,
+  
+  // Interrupt port
+  output									  intr_rq,
+  output									  intr_set,
+  input										  intr_ack,
+  input										  intr_val,
+	
+  // output cacheable control signal		
+  output									  cacheable,
 
   // Instruction Memory Request Port
 
@@ -50,6 +62,12 @@ module plab2_proc_PipelinedProcBypass
   input                                       dmemresp_val,
   output                                      dmemresp_rdy,
 
+  // Debug Interface Port
+
+  output[`VC_MEM_REQ_MSG_NBITS(8,32,32)-1:0]  debug_msg,
+  output									  debug_val,
+  input										  debug_rdy,
+
   // From mngr streaming port
 
   input [`PLAB2_PROC_FROM_MNGR_MSG_NBITS-1:0] from_mngr_msg,
@@ -69,6 +87,9 @@ module plab2_proc_PipelinedProcBypass
 
   localparam creq_nbits = `VC_MEM_REQ_MSG_NBITS(8,32,32);
   localparam creq_type_nbits = `VC_MEM_REQ_MSG_TYPE_NBITS(8,32,32);
+
+  // passing sec_domain to request domain
+  // assign req_domain = sec_domain; 
 
   //----------------------------------------------------------------------
   // data mem req/resp
@@ -156,6 +177,8 @@ module plab2_proc_PipelinedProcBypass
     .msg    (dmemreq_msg)
   );
 
+  assign debug_msg = dmemreq_msg;
+
   //----------------------------------------------------------------------
   // Unpack Memory Response Messages
   //----------------------------------------------------------------------
@@ -207,6 +230,17 @@ module plab2_proc_PipelinedProcBypass
     .clk                    (clk),
     .reset                  (reset),
 
+	.def_domain				(sec_domain),
+	.out_domain				(req_domain),
+
+	// Interrupt port
+	.intr_rq				(intr_rq),
+	.intr_set				(intr_set),
+	.intr_ack				(intr_ack),
+	.intr_val				(intr_val),
+
+	.cacheable				(cacheable),
+
     // Instruction Memory Port
 
     .imemreq_val            (imemreq_enq_val),
@@ -223,6 +257,10 @@ module plab2_proc_PipelinedProcBypass
 
     .dmemresp_val           (dmemresp_val),
     .dmemresp_rdy           (dmemresp_rdy),
+
+	// Debug Interface Port
+	.debug_val				(debug_val),
+	.debug_rdy				(debug_rdy),
 
     // mngr communication ports
 
@@ -291,7 +329,8 @@ module plab2_proc_PipelinedProcBypass
   plab2_proc_PipelinedProcBypassDpath
   #(
     .p_num_cores  (p_num_cores),
-    .p_core_id    (p_core_id)
+    .p_core_id    (p_core_id),
+	.c_reset_vector(c_reset_vector)
   )
   dpath
   (
@@ -353,46 +392,6 @@ module plab2_proc_PipelinedProcBypass
 
     .stats_en                (stats_en)
   );
-
-
-  //----------------------------------------------------------------------
-  // Line tracing
-  //----------------------------------------------------------------------
-
-  `include "vc-trace-tasks.v"
-
-  pisa_InstTasks pisa();
-
-  reg[`VC_TRACE_NBITS_TO_NCHARS(32)*8-1:0] f_str;
-  task trace_module( inout [vc_trace_nbits-1:0] trace );
-  begin
-
-    $sformat( f_str, "%x", dpath.pc_F );
-    ctrl.pipe_ctrl_F.trace_pipe_stage( trace, f_str, 8 );
-
-    vc_trace_str( trace, "|" );
-
-    ctrl.pipe_ctrl_D.trace_pipe_stage( trace,
-                              pisa.disasm(ctrl.inst_D ), 22 );
-
-    vc_trace_str( trace, "|" );
-
-    ctrl.pipe_ctrl_X.trace_pipe_stage( trace,
-                              pisa.disasm_tiny(ctrl.inst_X ), 4 );
-
-    vc_trace_str( trace, "|" );
-
-    ctrl.pipe_ctrl_M.trace_pipe_stage( trace,
-                              pisa.disasm_tiny(ctrl.inst_M ), 4 );
-
-    vc_trace_str( trace, "|" );
-
-    ctrl.pipe_ctrl_W.trace_pipe_stage( trace,
-                              pisa.disasm_tiny(ctrl.inst_W ), 4 );
-
-
-  end
-  endtask
 
 endmodule
 
