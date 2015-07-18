@@ -88,15 +88,17 @@ module plab5_mcore_MemReqMsgToNetMsg
 
   // extract the address of the memory message to determine network source
 
-  wire [p_mem_addr_nbits-1:0]                  mem_addr;
-  wire [`VC_NET_MSG_DEST_NBITS(npc,no,ns)-1:0] net_dest;
+  wire [p_mem_addr_nbits-1:0]						mem_addr;
+  wire [`VC_MEM_REQ_MSG_TYPE_NBITS(mo,ma,md)-1:0]	mem_type;
+  wire [`VC_NET_MSG_DEST_NBITS(npc,no,ns)-1:0]		net_dest;
 
   assign mem_addr = mem_msg[`VC_MEM_REQ_MSG_ADDR_FIELD(mo,ma,md)];
+  assign mem_type = mem_msg[`VC_MEM_REQ_MSG_TYPE_FIELD(mo,ma,md)];
 
   // if there is a single cache/mem bank, destination is 0
-  assign net_dest = p_single_bank ? 0 :
-		  ( mode ? ( ( mem_addr < 32'hc000 ) ? 0 : 1 ) 
-				 : ( ( mem_addr < 32'h4000 ) ? 0 : 1 ) );
+  assign net_dest = ( (mem_type == `VC_MEM_REQ_MSG_TYPE_DIRMEM ) ? 1 :
+				 (p_single_bank ? 0 : ( mode ? ( ( mem_addr < 32'hc000 ) ? 0 : 1 ) 
+				 : ( ( mem_addr < 32'h4000 ) ? 0 : 1 ) )));
                                     //mem_addr[c_dest_addr_msb:c_dest_addr_lsb];
 
   // we use high bits of the opaque field to put the destination info
