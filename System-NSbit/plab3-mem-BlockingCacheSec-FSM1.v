@@ -10,7 +10,7 @@
 
 
 `include "plab3-mem-PrefetchBuffer.v"
-`include "plab3-mem-BlockingCacheAlt.v"
+`include "plab3-mem-BlockingL2Cache.v"
 `include "plab5-mcore-proc2mem-trans.v"
 
 module plab3_mem_BlockingCacheSec_fsm1
@@ -25,7 +25,7 @@ module plab3_mem_BlockingCacheSec_fsm1
 	parameter	p_opaque_nbits = 8,
 
 	// local parameters not meant to be set from outside
-	parameter	dbw	 = 32,	// Short name for data bitwidth
+	parameter	dbw	 = 128,	// Short name for data bitwidth
 	parameter	abw	 = 32,	// Short name for addr bitwidth
 	parameter	clw	 = 128,	// Short name for cacheline bitwidth
 
@@ -43,6 +43,7 @@ module plab3_mem_BlockingCacheSec_fsm1
 	output											procreq_rdy,
 
 	// Cache Response to processor
+	output	reg										fail,
 	output	[`VC_MEM_RESP_MSG_NBITS(o,dbw)-1:0]		procresp_msg,
 	output											procresp_val,
 	output											procresp_domain,
@@ -121,6 +122,8 @@ module plab3_mem_BlockingCacheSec_fsm1
 		.memreq_val			(prebuf2memreq_val),
 		.memreq_rdy			(prebuf2memreq_rdy),
 
+		.insecure			(insecure),
+
 		.memresp_msg		(mem2prebufresp_msg),
 		.memresp_val		(mem2prebufresp_val),
 		.memresp_rdy		(mem2prebufresp_rdy)
@@ -148,7 +151,7 @@ module plab3_mem_BlockingCacheSec_fsm1
 	wire										mem2cacheresp_rdy;
 
 	// Cache 
-	plab3_mem_BlockingCacheAlt
+	plab3_mem_BlockingL2Cache
 	#(
 		.mode				(mode),
 		.p_mem_nbytes		(p_mem_nbytes),
@@ -215,28 +218,31 @@ module plab3_mem_BlockingCacheSec_fsm1
 	// State Definitions
 	//----------------------------------------------------------------------
 	
-	localparam	STATE_IDLE			  = 4'd0;
-	localparam  STATE_PREFETCH_REQ    = 4'd1;
-	localparam  STATE_PREFETCH_WAIT   = 4'd2;
-	localparam  STATE_PREFETCH_RESP	  = 4'd3;
-	localparam  STATE_SEC_CHECK		  = 4'd4;
-	localparam  STATE_DIR_MEM_REQ	  = 4'd5;
-	localparam	STATE_DIR_MEM_WAIT	  = 4'd6;
-	localparam  STATE_DIR_MEM_RESP    = 4'd7;
-	localparam  STATE_CACHE_REQ		  = 4'd8;
-	localparam  STATE_CACHE_WAIT	  = 4'd9;
-	localparam  STATE_CACHE_RESP	  = 4'd10;
-	localparam  STATE_CACHE_MEM_REQ	  = 4'd11;
-	localparam  STATE_CACHE_MEM_WAIT  = 4'd12;
-	localparam  STATE_CACHE_MEM_RESP  = 4'd13;
-	localparam  STATE_PREFETCH_MEM_RESP = 4'd14;
+	localparam	STATE_IDLE			  = 5'd0;
+	localparam  STATE_REQ_TYPE		  = 5'd1;
+	localparam  STATE_PREFETCH_REQ    = 5'd2;
+	localparam  STATE_PREFETCH_WAIT   = 5'd3;
+	localparam  STATE_PREFETCH_RESP	  = 5'd4;
+	localparam  STATE_SEC_CHECK		  = 5'd5;
+	localparam  STATE_DIR_MEM_REQ	  = 5'd6;
+	localparam	STATE_DIR_MEM_WAIT	  = 5'd7;
+	localparam  STATE_DIR_MEM_RESP    = 5'd8;
+	localparam  STATE_CACHE_REQ		  = 5'd9;
+	localparam  STATE_CACHE_WAIT	  = 5'd10;
+	localparam  STATE_CACHE_RESP	  = 5'd11;
+	localparam  STATE_CACHE_MEM_REQ	  = 5'd12;
+	localparam  STATE_CACHE_MEM_WAIT  = 5'd13;
+	localparam  STATE_CACHE_MEM_RESP  = 5'd14;
+	localparam  STATE_PREFETCH_MEM_RESP = 5'd15;
+	localparam  STATE_CH_CTRLREG	  = 5'd16;
+	localparam  STATE_EMPTY_RESP	  = 5'd17;
 
 	//----------------------------------------------------------------------
 	// State
 	//----------------------------------------------------------------------
 	
-	reg [3:0]	state_reg;
-	reg [3:0]	state_next;
+	reg [4:0]	state_reg;
+	reg [4:0]	state_next;
 
 	always @(posedge clk) begin
 		if ( reset ) begin
@@ -258,7 +264,16 @@ module plab3_mem_BlockingCacheSec_fsm1
 		case ( state_reg )
 
 			STATE_IDLE:
-				if ( procreq_val )	state_next = STATE_PREFETCH_REQ;
+				if ( procreq_val )	state_next = STATE_REQ_TYPE;
+
+			STATE_REQ_TYPE:
+				if ( req_addr == 32'h0000 )
+									state_next = STATE_DIR_MEM_REQ;
+		   else if ( req_addr == 32'h0004 && cur_domain == 1'b1 )
+									state_next = STATE_CH_CTRLREG;
+		   else if ( req_addr == 32'h0004 && cur_domain == 1'b0 )
+									state_next = STATE_EMPTY_RESP;
+				else				state_next = STATE_PREFETCH_REQ;
 
 			STATE_PREFETCH_REQ:
 				state_next = STATE_PREFETCH_WAIT;
@@ -266,7 +281,7 @@ module plab3_mem_BlockingCacheSec_fsm1
 			STATE_PREFETCH_WAIT:
 				if ( pre_found == 1 || prebuf2procresp_val )	
 									state_next = STATE_PREFETCH_RESP;
-		   else if ( pre_found == 2) 
+		   else if ( pre_found == 2 ) 
 									state_next = STATE_SEC_CHECK;
 		   else if ( prebuf2memreq_val )
 									state_next = STATE_CACHE_MEM_REQ;
@@ -300,19 +315,28 @@ module plab3_mem_BlockingCacheSec_fsm1
 				state_next = STATE_IDLE;
 			
 			STATE_CACHE_MEM_REQ:
-				state_next = STATE_CACHE_MEM_WAIT;
+				if ( memreq_rdy)	state_next = STATE_CACHE_MEM_WAIT;
 
 			STATE_CACHE_MEM_WAIT:
-				if ( insecure )	   state_next = STATE_CACHE_WAIT;
+				if ( insecure && req_type == `VC_MEM_REQ_MSG_TYPE_PRELW)	   
+									state_next = STATE_PREFETCH_MEM_RESP;
+		   else if ( insecure )
+									state_next = STATE_CACHE_WAIT;
 		   else if ( memresp_val && req_type == `VC_MEM_REQ_MSG_TYPE_PRELW )
-								   state_next = STATE_PREFETCH_MEM_RESP;
-		   else if ( memresp_val ) state_next = STATE_CACHE_MEM_RESP;	
+									state_next = STATE_PREFETCH_MEM_RESP;
+		   else if ( memresp_val )	state_next = STATE_CACHE_MEM_RESP;	
 
 			STATE_CACHE_MEM_RESP:
 				state_next = STATE_CACHE_WAIT;
 			
 			STATE_PREFETCH_MEM_RESP:
 				state_next = STATE_PREFETCH_WAIT;
+
+			STATE_CH_CTRLREG:
+				state_next = STATE_IDLE;
+	
+			STATE_EMPTY_RESP:
+				state_next = STATE_IDLE;
 		endcase
 	end
 
@@ -323,19 +347,28 @@ module plab3_mem_BlockingCacheSec_fsm1
 	reg [`VC_MEM_REQ_MSG_NBITS(o,abw,clw)-1:0]		req_msg_extend;
 	reg [`VC_MEM_REQ_MSG_NBITS(o,abw,dbw)-1:0]		req_msg;
 	reg	[`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0]	req_addr;
+	reg [`VC_MEM_REQ_MSG_DATA_NBITS(o,abw,dbw)-1:0]	req_data;
 	reg [`VC_MEM_RESP_MSG_NBITS(o,clw)-1:0]			resp_msg;
 	reg												resp_domain;
 	reg												cur_domain;
 
 	wire [`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw)-1:0]req_type;
+	wire [`VC_MEM_RESP_MSG_NBITS(o,dbw)-1:0] fake_resp_msg;
+
 	assign req_type = req_msg[`VC_MEM_REQ_MSG_TYPE_FIELD(o,abw,dbw)];
-	
+	vc_MemReq2Resp#(o,abw,dbw) Req2Reso_trans
+	(
+		.req  (req_msg),
+		.resp (fake_resp_msg)
+	);
+
 	// register corresponding data
 	always @(posedge clk) begin
 		if ( state_reg == STATE_IDLE && procreq_val ) begin
 			req_msg_extend <= procreq_msg_extend;
 			req_msg		   <= procreq_msg;
 			req_addr	   <= procreq_msg[`VC_MEM_REQ_MSG_ADDR_FIELD(o,abw,dbw)];
+			req_data	   <= procreq_msg[`VC_MEM_REQ_MSG_DATA_FIELD(o,abw,dbw)];
 			cur_domain	   <= procreq_domain; 
 		end
 
@@ -343,6 +376,7 @@ module plab3_mem_BlockingCacheSec_fsm1
 			req_msg_extend <= cache2memreq_msg;
 			req_msg		   <= req_msg;
 			req_addr	   <= req_addr;
+			req_data	   <= req_data;
 			cur_domain	   <= cur_domain;
 		end
 
@@ -350,6 +384,7 @@ module plab3_mem_BlockingCacheSec_fsm1
 			req_msg_extend <= req_msg_extend;
 			req_msg		   <= req_msg;
 			req_addr	   <= req_addr;
+			req_data	   <= req_data;
 			cur_domain     <= cur_domain;
 		end
 	end
@@ -377,6 +412,7 @@ module plab3_mem_BlockingCacheSec_fsm1
 		procreq_rdy		= 1'b1;
 		procresp_msg	= 'hx;
 		procresp_val	= 1'b0;
+		procresp_domain = cur_domain;
 		memreq_msg		= 'hx;
 		memreq_domain	= 1'hx;
 		memreq_val		= 1'b0;
@@ -388,7 +424,24 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b1;
 				procresp_msg		= 'hx;
 				procresp_val		= 1'b0;
-				procresp_domain		= 1'bx;
+				memreq_msg			= 'hx;
+				memreq_domain		= 1'hx;
+				memreq_val			= 1'b0;
+				memresp_rdy			= 1'b1;
+				proc2prebufreq_val  = 1'b0;
+				prebuf2procresp_rdy = 1'b1;
+			    prebuf2memreq_rdy	= 1'b1;
+			    mem2prebufresp_val  = 1'b0;	
+				proc2cachereq_val	= 1'b0;
+				cache2procresp_rdy	= 1'b1;
+				cache2memreq_rdy	= 1'b1;
+				mem2cacheresp_val	= 1'b0;
+			end
+
+			STATE_REQ_TYPE: begin
+				procreq_rdy			= 1'b0;
+				procresp_msg		= 'hx;
+				procresp_val		= 1'b0;
 				memreq_msg			= 'hx;
 				memreq_domain		= 1'hx;
 				memreq_val			= 1'b0;
@@ -407,7 +460,6 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= 'hx;
 				procresp_val		= 1'b0;
-				procresp_domain		= 1'bx;
 				memreq_msg			= 'hx;
 				memreq_domain		= 1'hx;
 				memreq_val			= 1'b0;
@@ -427,7 +479,6 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= 'hx;
 				procresp_val		= 1'b0;
-				procresp_domain		= 1'bx;
 				memreq_msg			= 'hx;
 				memreq_domain		= 1'hx;
 				memreq_val			= 1'b0;
@@ -446,7 +497,6 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= prebuf2procresp_msg;
 				procresp_val		= 1'b1;
-				procresp_domain		= cur_domain;
 				memreq_msg			= 'hx;
 				memreq_domain		= 1'hx;
 				memreq_val			= 1'b0;
@@ -465,7 +515,6 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= 'hx;
 				procresp_val		= 1'b0;
-				procresp_domain		= 1'hx;
 				memreq_msg			= 'hx;
 				memreq_domain		= 1'hx;
 				memreq_val			= 1'b0;
@@ -484,7 +533,6 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= 'hx;
 				procresp_val		= 1'b0;
-				procresp_domain		= 1'hx;
 				memreq_msg			= req_msg_extend;
 				memreq_domain		= cur_domain;
 				memreq_val			= 1'b1;
@@ -503,7 +551,6 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= 'hx;
 				procresp_val		= 1'b0;
-				procresp_domain		= 1'hx;
 				memreq_msg			= 'hx;
 				memreq_domain		= 1'b0;
 				memreq_val			= 1'b0;
@@ -522,7 +569,6 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= memresp_msg_simple;
 				procresp_val		= 1'b1;
-				procresp_domain		= 1'b0;
 				memreq_msg			= 'hx;
 				memreq_domain		= 1'hx;
 				memreq_val			= 1'b0;
@@ -541,7 +587,6 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= 'hx;
 				procresp_val		= 1'b0;
-				procresp_domain		= 1'hx;
 				proc2cachereq_msg	= req_msg;
 			    proc2cachereq_domain= procreq_domain;
 				memreq_msg			= 'hx;
@@ -562,7 +607,6 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= 'hx;
 				procresp_val		= 1'b0;
-				procresp_domain		= 1'hx;
 				proc2cachereq_msg	= 'hx;
 				memreq_msg			= 'hx;
 				memreq_domain		= 1'hx;
@@ -582,7 +626,6 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= cache2procresp_msg;
 				procresp_val		= 1'b1;
-				procresp_domain		= 1'b1;
 				memreq_msg			= 'hx;
 				memreq_domain		= 1'hx;
 				memreq_val			= 1'b0;
@@ -601,9 +644,8 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= 'hx;
 				procresp_val		= 1'b0;
-				procresp_domain		= 'hx;
 				memreq_msg			= req_msg_extend;
-				memreq_domain		= 1'b1;
+				memreq_domain		= cur_domain;
 				memreq_val			= 1'b1;
 				memresp_rdy			= 1'b1;
 				proc2prebufreq_val  = 1'b0;
@@ -620,7 +662,6 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= 'hx;
 				procresp_val		= 1'b0;
-				procresp_domain		= 'hx;
 				memreq_msg			= 'hx;
 				memreq_domain		= 1'bx;
 				memreq_val			= 1'b0;
@@ -639,7 +680,6 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= 'hx;
 				procresp_val		= 1'b0;
-				procresp_domain		= 'hx;
 				memreq_msg			= 'hx;
 				memreq_domain		= 1'hx;
 				memreq_val			= 1'b0;
@@ -660,7 +700,6 @@ module plab3_mem_BlockingCacheSec_fsm1
 				procreq_rdy			= 1'b0;
 				procresp_msg		= 'hx;
 				procresp_val		= 1'b0;
-				procresp_domain		= 'hx;
 				memreq_msg			= 'hx;
 				memreq_domain		= 1'hx;
 				memreq_val			= 1'b0;
@@ -673,11 +712,60 @@ module plab3_mem_BlockingCacheSec_fsm1
 				proc2cachereq_val	= 1'b0;	
 				cache2procresp_rdy	= 1'b1;
 				cache2memreq_rdy	= 1'b1;
-	
+			end
+
+			STATE_CH_CTRLREG: begin
+				procreq_rdy			= 1'b0;
+				procresp_msg		= fake_resp_msg;
+				procresp_val		= 1'b1;
+				memreq_msg			= 'hx;
+				memreq_domain		= 1'hx;
+				memreq_val			= 1'b0;
+				memresp_rdy			= 1'b1;
+				proc2prebufreq_val  = 1'b0;
+				prebuf2procresp_rdy = 1'b1;
+			    prebuf2memreq_rdy	= 1'b1;
+			    mem2prebufresp_val  = 1'b0;	
+				proc2cachereq_val	= 1'b0;
+				cache2procresp_rdy	= 1'b1;
+				cache2memreq_rdy	= 1'b1;
+				mem2cacheresp_val	= 1'b0;
+				cache_control_reg	= req_data;
+			end
+
+			STATE_EMPTY_RESP: begin
+				procreq_rdy			= 1'b0;
+				procresp_msg		= fake_resp_msg;
+				procresp_val		= 1'b1;
+				memreq_msg			= 'hx;
+				memreq_domain		= 1'hx;
+				memreq_val			= 1'b0;
+				memresp_rdy			= 1'b1;
+				proc2prebufreq_val  = 1'b0;
+				prebuf2procresp_rdy = 1'b1;
+			    prebuf2memreq_rdy	= 1'b1;
+			    mem2prebufresp_val  = 1'b0;	
+				proc2cachereq_val	= 1'b0;
+				cache2procresp_rdy	= 1'b1;
+				cache2memreq_rdy	= 1'b1;
+				mem2cacheresp_val	= 1'b0;
 			end
 
 		endcase
 	end
+
+	// fail signal
+	always @(*) begin
+		if ( insecure )
+			fail = 1'b1;
+		else if ( state_reg === STATE_IDLE )
+			fail = 1'b0;
+	end	
+
+// Debug Logic
+always @(cache_control_reg) begin
+	$display("The control register value is %h set by %h", cache_control_reg, cur_domain);
+end
 
 endmodule
 `endif 

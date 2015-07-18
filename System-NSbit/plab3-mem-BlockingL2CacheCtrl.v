@@ -200,7 +200,7 @@ module plab3_mem_BlockingL2CacheCtrl
   // Valid/Dirty bits record
   //----------------------------------------------------------------------
 
-  wire [2:0] cachereq_idx = cachereq_addr[4+p_idx_shamt +: 3];
+  wire [4:0] cachereq_idx = cachereq_addr[4+p_idx_shamt +: 5];
   reg        valid_bit_in;
   reg        valid_bits_write_en;
   wire       valid_bits_write_en_0 = valid_bits_write_en && !way_sel;
@@ -208,7 +208,7 @@ module plab3_mem_BlockingL2CacheCtrl
   wire       is_valid_0;
   wire       is_valid_1;
 
-  vc_ResetRegfile_1r1w#(1,8) valid_bits_0
+  vc_ResetRegfile_1r1w#(1,32) valid_bits_0
   (
     .clk        (clk),
     .reset      (reset),
@@ -219,7 +219,7 @@ module plab3_mem_BlockingL2CacheCtrl
     .write_data (valid_bit_in)
   );
 
-  vc_ResetRegfile_1r1w#(1,8) valid_bits_1
+  vc_ResetRegfile_1r1w#(1,32) valid_bits_1
   (
     .clk        (clk),
     .reset      (reset),
@@ -237,7 +237,7 @@ module plab3_mem_BlockingL2CacheCtrl
   wire       is_dirty_0;
   wire       is_dirty_1;
 
-  vc_ResetRegfile_1r1w#(1,8) dirty_bits_0
+  vc_ResetRegfile_1r1w#(1,32) dirty_bits_0
   (
     .clk        (clk),
     .reset      (reset),
@@ -248,7 +248,7 @@ module plab3_mem_BlockingL2CacheCtrl
     .write_data (dirty_bit_in)
   );
 
-  vc_ResetRegfile_1r1w#(1,8) dirty_bits_1
+  vc_ResetRegfile_1r1w#(1,32) dirty_bits_1
   (
     .clk        (clk),
     .reset      (reset),
@@ -263,7 +263,7 @@ module plab3_mem_BlockingL2CacheCtrl
   reg        lru_bits_write_en;
   wire       lru_way;
 
-  vc_ResetRegfile_1r1w#(1,8) lru_bits
+  vc_ResetRegfile_1r1w#(1,32) lru_bits
   (
     .clk        (clk),
     .reset      (reset),
