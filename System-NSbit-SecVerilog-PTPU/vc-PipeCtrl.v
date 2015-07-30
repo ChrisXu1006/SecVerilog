@@ -15,27 +15,30 @@ module vc_PipeCtrl
   input         {L} clk,
   input         {L} reset,
 
-  input         {L} prev_val,     // valid bit from the prev stage
-  output        {L} prev_stall,   // aggr stall signal for the prev stage
-  output        {L} prev_squash,  // aggr squash signal for the prev stage
+  input         {L} domain,
 
-  output        {L} curr_reg_en,  // pipeline reg enable for the current stage
-  output        {L} curr_val,     // combinational valid bit for the current stage
-  input         {L} curr_stall,   // stall signal from the current stage
-  input         {L} curr_squash,  // squash signal from the current stage
+  input         {Domain domain} prev_val,     // valid bit from the prev stage
+  output        {Domain domain} prev_stall,   // aggr stall signal for the prev stage
+  output        {Domain domain} prev_squash,  // aggr squash signal for the prev stage
 
-  output        {L} next_val,     // valid bit for the next stage
-  input         {L} next_stall,   // stall signal from the next stage
-  input         {L} next_squash   // squash signal from the next stage
+  output        {Domain domain} curr_reg_en,  // pipeline reg enable for the current stage
+  output        {Domain domain} curr_val,     // combinational valid bit for the current stage
+  input         {Domain domain} curr_stall,   // stall signal from the current stage
+  input         {Domain domain} curr_squash,  // squash signal from the current stage
+
+  output        {Domain domain} next_val,     // valid bit for the next stage
+  input         {Domain domain} next_stall,   // stall signal from the next stage
+  input         {Domain domain} next_squash   // squash signal from the next stage
 );
 
   // register that propogates the valid signal
-  wire {L} reg_en;
+  wire {Domain domain} reg_en;
 
   vc_EnResetReg #(1, 0) val_reg
   (
     .clk    ( clk         ),
     .reset  ( reset       ),
+    .domain ( domain      ),
     .en     ( reg_en      ),
     .d      ( prev_val    ),
     .q      ( curr_val    )

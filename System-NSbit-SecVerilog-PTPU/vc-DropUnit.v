@@ -19,23 +19,23 @@ module vc_DropUnit
   input                    {L} domain,
   // the drop signal will drop the next arriving packet
 
-  input                    {L} drop,
+  input                    {Domain domain} drop,
 
   input  [p_msg_nbits-1:0] {Domain domain} in_msg,
-  input                    {L} in_val,
-  output reg               {L} in_rdy,
+  input                    {Domain domain} in_val,
+  output reg               {Domain domain} in_rdy,
 
   output [p_msg_nbits-1:0] {Domain domain} out_msg,
-  output reg               {L} out_val,
-  input                    {L} out_rdy
+  output reg               {Domain domain} out_val,
+  input                    {Domain domain} out_rdy
 );
 
   localparam c_state_pass = 1'b0;
   localparam c_state_drop = 1'b1;
 
-  reg {L} state;
-  reg {L} next_state;
-  wire {L} in_go;
+  reg {Domain domain} state;
+  reg {Domain domain} next_state;
+  wire {Domain domain} in_go;
 
   assign in_go = in_rdy && in_val;
 

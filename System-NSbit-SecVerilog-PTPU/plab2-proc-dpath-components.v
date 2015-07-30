@@ -60,7 +60,7 @@ module plab2_proc_Regfile
   input   [4:0] {Domain domain} read_addr1,
   output [31:0] {Domain domain} read_data1,
 
-  input         {L} write_en,
+  input         {Domain domain} write_en,
   input   [4:0] {Domain domain} write_addr,
   input  [31:0] {Domain domain} write_data
 );

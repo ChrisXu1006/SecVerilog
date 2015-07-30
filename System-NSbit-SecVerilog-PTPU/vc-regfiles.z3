@@ -65,14 +65,22 @@
 
 ; assertions to be verified
 
+; assertions to be verified
+
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = p_reset_value @./vc-regs.v:56
+(assert  (not(leq LOW  LOW)))    ; rfile[i] <= p_reset_value @vc-regfiles.v:111
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = d @./vc-regs.v:56
+(assert  (not(leq LOW  LOW)))    ; rfile[i] <= write_data @vc-regfiles.v:113
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; assign read_data = rfile[read_addr] @vc-regfiles.v:100
 (check-sat)
 (pop)
 

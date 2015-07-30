@@ -121,6 +121,7 @@
 `define PISA_INST_LHU     32'b100101_?????_?????_?????_?????_??????
 `define PISA_INST_LB      32'b100000_?????_?????_?????_?????_??????
 `define PISA_INST_LBU     32'b100100_?????_?????_?????_?????_??????
+`define PISA_INST_PRELW   32'b100111_?????_?????_?????_?????_??????
 
 // Store instructions
 
@@ -154,6 +155,22 @@
 `define PISA_INST_AMO_ADD 32'b100111_?????_?????_?????_00000_000010
 `define PISA_INST_AMO_AND 32'b100111_?????_?????_?????_00000_000011
 `define PISA_INST_AMO_OR  32'b100111_?????_?????_?????_00000_000100
+
+// Interrupt operations
+`define PISA_INST_INTR	  32'b000111_?????_?????_?????_?????_?????0
+`define PISA_INST_SETINTR 32'b000111_?????_?????_?????_?????_?????1
+
+// Change Mode operations
+`define PISA_INST_CHMOD   32'b111111_?????_?????_?????_11111_111111
+
+// Change Control Register Operations
+`define PISA_INST_CHMEMPAR 32'b011111_?????_?????_?????_?????_??????
+
+// Direct Memory Access instruction
+`define PISA_INST_DIRMEM  32'b101111_?????_?????_?????_?????_??????
+
+// Debug Intrucstion
+`define PISA_INST_DEBUG	  32'b101110_?????_?????_?????_?????_??????
 
 //------------------------------------------------------------------------
 // Coprocessor registers
@@ -614,6 +631,17 @@ module pisa_InstTasks();
   end
   endfunction
 
+  function [`PISA_INST_NBITS-1:0] asm_prelw
+  (
+    input [`PISA_INST_RT_NBITS-1:0]	 rt,
+	input [`PISA_INST_IMM_NBITS-1:0] imm,
+	input [`PISA_INST_RS_NBITS-1:0]	 rs
+  );
+  begin
+	asm_prelw = asm_fmt_i( 6'b100111, rs, rt, imm );
+  end
+  endfunction
+
   //----------------------------------------------------------------------
   // Assembly functions for store instructions
   //----------------------------------------------------------------------
@@ -812,6 +840,72 @@ module pisa_InstTasks();
   endfunction
 
   //----------------------------------------------------------------------
+  // Assembly functions for interrupt operations
+  //----------------------------------------------------------------------
+  function [`PISA_INST_NBITS-1:0] asm_intr( input dummy );
+  begin
+	asm_intr = asm_fmt_r( 6'b000111, 'hx, 'hx, 'hx, 'hx, 6'bxxxxx0);
+  end
+  endfunction
+
+  function [`PISA_INST_NBITS-1:0] asm_setintr( input dummy );
+  begin
+	asm_setintr = asm_fmt_r( 6'b000111, 'hx, 'hx, 'hx, 'hx, 6'bxxxxx1);
+  end
+  endfunction
+
+  //----------------------------------------------------------------------
+  // Assembly functions for changing execution code
+  //----------------------------------------------------------------------
+  function [`PISA_INST_NBITS-1:0] asm_chmod( input dummy );
+  begin
+	asm_chmod = asm_fmt_r( 6'b111111, 'hx, 'hx, 'hx, 5'b11111, 6'b111111);
+  end
+  endfunction
+	
+  //----------------------------------------------------------------------
+  // Assembly functions for changing memory partition register
+  //----------------------------------------------------------------------
+  function [`PISA_INST_NBITS-1:0]	asm_chmempar
+  (
+	input [`PISA_INST_RT_NBITS-1:0]		rt,
+    input [`PISA_INST_IMM_NBITS-1:0]	imm,
+    input [`PISA_INST_RS_NBITS-1:0]		rs
+  );
+  begin
+	asm_chmempar = asm_fmt_i( 6'b011111, rs, rt, imm );
+  end
+  endfunction
+
+  //----------------------------------------------------------------------
+  // Assembly functions for direct memory access
+  //----------------------------------------------------------------------
+  function [`PISA_INST_NBITS-1:0]	asm_dirmem
+  (
+	input [`PISA_INST_RT_NBITS-1:0]		rt,
+	input [`PISA_INST_IMM_NBITS-1:0]	imm,
+	input [`PISA_INST_RS_NBITS-1:0]		rs
+  );
+  begin
+	asm_dirmem = asm_fmt_i( 6'b101111, rs, rt, imm);
+  end
+  endfunction
+
+  //----------------------------------------------------------------------
+  // Assembly functions for debug instruction
+  //----------------------------------------------------------------------
+  function [`PISA_INST_NBITS-1:0]	asm_debug
+  (
+	input [`PISA_INST_RT_NBITS-1:0]		rt,
+	input [`PISA_INST_IMM_NBITS-1:0]	imm,
+	input [`PISA_INST_RS_NBITS-1:0]		rs
+  );
+  begin
+	asm_debug = asm_fmt_i( 6'b101110, rs, rt, imm );
+  end
+  endfunction
+
+  //----------------------------------------------------------------------
   // Assembly from string
   //----------------------------------------------------------------------
 
@@ -992,7 +1086,7 @@ module pisa_InstTasks();
       "srlv"    : begin e = $sscanf( str, "srlv  r%d, r%d, r%d", ra, rb, rc );      asm = asm_srlv  ( ra, rb, rc );                         end
       "srav"    : begin e = $sscanf( str, "srav  r%d, r%d, r%d", ra, rb, rc );      asm = asm_srav  ( ra, rb, rc );                         end
 
-      "lui"     : begin e = $sscanf( str, "lui   r%d, %s",       ra, imm_s );       asm = asm_lui   ( ra, s2i_16b(imm_s) );                   end
+      "lui"     : begin e = $sscanf( str, "lui   r%d, %s",       ra, imm_s );       asm = asm_lui   ( ra, s2i_16b(imm_s) );                 end
 
       "mul"     : begin e = $sscanf( str, "mul   r%d, r%d, r%d", ra, rb, rc );      asm = asm_mul   ( ra, rb, rc );                         end
       "div"     : begin e = $sscanf( str, "div   r%d, r%d, r%d", ra, rb, rc );      asm = asm_div   ( ra, rb, rc );                         end
@@ -1005,6 +1099,7 @@ module pisa_InstTasks();
       "lhu"     : begin e = $sscanf( str, "lhu   r%d, %s",       ra, roff_s );      asm = asm_lhu   ( ra, ro_s2o(roff_s), ro_s2r(roff_s) ); end
       "lb"      : begin e = $sscanf( str, "lb    r%d, %s",       ra, roff_s );      asm = asm_lb    ( ra, ro_s2o(roff_s), ro_s2r(roff_s) ); end
       "lbu"     : begin e = $sscanf( str, "lbu   r%d, %s",       ra, roff_s );      asm = asm_lbu   ( ra, ro_s2o(roff_s), ro_s2r(roff_s) ); end
+	  "prelw"	: begin e = $sscanf( str, "prelw r%d, %s",		 ra, roff_s );		asm = asm_prelw ( ra, ro_s2o(roff_s), ro_s2r(roff_s) ); end
 
       "sw"      : begin e = $sscanf( str, "sw    r%d, %s",       ra, roff_s );      asm = asm_sw    ( ra, ro_s2o(roff_s), ro_s2r(roff_s) ); end
       "sh"      : begin e = $sscanf( str, "sh    r%d, %s",       ra, roff_s );      asm = asm_sh    ( ra, ro_s2o(roff_s), ro_s2r(roff_s) ); end
@@ -1028,6 +1123,13 @@ module pisa_InstTasks();
       "amo.add" : begin e = $sscanf( str, "amo.add r%d, r%d, r%d", ra, rb, rc );    asm = asm_amo_add ( ra, rb, rc );                       end
       "amo.and" : begin e = $sscanf( str, "amo.and r%d, r%d, r%d", ra, rb, rc );    asm = asm_amo_and ( ra, rb, rc );                       end
       "amo.or"  : begin e = $sscanf( str, "amo.or  r%d, r%d, r%d", ra, rb, rc );    asm = asm_amo_or  ( ra, rb, rc );                       end
+
+	  "intr"	: begin																asm = asm_intr	  (0);									end
+	  "setintr" : begin																asm = asm_setintr (0);									end
+	  "chmod"	: begin																asm = asm_chmod	  (0);									end
+	  "chmempar": begin e = $sscanf( str, "chmempar r%d, %s",	  ra, roff_s );	    asm = asm_chmempar( ra, ro_s2o(roff_s),ro_s2r(roff_s)); end
+	  "dirmem"  : begin e = $sscanf( str, "dirmem   r%d, %s",	  ra, roff_s );		asm = asm_dirmem  ( ra, ro_s2o(roff_s),ro_s2r(roff_s));	end
+	  "debug"	: begin e = $sscanf( str, "debug	r%d, %s",	  ra, roff_s );		asm = asm_debug	  ( ra, ro_s2o(roff_s),ro_s2r(roff_s)); end
 
       default    : asm = {`PISA_INST_NBITS{1'bx}};
     endcase
@@ -1241,20 +1343,22 @@ endmodule
 
 module pisa_InstUnpack
 (
+
+  input                                {L} domain,
   // Packed message
 
-  input  [`PISA_INST_NBITS-1:0]        inst,
+  input  [`PISA_INST_NBITS-1:0]        {Domain domain} inst,
 
   // Packed fields
 
-  output [`PISA_INST_OPCODE_NBITS-1:0] opcode,
-  output [`PISA_INST_RS_NBITS-1:0]     rs,
-  output [`PISA_INST_RT_NBITS-1:0]     rt,
-  output [`PISA_INST_RD_NBITS-1:0]     rd,
-  output [`PISA_INST_SHAMT_NBITS-1:0]  shamt,
-  output [`PISA_INST_FUNC_NBITS-1:0]   func,
-  output [`PISA_INST_IMM_NBITS-1:0]    imm,
-  output [`PISA_INST_TARGET_NBITS-1:0] target
+  output [`PISA_INST_OPCODE_NBITS-1:0] {Domain domain} opcode,
+  output [`PISA_INST_RS_NBITS-1:0]     {Domain domain} rs,
+  output [`PISA_INST_RT_NBITS-1:0]     {Domain domain} rt,
+  output [`PISA_INST_RD_NBITS-1:0]     {Domain domain} rd,
+  output [`PISA_INST_SHAMT_NBITS-1:0]  {Domain domain} shamt,
+  output [`PISA_INST_FUNC_NBITS-1:0]   {Domain domain} func,
+  output [`PISA_INST_IMM_NBITS-1:0]    {Domain domain} imm,
+  output [`PISA_INST_TARGET_NBITS-1:0] {Domain domain} target
 );
 
   assign opcode   = inst[`PISA_INST_OPCODE];
@@ -1272,25 +1376,25 @@ endmodule
 // Convert message to string
 //------------------------------------------------------------------------
 
-//module pisa_InstTrace
-//(
-//  input                        clk,
-//  input                        reset,
-//  input [`PISA_INST_NBITS-1:0] inst
-//);
-//
-//  `include "vc-trace-tasks.v"
-//
-//  pisa_InstTasks pisa();
-//
-//  task trace_module( inout [vc_trace_nbits-1:0] trace );
-//  begin
-//    vc_trace_str( trace, pisa.disasm( inst ) );
-//    vc_trace_str( trace, " | " );
-//    vc_trace_str( trace, pisa.disasm_tiny( inst ) );
-//  end
-//  endtask
+/*module pisa_InstTrace
+(
+  input                        clk,
+  input                        reset,
+  input [`PISA_INST_NBITS-1:0] inst
+);
 
-//endmodule
+  `include "vc-trace-tasks.v"
+
+  pisa_InstTasks pisa();
+
+  task trace_module( inout [vc_trace_nbits-1:0] trace );
+  begin
+    vc_trace_str( trace, pisa.disasm( inst ) );
+    vc_trace_str( trace, " | " );
+    vc_trace_str( trace, pisa.disasm_tiny( inst ) );
+  end
+  endtask
+
+endmodule*/
 
 `endif /* PISA_INST_V */

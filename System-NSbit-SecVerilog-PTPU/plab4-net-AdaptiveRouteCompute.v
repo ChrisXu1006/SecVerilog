@@ -40,8 +40,8 @@ module plab4_net_AdaptiveRouteCompute
 
   // calculate forward and backward hops
 
-  wire [c_dest_nbits-1:0] 		{L}	forw_hops;
-  wire [c_dest_nbits-1:0] 		{L}	backw_hops;
+  wire [c_dest_nbits-1:0] 		{Domain domain}	forw_hops;
+  wire [c_dest_nbits-1:0] 		{Domain domain}	backw_hops;
 
   assign forw_hops =  ( dest - p_router_id );
   assign backw_hops = ( p_router_id - dest );
@@ -49,8 +49,8 @@ module plab4_net_AdaptiveRouteCompute
   // we also calculate weight in each direction which takes both
   // congestion and number of hops into account
 
-  wire [31:0] 					{L}	forw_weight;
-  wire [31:0] 					{L}	backw_weight;
+  wire [31:0] 					{Domain domain}	forw_weight;
+  wire [31:0] 					{Domain domain}	backw_weight;
 
   assign forw_weight =  p_hops_mult * forw_hops +
                         p_cong_mult * num_free_chan0;

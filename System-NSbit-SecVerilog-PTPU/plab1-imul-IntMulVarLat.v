@@ -22,36 +22,38 @@
 
 module plab1_imul_IntMulVarLatDpath
 (
-  input                                          clk,
-  input                                          reset,
+  input                                          {L} clk,
+  input                                          {L} reset,
 
+  input                                          {L} domain,
   // Data signals
 
-  input [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0] in_msg_a,
-  input [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0] in_msg_b,
-  output [31:0]                                  out_msg,
+  input [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0] {Domain domain} in_msg_a,
+  input [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0] {Domain domain} in_msg_b,
+  output [31:0]                                  {Domain domain} out_msg,
 
   // Control signals (ctrl->dpath)
 
-  input                                          a_mux_sel,
-  input                                          b_mux_sel,
-  input                                          add_mux_sel,
-  input                                          result_mux_sel,
-  input                                          result_en,
+  input                                          {Domain domain} a_mux_sel,
+  input                                          {Domain domain} b_mux_sel,
+  input                                          {Domain domain} add_mux_sel,
+  input                                          {Domain domain} result_mux_sel,
+  input                                          {Domain domain} result_en,
 
   // Control signals (dpath->ctrl)
 
-  output                                         b_gt_zero,
-  output                                         b_lsb
+  output                                         {Domain domain} b_gt_zero,
+  output                                         {Domain domain} b_lsb
 );
 
   // B mux
 
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]  right_shift_1_out;
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]  b_mux_out;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]  {Domain domain} right_shift_1_out;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]  {Domain domain} b_mux_out;
 
   vc_Mux2#(`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS) b_mux
   (
+   .domain(domain),
    .sel (b_mux_sel),
    .in0 (right_shift_1_out),
    .in1 (in_msg_b),
@@ -60,11 +62,12 @@ module plab1_imul_IntMulVarLatDpath
 
   // B register
 
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]  b_reg_out;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]  {Domain domain} b_reg_out;
 
   vc_Reg#(`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS) b_reg
   (
    .clk (clk),
+   .domain(domain),
    .d   (b_mux_out),
    .q   (b_reg_out)
   );
@@ -73,6 +76,7 @@ module plab1_imul_IntMulVarLatDpath
 
   vc_GtComparator#(32) b_gt_zero_comparator
   (
+   .domain(domain),
    .in0 (right_shift_1_out),
    .in1 (0),
    .out (b_gt_zero)
@@ -80,20 +84,22 @@ module plab1_imul_IntMulVarLatDpath
 
   // CountZeros
 
-  wire [3:0] count_zeros_out;
+  wire [3:0] {Domain domain} count_zeros_out;
 
   plab1_imul_CountZeros count_zeros
   (
+   .domain(domain),
    .to_be_counted (b_reg_out[7:0]),
    .count (count_zeros_out)
   );
 
   // Variable right shift
 
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]  right_shift_out;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]  {Domain domain} right_shift_out;
 
   vc_RightLogicalShifter#(`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS,4) right_shift
   (
+   .domain(domain),
    .in    (b_reg_out),
    .shamt (count_zeros_out),
    .out   (right_shift_out)
@@ -105,6 +111,7 @@ module plab1_imul_IntMulVarLatDpath
 
   vc_RightLogicalShifter#(`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS,1) right_shift_1
   (
+   .domain(domain),
    .in    (right_shift_out),
    .shamt (1),
    .out   (right_shift_1_out)
@@ -112,11 +119,12 @@ module plab1_imul_IntMulVarLatDpath
 
   // A mux
 
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  left_shift_1_out;
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  a_mux_out;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  {Domain domain} left_shift_1_out;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  {Domain domain} a_mux_out;
 
   vc_Mux2#(`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS) a_mux
   (
+   .domain(domain),
    .sel (a_mux_sel),
    .in0 (left_shift_1_out),
    .in1 (in_msg_a),
@@ -125,21 +133,23 @@ module plab1_imul_IntMulVarLatDpath
 
   // A register
 
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  a_reg_out;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  {Domain domain} a_reg_out;
 
   vc_Reg#(`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS) a_reg
   (
    .clk (clk),
+   .domain(domain),
    .d   (a_mux_out),
    .q   (a_reg_out)
   );
 
   // Variable left shift
 
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]  left_shift_out;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]  {Domain domain} left_shift_out;
 
   vc_LeftLogicalShifter#(`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS,4) left_shift
   (
+   .domain(domain),
    .in    (a_reg_out),
    .shamt (count_zeros_out),
    .out   (left_shift_out)
@@ -149,6 +159,7 @@ module plab1_imul_IntMulVarLatDpath
 
   vc_LeftLogicalShifter#(`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS,1) left_shift_1
   (
+   .domain(domain),
    .in    (left_shift_out),
    .shamt (1),
    .out   (left_shift_1_out)
@@ -156,11 +167,12 @@ module plab1_imul_IntMulVarLatDpath
 
   // Result mux
 
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  add_mux_out;
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  result_mux_out;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  {Domain domain} add_mux_out;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  {Domain domain} result_mux_out;
 
   vc_Mux2#(`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS) result_mux
   (
+   .domain(domain),
    .sel (result_mux_sel),
    .in0 (add_mux_out),
    .in1 (0),
@@ -169,11 +181,12 @@ module plab1_imul_IntMulVarLatDpath
 
   // Result register
 
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  result_reg_out;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  {Domain domain} result_reg_out;
 
   vc_EnReg#(`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS) result_reg
   (
    .clk   (clk),
+   .domain(domain),
    .d     (result_mux_out),
    .q     (result_reg_out),
    .reset (reset),
@@ -182,10 +195,11 @@ module plab1_imul_IntMulVarLatDpath
 
   // Adder
 
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  adder_out;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]  {Domain domain} adder_out;
 
   vc_SimpleAdder#(`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS) adder
   (
+   .domain(domain),
    .in0 (left_shift_out),
    .in1 (result_reg_out),
    .out (adder_out)
@@ -195,6 +209,7 @@ module plab1_imul_IntMulVarLatDpath
 
   vc_Mux2#(`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS) add_mux
   (
+   .domain(domain),
    .sel (add_mux_sel),
    .in0 (adder_out),
    .in1 (result_reg_out),
@@ -213,28 +228,29 @@ endmodule
 
 module plab1_imul_IntMulVarLatCtrl
 (
-  input      clk,
-  input      reset,
+  input      {L} clk,
+  input      {L} reset,
 
+  input      {L} domain,
    // Dataflow signals
 
-  input      in_val,
-  output reg in_rdy,
-  output reg out_val,
-  input      out_rdy,
+  input      {Domain domain} in_val,
+  output reg {Domain domain} in_rdy,
+  output reg {Domain domain} out_val,
+  input      {Domain domain} out_rdy,
 
  // Control signals (ctrl->dpath)
 
-  output reg a_mux_sel,
-  output reg b_mux_sel,
-  output reg add_mux_sel,
-  output reg result_mux_sel,
-  output reg result_en,
+  output reg {Domain domain} a_mux_sel,
+  output reg {Domain domain} b_mux_sel,
+  output reg {Domain domain} add_mux_sel,
+  output reg {Domain domain} result_mux_sel,
+  output reg {Domain domain} result_en,
 
    // Control signals (dpath->ctrl)
 
-  input      b_gt_zero,
-  input      b_lsb
+  input      {Domain domain} b_gt_zero,
+  input      {Domain domain} b_lsb
 );
 
   //----------------------------------------------------------------------
@@ -262,12 +278,12 @@ module plab1_imul_IntMulVarLatCtrl
   // State Transitions
   //----------------------------------------------------------------------
 
-  wire in_go        = in_val  && in_rdy;
-  wire out_go       = out_val && out_rdy;
-  wire is_calc_done = !b_gt_zero;
+  wire {Domain domain} in_go        = in_val  && in_rdy;
+  wire {Domain domain} out_go       = out_val && out_rdy;
+  wire {Domain domain} is_calc_done = !b_gt_zero;
 
-  reg [1:0] state_reg;
-  reg [1:0] state_next;
+  reg [1:0] {Domain domain} state_reg;
+  reg [1:0] {Domain domain} state_next;
 
   always @(*) begin
 
@@ -324,8 +340,8 @@ module plab1_imul_IntMulVarLatCtrl
   end
   endtask
 
-  wire do_add_shift = b_lsb;
-  wire do_shift     = !b_lsb;
+  wire {Domain domain} do_add_shift = b_lsb;
+  wire {Domain domain} do_shift     = !b_lsb;
 
   // Set outputs using a control signal "table"
 
@@ -372,12 +388,12 @@ module plab1_imul_IntMulVarLat
   input                                         {L} reset,
 
   input                                         {L} domain,
-  input                                         {L} in_val,
-  output                                        {L} in_rdy,
+  input                                         {Domain domain} in_val,
+  output                                        {Domain domain} in_rdy,
   input  [`PLAB1_IMUL_MULDIV_REQ_MSG_NBITS-1:0] {Domain domain} in_msg,
 
-  output                                        {L} out_val,
-  input                                         {L} out_rdy,
+  output                                        {Domain domain} out_val,
+  input                                         {Domain domain} out_rdy,
   output [31:0]                                 {Domain domain} out_msg
 );
 
@@ -385,12 +401,13 @@ module plab1_imul_IntMulVarLat
   // Unpack Request Message
   //----------------------------------------------------------------------
 
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_FUNC_NBITS-1:0] in_msg_func;
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]    in_msg_a;
-  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]    in_msg_b;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_FUNC_NBITS-1:0] {Domain domain} in_msg_func;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_A_NBITS-1:0]    {Domain domain} in_msg_a;
+  wire [`PLAB1_IMUL_MULDIV_REQ_MSG_B_NBITS-1:0]    {Domain domain} in_msg_b;
 
   plab1_imul_MulDivReqMsgUnpack muldiv_req_msg_unpack
   (
+    .domain(domain),
     .msg  (in_msg),
     .func (in_msg_func),
     .a    (in_msg_a),
@@ -411,18 +428,19 @@ module plab1_imul_IntMulVarLat
 
   //+++ gen-harness : begin cut ++++++++++++++++++++++++++++++++++++++++++
 
-  wire a_mux_sel;
-  wire b_mux_sel;
-  wire add_mux_sel;
-  wire result_mux_sel;
-  wire result_en;
-  wire b_gt_zero;
-  wire b_lsb;
+  wire {Domain domain} a_mux_sel;
+  wire {Domain domain} b_mux_sel;
+  wire {Domain domain} add_mux_sel;
+  wire {Domain domain} result_mux_sel;
+  wire {Domain domain} result_en;
+  wire {Domain domain} b_gt_zero;
+  wire {Domain domain} b_lsb;
 
   plab1_imul_IntMulVarLatDpath dpath
   (
    .clk            (clk),
    .reset          (reset),
+   .domain         (domain),
    .in_msg_a       (in_msg_a),
    .in_msg_b       (in_msg_b),
    .out_msg        (out_msg),
@@ -439,6 +457,7 @@ module plab1_imul_IntMulVarLat
   (
    .clk            (clk),
    .reset          (reset),
+   .domain         (domain),
    .in_val         (in_val),
    .in_rdy         (in_rdy),
    .out_val        (out_val),

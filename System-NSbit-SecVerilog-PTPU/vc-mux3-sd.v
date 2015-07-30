@@ -17,7 +17,7 @@ module vc_Mux3_sd
   input		 [p_nbits-1:0] {Domain domain}	in1, 
   input      [p_nbits-1:0] {Domain domain}	in2,
   input		 [1:0]		   {L}				domain,
-  input      [1:0] 		   {L}				sel,
+  input      [1:0] 		   {Domain domain}	sel,
   output reg [p_nbits-1:0] {Domain domain}	out
 );
 

@@ -22,12 +22,13 @@ module vc_Reg
 #(
   parameter p_nbits = 1
 )(
-  input                clk, // Clock input
-  output [p_nbits-1:0] q,   // Data output
-  input  [p_nbits-1:0] d    // Data input (sampled on rising clk edge)
+  input                {L} clk, // Clock input
+  input                {L} domain,
+  output [p_nbits-1:0] {Domain domain} q,   // Data output
+  input  [p_nbits-1:0] {Domain domain} d    // Data input (sampled on rising clk edge)
 );
 
-  reg q;
+  reg {Domain domain} q;
 
   always @( posedge clk )
     q <= d;
@@ -64,11 +65,12 @@ module vc_EnReg
 #(
   parameter p_nbits = 1
 )(
-  input                clk,   // Clock input
-  input                reset, // Sync reset input (sampled on rising edge)
-  output [p_nbits-1:0] q,     // Data output
-  input  [p_nbits-1:0] d,     // Data input (sampled on rising clk edge)
-  input                en     // Enable input (sampled on rising clk edge)
+  input                {L} clk,   // Clock input
+  input                {L} reset, // Sync reset input (sampled on rising edge)
+  input                {L} domain,
+  output [p_nbits-1:0] {Domain domain} q,     // Data output
+  input  [p_nbits-1:0] {Domain domain} d,     // Data input (sampled on rising clk edge)
+  input                {Domain domain} en     // Enable input (sampled on rising clk edge)
 );
 
   reg q;

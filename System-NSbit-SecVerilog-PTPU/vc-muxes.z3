@@ -66,13 +66,55 @@
 ; assertions to be verified
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = p_reset_value @./vc-regs.v:56
+(assert  (not(leq LOW  LOW)))    ; out = in0 @vc-muxes.v:186
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = d @./vc-regs.v:56
+(assert  (not(leq LOW  LOW)))    ; out = in1 @vc-muxes.v:187
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; out = in2 @vc-muxes.v:188
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; out = in3 @vc-muxes.v:189
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; out = in4 @vc-muxes.v:190
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; out = in5 @vc-muxes.v:191
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; out = in6 @vc-muxes.v:192
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; out = in7 @vc-muxes.v:193
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; out = {p_nbits{'bx}} @vc-muxes.v:194
 (check-sat)
 (pop)
 

@@ -180,14 +180,14 @@ module plab5_mcore_ProcNetCacheMem
 		.sec_domain		(1'b0),
 		.req_domain		(req_in_domain_d0),
 
-		/*.intr_rq		(intr_rq_p0),
+		.intr_rq		(intr_rq_p0),
 		.intr_set		(intr_set_p0),
 		.intr_ack		(intr_ack_p0),
 		.intr_val		(intr_val_p0),
 
 		.cacheable		(cacheable_p0),
 
-		.par_en			(par_en_p0),
+		/*.par_en			(par_en_p0),
 		.par_addr		(par_addr_p0),*/
 		
 		.imemreq_msg	(inst_net_req_in_msg_proc_d0),
@@ -231,14 +231,14 @@ module plab5_mcore_ProcNetCacheMem
 		.sec_domain		(1'b1),
 		.req_domain		(req_in_domain_d1),
 
-		/*.intr_rq		(intr_rq_p1),
+		.intr_rq		(intr_rq_p1),
 		.intr_set		(intr_set_p1),
 		.intr_ack		(intr_ack_p1),
 		.intr_val		(intr_val_p1),
 
 		.cacheable		(cacheable_p1),
 
-		.par_en			(par_en_p1),
+		/*.par_en			(par_en_p1),
 		.par_addr		(par_addr_p1),*/
 		
 		.imemreq_msg	(inst_net_req_in_msg_proc_d1),

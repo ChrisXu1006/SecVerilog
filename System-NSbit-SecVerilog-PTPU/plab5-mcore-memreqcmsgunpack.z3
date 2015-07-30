@@ -39,18 +39,6 @@
 (assert (not (= HIGH LOW))) ; the lattice cannot clapse
 
 ; variables to be solved
-(declare-fun in0_domain () Int)
-(assert (<= 0  in0_domain))
-(assert (<= in0_domain 1))
-(declare-fun in1_domain () Int)
-(assert (<= 0  in1_domain))
-(assert (<= in1_domain 1))
-(declare-fun in2_domain () Int)
-(assert (<= 0  in2_domain))
-(assert (<= in2_domain 1))
-(declare-fun out_domain () Int)
-(assert (<= 0  out_domain))
-(assert (<= out_domain 1))
 
 ; function that maps 0 to LOW; 1 to HIGH
 (declare-fun LH (Int) Label)
@@ -78,43 +66,25 @@
 ; assertions to be verified
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; out_domain = in0_domain @vc-mux3.v:33
+(assert  (not(leq LOW  LOW)))    ; assign type = msg[(c)-(1):((l)+(a))+(o)] @plab5-mcore-memreqcmsgunpack.v:33
 (check-sat)
 (pop)
 
 
 (push)
-(assert (and (= out_domain in0_domain)  (not(leq (Domain in0_domain)  (Domain out_domain)))))    ; out = in0 @vc-mux3.v:34
+(assert  (not(leq LOW  LOW)))    ; assign opaque = msg[(((l)+(a))+(o))-(1):(l)+(a)] @plab5-mcore-memreqcmsgunpack.v:34
 (check-sat)
 (pop)
 
 
 (push)
-(assert (and (= out_domain in0_domain)  (not(leq LOW  LOW))))    ; out_domain = in1_domain @vc-mux3.v:38
+(assert  (not(leq LOW  LOW)))    ; assign addr = msg[((l)+(a))-(1):l] @plab5-mcore-memreqcmsgunpack.v:35
 (check-sat)
 (pop)
 
 
 (push)
-(assert (and (= out_domain in1_domain)  (not(leq (Domain in1_domain)  (Domain out_domain)))))    ; out = in1 @vc-mux3.v:39
-(check-sat)
-(pop)
-
-
-(push)
-(assert (and (= out_domain in1_domain)  (not(leq LOW  LOW))))    ; out_domain = in2_domain @vc-mux3.v:43
-(check-sat)
-(pop)
-
-
-(push)
-(assert (and (= out_domain in2_domain)  (not(leq (Domain in2_domain)  (Domain out_domain)))))    ; out = in2 @vc-mux3.v:44
-(check-sat)
-(pop)
-
-
-(push)
-(assert (and (= out_domain in2_domain)  (not(leq LOW  (Domain out_domain)))))    ; out = {p_nbits{'bx}} @vc-mux3.v:47
+(assert  (not(leq LOW  LOW)))    ; assign len = msg[(l)-(1):0] @plab5-mcore-memreqcmsgunpack.v:36
 (check-sat)
 (pop)
 

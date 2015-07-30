@@ -39,6 +39,9 @@
 (assert (not (= HIGH LOW))) ; the lattice cannot clapse
 
 ; variables to be solved
+(declare-fun domain () Int)
+(assert (<= 0  domain))
+(assert (<= domain 1))
 
 ; function that maps 0 to LOW; 1 to HIGH
 (declare-fun LH (Int) Label)
@@ -66,13 +69,67 @@
 ; assertions to be verified
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = p_reset_value @./vc-regs.v:56
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter clk in module vc_EnResetReg @vc-PipeCtrl.v:37
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = d @./vc-regs.v:56
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter reset in module vc_EnResetReg @vc-PipeCtrl.v:37
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter domain in module vc_EnResetReg @vc-PipeCtrl.v:37
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter en in module vc_EnResetReg @vc-PipeCtrl.v:37
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter d in module vc_EnResetReg @vc-PipeCtrl.v:37
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter q in module vc_EnResetReg @vc-PipeCtrl.v:37
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign reg_en = or (!(prev_stall)) (next_squash) @vc-PipeCtrl.v:51
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (join (join (Domain domain) (Domain domain)) (Domain domain))  (Domain domain))))    ; assign curr_reg_en = or (and (!(prev_stall)) (prev_val)) (next_squash) @vc-PipeCtrl.v:52
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (join (join (join (Domain domain) (Domain domain)) (Domain domain)) (Domain domain))  (Domain domain))))    ; assign next_val = and (and (and (curr_val) (~(next_squash))) (~(next_stall))) (~(curr_stall)) @vc-PipeCtrl.v:62
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (join (join (join (Domain domain) (Domain domain)) (Domain domain)) (Domain domain))  (Domain domain))))    ; assign prev_stall = and (and (or (next_stall) (curr_stall)) (curr_val)) (!(next_squash)) @vc-PipeCtrl.v:68
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (join (Domain domain) (join (join (Domain domain) (Domain domain)) (Domain domain)))  (Domain domain))))    ; assign prev_squash = or (next_squash) (and (and (curr_squash) (!(next_stall))) (!(curr_stall))) @vc-PipeCtrl.v:75
 (check-sat)
 (pop)
 

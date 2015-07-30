@@ -71,20 +71,22 @@ module plab5_mcore_MemNet_Sep
 	
 	output	[rs-1:0]	{Domain  resp_out_domain_p0} resp_out_msg_p0,
 	output				{L}                          resp_out_domain_p0,
-	output				{Control resp_out_domain_p0} resp_out_val_p0,
-	input				{Control resp_out_domain_p0} resp_out_rdy_p0,
+	output				{Domain  resp_out_domain_p0} resp_out_val_p0,
+	input				{Domain  resp_out_domain_p0} resp_out_rdy_p0,
+    output              {Domain  resp_out_domain_p0} resp_out_fail_p0,
 
-	output	[rqc-1:0]	{Control req_out_domain_p0} req_out_msg_control_p0,
+	output	[rqc-1:0]	{Domain  req_out_domain_p0} req_out_msg_control_p0,
 	output  [rqd-1:0]	{Domain  req_out_domain_p0} req_out_msg_data_p0,
 	output				{L}                         req_out_domain_p0,
-	output				{Control req_out_domain_p0} req_out_val_p0,
-	input				{Control req_out_domain_p0} req_out_rdy_p0,
+	output				{Domain  req_out_domain_p0} req_out_val_p0,
+	input				{Domain  req_out_domain_p0} req_out_rdy_p0,
 
 	input	[rsc-1:0]	{Control resp_in_domain_p0}  resp_in_msg_control_p0,
 	input	[rsd-1:0]	{Domain  resp_in_domain_p0}  resp_in_msg_data_p0,
 	input				{L}                          resp_in_domain_p0,
 	input				{Control resp_in_domain_p0}  resp_in_val_p0,
 	output				{Control resp_in_domain_p0}  resp_in_rdy_p0,
+    input               {Domain  resp_in_domain_p0}  resp_in_fail_p0,
 
 	input	[rq-1:0]	{D2} req_in_msg_p1,
     input               {L}  req_in_domain_p1,
@@ -95,6 +97,7 @@ module plab5_mcore_MemNet_Sep
 	output				{L}                          resp_out_domain_p1,
 	output				{Control resp_out_domain_p1} resp_out_val_p1,
 	input				{Control resp_out_domain_p1} resp_out_rdy_p1,
+    output              {Domain  resp_out_domain_p1} resp_out_fail_p1,
 
 	output	[rqc-1:0]	{Control req_out_domain_p1}  req_out_msg_control_p1,
 	output  [rqd-1:0]	{Domain  req_out_domain_p1}  req_out_msg_data_p1,
@@ -106,7 +109,8 @@ module plab5_mcore_MemNet_Sep
 	input	[rsd-1:0]	{Domain  resp_in_domain_p1}  resp_in_msg_data_p1,
 	input				{L}                          resp_in_domain_p1,
 	input				{Control resp_in_domain_p1}  resp_in_val_p1,
-	output				{Control resp_in_domain_p1}  resp_in_rdy_p1
+	output				{Control resp_in_domain_p1}  resp_in_rdy_p1,
+    input               {Domain  resp_in_domain_p1}  resp_in_fail_p1
 
 );
 
@@ -115,13 +119,13 @@ module plab5_mcore_MemNet_Sep
 	wire	[nrqc:0]	{Control req_out_domain_p0} req_net_out_msg_control_p0;
 	wire	[nrqd-1:0]	{Domain  req_out_domain_p0} req_net_out_msg_data_p0;
 
-	wire	[nrsc:0]	{Control resp_in_domain_p0} resp_net_in_msg_control_p0;
+	wire	[nrsc+1:0]	{Control resp_in_domain_p0} resp_net_in_msg_control_p0;
 	wire	[nrsd-1:0]	{Domain  resp_in_domain_p0} resp_net_in_msg_data_p0;
-	wire	[nrsc:0]	{Control resp_out_domain_p0}resp_net_out_msg_control_p0;
+	wire	[nrsc+1:0]	{Control resp_out_domain_p0}resp_net_out_msg_control_p0;
 	wire	[nrsd-1:0]	{Domain  resp_out_domain_p0}resp_net_out_msg_data_p0;
 
 	wire	[rqc:0]		{Control req_out_domain_p0}  req_out_msg_control_M_p0;
-	wire	[rsc:0]		{Control resp_out_domain_p0} resp_out_msg_control_M_p0;
+	wire	[rsc+1:0]	{Control resp_out_domain_p0} resp_out_msg_control_M_p0;
 	wire	[rsc-1:0]	{Control resp_out_domain_p0} resp_out_msg_control_p0;
 	wire	[rsd-1:0]	{Domain resp_out_domain_p0} resp_out_msg_data_p0;
 
@@ -130,13 +134,13 @@ module plab5_mcore_MemNet_Sep
 	wire	[nrqc:0]	{Control req_out_domain_p1} req_net_out_msg_control_p1;
 	wire	[nrqd-1:0]	{Domain  req_out_domain_p1} req_net_out_msg_data_p1;
 
-	wire	[nrsc:0]	{Control resp_in_domain_p1} resp_net_in_msg_control_p1;
+	wire	[nrsc+1:0]	{Control resp_in_domain_p1} resp_net_in_msg_control_p1;
 	wire	[nrsd-1:0]	{Domain  resp_in_domain_p1} resp_net_in_msg_data_p1;
-	wire	[nrsc:0]	{Control resp_out_domain_p1}resp_net_out_msg_control_p1;
+	wire	[nrsc+1:0]	{Control resp_out_domain_p1}resp_net_out_msg_control_p1;
 	wire	[nrsd-1:0]	{Domain  resp_out_domain_p1}resp_net_out_msg_data_p1;
 
 	wire	[rqc:0]		{Control req_out_domain_p1} req_out_msg_control_M_p1;
-	wire	[rsc:0]		{Control resp_out_domain_p1}resp_out_msg_control_M_p1;
+	wire	[rsc+1:0]	{Control resp_out_domain_p1}resp_out_msg_control_M_p1;
 	wire	[rsc-1:0]	{Control resp_out_domain_p1}resp_out_msg_control_p1;
 	wire	[rsd-1:0]	{Domain resp_out_domain_p1} resp_out_msg_data_p1;
 	
@@ -239,6 +243,7 @@ module plab5_mcore_MemNet_Sep
 	    .mem_msg_control(resp_in_msg_control_p0),
 		.mem_msg_data	(resp_in_msg_data_p0),
 		.domain         (resp_in_domain_p0),
+        .mem_msg_fail   (resp_in_fail_p0),
         .net_msg_control(resp_net_in_msg_control_p0),
 		.net_msg_data	(resp_net_in_msg_data_p0)
       );
@@ -260,6 +265,7 @@ module plab5_mcore_MemNet_Sep
 	    .mem_msg_control(resp_in_msg_control_p1),
 		.mem_msg_data	(resp_in_msg_data_p1),
 		.domain         (resp_in_domain_p1),
+        .mem_msg_fail   (resp_in_fail_p1),
         .net_msg_control(resp_net_in_msg_control_p1),
 		.net_msg_data	(resp_net_in_msg_data_p1)
       );
@@ -275,7 +281,7 @@ module plab5_mcore_MemNet_Sep
 
       wire {Control resp_out_domain_p0} resp_out_domain_p0_M;
 
-	  assign {resp_out_domain_p0_M, resp_out_msg_control_p0}
+	  assign {resp_out_domain_p0_M, resp_out_fail_p0, resp_out_msg_control_p0}
 		= resp_out_msg_control_M_p0;
 
 	  assign resp_out_msg_data_p0 = resp_net_out_msg_data_p0;
@@ -291,7 +297,7 @@ module plab5_mcore_MemNet_Sep
 
       wire {Control resp_out_domain_p1} resp_out_domain_p1_M;
 
-	  assign {resp_out_domain_p1_M, resp_out_msg_control_p1}
+	  assign {resp_out_domain_p1_M, resp_out_fail_p1, resp_out_msg_control_p1}
 		= resp_out_msg_control_M_p1;
 
 	  assign resp_out_msg_data_p1 = resp_net_out_msg_data_p1;
@@ -363,7 +369,7 @@ module plab5_mcore_MemNet_Sep
 
 	// response network
 
-	plab4_net_RingNetAlt_Sep #(rsc+1,rsd,no,ns,2) resp_net
+	plab4_net_RingNetAlt_Sep #(rsc+2,rsd,no,ns,2) resp_net
 	(
 		.clk				(clk),
 		.reset				(reset),

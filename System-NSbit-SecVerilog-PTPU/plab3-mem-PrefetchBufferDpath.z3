@@ -410,94 +410,37 @@
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter clk in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:242
+(assert (and (= tag_array_0_out_domain domain)  (not(leq (Domain tag_array_0_out_domain)  (Domain domain)))))    ; tag_array_0_read_out = tag_array_0_out @plab3-mem-PrefetchBufferDpath.v:243
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter reset in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:242
+(assert (and (not(= tag_array_0_out_domain domain))  (not(leq LOW  (Domain domain)))))    ; tag_array_0_read_out = 0 @plab3-mem-PrefetchBufferDpath.v:243
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter in_domain in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:242
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter clk in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:245
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter read_addr in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:242
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter reset in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:245
 (check-sat)
 (pop)
 
 
 (push)
-(declare-fun out_domain () Int)
-(assert (<= 0  out_domain))
-(assert (<= out_domain 1))
-(assert  (not(leq (Domain out_domain)  (Domain out_domain))))    ; Instantiate parameter read_data in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:242
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter in_domain in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:245
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter out_domain in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:242
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:242
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter read_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:242
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq LOW  (Domain domain))))    ; Instantiate parameter write_byte_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:242
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_addr in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:242
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_data in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:242
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter clk in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:261
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter reset in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:261
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter in_domain in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:261
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter read_addr in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:261
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter read_addr in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:245
 (check-sat)
 (pop)
 
@@ -506,67 +449,79 @@
 (declare-fun out_domain () Int)
 (assert (<= 0  out_domain))
 (assert (<= out_domain 1))
-(assert  (not(leq (Domain out_domain)  (Domain out_domain))))    ; Instantiate parameter read_data in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:261
+(assert  (not(leq (Domain out_domain)  (Domain out_domain))))    ; Instantiate parameter read_data in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:245
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter out_domain in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:261
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter out_domain in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:245
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:261
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:245
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter read_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:261
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter read_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:245
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  (Domain domain))))    ; Instantiate parameter write_byte_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:261
+(assert  (not(leq LOW  (Domain domain))))    ; Instantiate parameter write_byte_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:245
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_addr in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:261
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_addr in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:245
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_data in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:261
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_data in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:245
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter clk in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:280
+(assert (and (= tag_array_1_out_domain domain)  (not(leq (Domain tag_array_1_out_domain)  (Domain domain)))))    ; tag_array_1_read_out = tag_array_1_out @plab3-mem-PrefetchBufferDpath.v:265
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter reset in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:280
+(assert (and (not(= tag_array_1_out_domain domain))  (not(leq LOW  (Domain domain)))))    ; tag_array_1_read_out = 0 @plab3-mem-PrefetchBufferDpath.v:265
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter in_domain in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:280
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter clk in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:267
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter read_addr in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:280
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter reset in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:267
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter in_domain in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:267
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter read_addr in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:267
 (check-sat)
 (pop)
 
@@ -575,67 +530,124 @@
 (declare-fun out_domain () Int)
 (assert (<= 0  out_domain))
 (assert (<= out_domain 1))
-(assert  (not(leq (Domain out_domain)  (Domain out_domain))))    ; Instantiate parameter read_data in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:280
+(assert  (not(leq (Domain out_domain)  (Domain out_domain))))    ; Instantiate parameter read_data in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:267
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:280
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter out_domain in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:267
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter read_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:280
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:267
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter out_domain in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:280
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter read_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:267
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_byte_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:280
+(assert  (not(leq LOW  (Domain domain))))    ; Instantiate parameter write_byte_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:267
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_addr in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:280
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_addr in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:267
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_data in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:280
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_data in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:267
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter domain in module vc_EqComparator @plab3-mem-PrefetchBufferDpath.v:299
+(assert (and (= data_array_out_domain domain)  (not(leq (Domain data_array_out_domain)  (Domain domain)))))    ; data_array_read_out = data_array_out @plab3-mem-PrefetchBufferDpath.v:286
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter in0 in module vc_EqComparator @plab3-mem-PrefetchBufferDpath.v:299
+(assert (and (not(= data_array_out_domain domain))  (not(leq LOW  (Domain domain)))))    ; data_array_read_out = 0 @plab3-mem-PrefetchBufferDpath.v:286
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain tag_array_0_out_domain)  (Domain domain))))    ; Instantiate parameter in1 in module vc_EqComparator @plab3-mem-PrefetchBufferDpath.v:299
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter clk in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:289
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter out in module vc_EqComparator @plab3-mem-PrefetchBufferDpath.v:299
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter reset in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:289
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter in_domain in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:289
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter read_addr in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:289
+(check-sat)
+(pop)
+
+
+(push)
+(declare-fun out_domain () Int)
+(assert (<= 0  out_domain))
+(assert (<= out_domain 1))
+(assert  (not(leq (Domain out_domain)  (Domain out_domain))))    ; Instantiate parameter read_data in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:289
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:289
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter read_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:289
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter out_domain in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:289
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_byte_en in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:289
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_addr in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:289
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter write_data in module vc_CombinationalSRAM_1rw @plab3-mem-PrefetchBufferDpath.v:289
 (check-sat)
 (pop)
 
@@ -653,7 +665,7 @@
 
 
 (push)
-(assert  (not(leq (Domain tag_array_1_out_domain)  (Domain domain))))    ; Instantiate parameter in1 in module vc_EqComparator @plab3-mem-PrefetchBufferDpath.v:308
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter in1 in module vc_EqComparator @plab3-mem-PrefetchBufferDpath.v:308
 (check-sat)
 (pop)
 
@@ -665,199 +677,223 @@
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter clk in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:331
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter domain in module vc_EqComparator @plab3-mem-PrefetchBufferDpath.v:317
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter reset in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:331
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter in0 in module vc_EqComparator @plab3-mem-PrefetchBufferDpath.v:317
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter domain in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:331
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter in1 in module vc_EqComparator @plab3-mem-PrefetchBufferDpath.v:317
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter en in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:331
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter out in module vc_EqComparator @plab3-mem-PrefetchBufferDpath.v:317
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain data_array_out_domain)  (Domain domain))))    ; Instantiate parameter d in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:331
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter clk in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:340
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter q in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:331
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter reset in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:340
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter clk in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:345
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter domain in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:340
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter reset in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:345
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter en in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:340
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter domain in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:345
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter d in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:340
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter en in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:345
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter q in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:340
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter d in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:345
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter clk in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:354
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter q in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:345
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter reset in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:354
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign memreq_addr = {memreq_type_mux_out, 0} @plab3-mem-PrefetchBufferDpath.v:371
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter domain in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:354
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter domain in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:375
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter en in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:354
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter in0 in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:375
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter d in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:354
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter in1 in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:375
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter q in module vc_EnResetReg @plab3-mem-PrefetchBufferDpath.v:354
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter in2 in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:375
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign memreq_addr = {memreq_type_mux_out, 0} @plab3-mem-PrefetchBufferDpath.v:380
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter in3 in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:375
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter domain in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:384
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter sel in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:375
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter in0 in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:384
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter out in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:375
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter in1 in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:384
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter domain in module vc_MemRespMsgPack @plab3-mem-PrefetchBufferDpath.v:397
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter in2 in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:384
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter type in module vc_MemRespMsgPack @plab3-mem-PrefetchBufferDpath.v:397
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter in3 in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:384
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter opaque in module vc_MemRespMsgPack @plab3-mem-PrefetchBufferDpath.v:397
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter sel in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:384
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  (Domain domain))))    ; Instantiate parameter len in module vc_MemRespMsgPack @plab3-mem-PrefetchBufferDpath.v:397
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter out in module vc_Mux4 @plab3-mem-PrefetchBufferDpath.v:384
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter data in module vc_MemRespMsgPack @plab3-mem-PrefetchBufferDpath.v:397
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter domain in module vc_MemRespMsgPack @plab3-mem-PrefetchBufferDpath.v:406
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter msg in module vc_MemRespMsgPack @plab3-mem-PrefetchBufferDpath.v:397
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter type in module vc_MemRespMsgPack @plab3-mem-PrefetchBufferDpath.v:406
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter domain in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:408
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter opaque in module vc_MemRespMsgPack @plab3-mem-PrefetchBufferDpath.v:406
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter type in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:408
+(assert  (not(leq LOW  (Domain domain))))    ; Instantiate parameter len in module vc_MemRespMsgPack @plab3-mem-PrefetchBufferDpath.v:406
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  (Domain domain))))    ; Instantiate parameter opaque in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:408
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter data in module vc_MemRespMsgPack @plab3-mem-PrefetchBufferDpath.v:406
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter addr in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:408
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter msg in module vc_MemRespMsgPack @plab3-mem-PrefetchBufferDpath.v:406
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  (Domain domain))))    ; Instantiate parameter len in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:408
+(assert  (not(leq LOW  LOW)))    ; Instantiate parameter domain in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:417
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter data in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:408
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter type in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:417
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter msg in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:408
+(assert  (not(leq LOW  (Domain domain))))    ; Instantiate parameter opaque in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:417
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter addr in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:417
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  (Domain domain))))    ; Instantiate parameter len in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:417
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter data in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:417
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; Instantiate parameter msg in module vc_MemReqMsgPack @plab3-mem-PrefetchBufferDpath.v:417
 (check-sat)
 (pop)
 

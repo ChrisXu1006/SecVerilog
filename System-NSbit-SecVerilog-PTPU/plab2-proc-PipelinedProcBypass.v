@@ -18,55 +18,67 @@
 module plab2_proc_PipelinedProcBypass
 #(
   parameter p_num_cores = 1,
-  parameter p_core_id   = 0
+  parameter p_core_id   = 0,
+  parameter c_reset_vector = 32'h1000
 )
 (
   input                                       {L} clk,
   input                                       {L} reset,
 
   input										  {L} sec_domain,
-  output                                      {L} req_domain,
+  // output req secure level
+  output									  {L} req_domain,
+  
+  // Interrupt port
+  output									  {Domain sec_domain} intr_rq,
+  output									  {Domain sec_domain} intr_set,
+  input										  {Domain sec_domain} intr_ack,
+  input										  {Domain sec_domain} intr_val,
+	
+  // output cacheable control signal		
+  output									  {Domain sec_domain} cacheable,
+
   // Instruction Memory Request Port
 
-  output [`VC_MEM_REQ_MSG_NBITS(8,32,32)-1:0] {Domain  sec_domain} imemreq_msg,
-  output                                      {Control sec_domain} imemreq_val,
-  input                                       {Control sec_domain} imemreq_rdy,
+  output [`VC_MEM_REQ_MSG_NBITS(8,32,32)-1:0] {Domain sec_domain} imemreq_msg,
+  output                                      {Domain sec_domain} imemreq_val,
+  input                                       {Domain sec_domain} imemreq_rdy,
 
   // Instruction Memory Response Port
 
-  input [`VC_MEM_RESP_MSG_NBITS(8,32)-1:0]    {Domain  sec_domain} imemresp_msg,
-  input                                       {Control sec_domain} imemresp_val,
-  output                                      {Control sec_domain} imemresp_rdy,
+  input [`VC_MEM_RESP_MSG_NBITS(8,32)-1:0]    {Domain sec_domain} imemresp_msg,
+  input                                       {Domain sec_domain} imemresp_val,
+  output                                      {Domain sec_domain} imemresp_rdy,
 
   // Data Memory Request Port
 
-  output [`VC_MEM_REQ_MSG_NBITS(8,32,32)-1:0] {Domain  sec_domain} dmemreq_msg,
-  output                                      {Control sec_domain} dmemreq_val,
-  input                                       {Control sec_domain} dmemreq_rdy,
+  output [`VC_MEM_REQ_MSG_NBITS(8,32,32)-1:0] {Domain sec_domain} dmemreq_msg,
+  output                                      {Domain sec_domain} dmemreq_val,
+  input                                       {Domain sec_domain} dmemreq_rdy,
 
   // Data Memory Response Port
 
-  input [`VC_MEM_RESP_MSG_NBITS(8,32)-1:0]    {Domain  sec_domain} dmemresp_msg,
-  input                                       {Control sec_domain} dmemresp_val,
-  output                                      {Control sec_domain} dmemresp_rdy,
+  input [`VC_MEM_RESP_MSG_NBITS(8,32)-1:0]    {Domain sec_domain} dmemresp_msg,
+  input                                       {Domain sec_domain} dmemresp_val,
+  output                                      {Domain sec_domain} dmemresp_rdy,
 
   // Debug Interface Port
-  
-  output [`VC_MEM_REQ_MSG_NBITS(8,32,32)-1:0] {Domain sec_domain}  debug_msg,
-  output                                      {Domain sec_domain}  debug_val,
-  input                                       {Domain sec_domain}  debug_rdy,
+
+  output[`VC_MEM_REQ_MSG_NBITS(8,32,32)-1:0]  {Domain sec_domain} debug_msg,
+  output									  {Domain sec_domain} debug_val,
+  input										  {Domain sec_domain} debug_rdy,
 
   // From mngr streaming port
 
-  input [`PLAB2_PROC_FROM_MNGR_MSG_NBITS-1:0] {Domain  sec_domain} from_mngr_msg,
-  input                                       {Control sec_domain} from_mngr_val,
-  output                                      {Control sec_domain} from_mngr_rdy,
+  input [`PLAB2_PROC_FROM_MNGR_MSG_NBITS-1:0] {Domain sec_domain} from_mngr_msg,
+  input                                       {Domain sec_domain} from_mngr_val,
+  output                                      {Domain sec_domain} from_mngr_rdy,
 
   // To mngr streaming port
 
-  output [`PLAB2_PROC_TO_MNGR_MSG_NBITS-1:0]  {Domain  sec_domain} to_mngr_msg,
-  output                                      {Control sec_domain} to_mngr_val,
-  input                                       {Control sec_domain} to_mngr_rdy,
+  output [`PLAB2_PROC_TO_MNGR_MSG_NBITS-1:0]  {Domain sec_domain} to_mngr_msg,
+  output                                      {Domain sec_domain} to_mngr_val,
+  input                                       {Domain sec_domain} to_mngr_rdy,
 
   // Stats enable output
 
@@ -76,7 +88,9 @@ module plab2_proc_PipelinedProcBypass
   localparam creq_nbits = `VC_MEM_REQ_MSG_NBITS(8,32,32);
   localparam creq_type_nbits = `VC_MEM_REQ_MSG_TYPE_NBITS(8,32,32);
 
-  assign req_domain = sec_domain;
+  // passing sec_domain to request domain
+  // assign req_domain = sec_domain; 
+
   //----------------------------------------------------------------------
   // data mem req/resp
   //----------------------------------------------------------------------
@@ -85,65 +99,59 @@ module plab2_proc_PipelinedProcBypass
   wire [31:0]                               {Domain sec_domain} dmemreq_msg_data;
   wire [creq_type_nbits-1:0]                {Domain sec_domain} dmemreq_msg_type;
   wire [31:0]                               {Domain sec_domain} dmemresp_msg_data;
-  wire [7:0]                                {Domain sec_domain} dmemresp_msg_opaque;
-  wire [creq_type_nbits-1:0]                {Domain sec_domain} dmemresp_msg_type;
-  wire [1:0]                                {Domain sec_domain} dmemresp_msg_len;
 
   wire [31:0]                               {Domain sec_domain} imemreq_msg_addr;
   wire [31:0]                               {Domain sec_domain} imemresp_msg_data;
-  wire [7:0]                                {Domain sec_domain} imemresp_msg_opaque;
-  wire [creq_type_nbits-1:0]                {Domain sec_domain} imemresp_msg_type;
-  wire [1:0]                                {Domain sec_domain} imemresp_msg_len;
 
   // imereq_enq signals coming in from the ctrl unit
   wire [`VC_MEM_REQ_MSG_NBITS(8,32,32)-1:0] {Domain sec_domain} imemreq_enq_msg;
-  wire                                      {L} imemreq_enq_val;
-  wire                                      {L} imemreq_enq_rdy;
+  wire                                      {Domain sec_domain} imemreq_enq_val;
+  wire                                      {Domain sec_domain} imemreq_enq_rdy;
 
   // imemresp signals after the dropping unit
 
   wire [`VC_MEM_RESP_MSG_NBITS(8,32)-1:0] {Domain sec_domain} imemresp_msg_drop;
-  wire                                    {L} imemresp_val_drop;
-  wire                                    {L} imemresp_rdy_drop;
+  wire                                    {Domain sec_domain} imemresp_val_drop;
+  wire                                    {Domain sec_domain} imemresp_rdy_drop;
 
-  wire                                    {L} memresp_drop;
+  wire                                    {Domain sec_domain} imemresp_drop;
 
   // mul unit ports (control and status)
 
-  wire        {L} mul_req_val_D;
-  wire        {L} mul_req_rdy_D;
+  wire        {Domain sec_domain} mul_req_val_D;
+  wire        {Domain sec_domain} mul_req_rdy_D;
 
-  wire        {L} mul_resp_val_X;
-  wire        {L} mul_resp_rdy_X;
+  wire        {Domain sec_domain} mul_resp_val_X;
+  wire        {Domain sec_domain} mul_resp_rdy_X;
 
   // control signals (ctrl->dpath)
 
-  wire [1:0]  {L} pc_sel_F;
-  wire        {L} reg_en_F;
-  wire        {L} reg_en_D;
-  wire        {L} reg_en_X;
-  wire        {L} reg_en_M;
-  wire        {L} reg_en_W;
-  wire [1:0]  {L} op0_sel_D;
-  wire [2:0]  {L} op1_sel_D;
-  wire [1:0]  {L} op0_byp_sel_D;
-  wire [1:0]  {L} op1_byp_sel_D;
-  wire [1:0]  {L} mfc_sel_D;
-  wire [3:0]  {L} alu_fn_X;
-  wire        {L} ex_result_sel_X;
-  wire        {L} wb_result_sel_M;
-  wire [4:0]  {L} rf_waddr_W;
-  wire        {L} rf_wen_W;
-  wire        {L} stats_en_wen_W;
+  wire [1:0]  {Domain sec_domain} pc_sel_F;
+  wire        {Domain sec_domain} reg_en_F;
+  wire        {Domain sec_domain} reg_en_D;
+  wire        {Domain sec_domain} reg_en_X;
+  wire        {Domain sec_domain} reg_en_M;
+  wire        {Domain sec_domain} reg_en_W;
+  wire [1:0]  {Domain sec_domain} op0_sel_D;
+  wire [2:0]  {Domain sec_domain} op1_sel_D;
+  wire [1:0]  {Domain sec_domain} op0_byp_sel_D;
+  wire [1:0]  {Domain sec_domain} op1_byp_sel_D;
+  wire [1:0]  {Domain sec_domain} mfc_sel_D;
+  wire [3:0]  {Domain sec_domain} alu_fn_X;
+  wire        {Domain sec_domain} ex_result_sel_X;
+  wire        {Domain sec_domain} wb_result_sel_M;
+  wire [4:0]  {Domain sec_domain} rf_waddr_W;
+  wire        {Domain sec_domain} rf_wen_W;
+  wire        {Domain sec_domain} stats_en_wen_W;
 
   // status signals (dpath->ctrl)
 
   wire [31:0] {Domain sec_domain} inst_D;
-  wire        {L} br_cond_zero_X;
-  wire        {L} br_cond_neg_X;
-  wire        {L} br_cond_eq_X;
+  wire        {Domain sec_domain} br_cond_zero_X;
+  wire        {Domain sec_domain} br_cond_neg_X;
+  wire        {Domain sec_domain} br_cond_eq_X;
 
-  wire {L} val_PF  = imemreq_val && imemreq_rdy;
+  wire {Domain sec_domain} val_PF  = imemreq_val && imemreq_rdy;
 
   //----------------------------------------------------------------------
   // Pack Memory Request Messages
@@ -171,9 +179,15 @@ module plab2_proc_PipelinedProcBypass
     .msg    (dmemreq_msg)
   );
 
+  assign debug_msg = dmemreq_msg;
+
   //----------------------------------------------------------------------
   // Unpack Memory Response Messages
   //----------------------------------------------------------------------
+
+  wire [7:0]    {Domain sec_domain} imemresp_msg_opaque;
+  wire [2:0]    {Domain sec_domain} imemresp_msg_type;
+  wire [1:0]    {Domain sec_domain} imemresp_msg_len;
 
   vc_MemRespMsgUnpack#(8,32) imemresp_msg_unpack
   (
@@ -184,6 +198,10 @@ module plab2_proc_PipelinedProcBypass
     .len    (imemresp_msg_len),
     .data   (imemresp_msg_data)
   );
+
+  wire [7:0]    {Domain sec_domain} dmemresp_msg_opaque;
+  wire [2:0]    {Domain sec_domain} dmemresp_msg_type;
+  wire [1:0]    {Domain sec_domain} dmemresp_msg_len;
 
   vc_MemRespMsgUnpack#(8,32) dmemresp_msg_unpack
   (
@@ -198,8 +216,6 @@ module plab2_proc_PipelinedProcBypass
   //----------------------------------------------------------------------
   // Imem Drop Unit
   //----------------------------------------------------------------------
-
-  wire {L} imemresp_drop;
 
   vc_DropUnit #(`VC_MEM_RESP_MSG_NBITS(8,32)) imem_drop_unit
   (
@@ -228,7 +244,17 @@ module plab2_proc_PipelinedProcBypass
     .clk                    (clk),
     .reset                  (reset),
 
-    .domain                 (sec_domain),
+	.def_domain				(sec_domain),
+	.out_domain				(req_domain),
+
+	// Interrupt port
+	.intr_rq				(intr_rq),
+	.intr_set				(intr_set),
+	.intr_ack				(intr_ack),
+	.intr_val				(intr_val),
+
+	.cacheable				(cacheable),
+
     // Instruction Memory Port
 
     .imemreq_val            (imemreq_enq_val),
@@ -245,6 +271,10 @@ module plab2_proc_PipelinedProcBypass
 
     .dmemresp_val           (dmemresp_val),
     .dmemresp_rdy           (dmemresp_rdy),
+
+	// Debug Interface Port
+	.debug_val				(debug_val),
+	.debug_rdy				(debug_rdy),
 
     // mngr communication ports
 
@@ -298,10 +328,11 @@ module plab2_proc_PipelinedProcBypass
   (
     .clk     (clk),
     .reset   (reset),
-    .domain  (sec_domain),
+    .enq_domain(sec_domain),
     .enq_val (imemreq_enq_val),
     .enq_rdy (imemreq_enq_rdy),
     .enq_msg (imemreq_enq_msg),
+    .deq_domain(sec_domain),
     .deq_val (imemreq_val),
     .deq_rdy (imemreq_rdy),
     .deq_msg (imemreq_msg)
@@ -314,7 +345,8 @@ module plab2_proc_PipelinedProcBypass
   plab2_proc_PipelinedProcBypassDpath
   #(
     .p_num_cores  (p_num_cores),
-    .p_core_id    (p_core_id)
+    .p_core_id    (p_core_id),
+	.c_reset_vector(c_reset_vector)
   )
   dpath
   (
@@ -322,6 +354,7 @@ module plab2_proc_PipelinedProcBypass
     .reset                   (reset),
 
     .domain                  (sec_domain),
+
     // Instruction Memory Port
 
     .imemreq_msg_addr        (imemreq_msg_addr),
@@ -377,46 +410,6 @@ module plab2_proc_PipelinedProcBypass
 
     .stats_en                (stats_en)
   );
-
-
-  //----------------------------------------------------------------------
-  // Line tracing
-  //----------------------------------------------------------------------
-
-  //`include "vc-trace-tasks.v"
-
-  //pisa_InstTasks pisa();
-
-  //reg[`VC_TRACE_NBITS_TO_NCHARS(32)*8-1:0] f_str;
-  //task trace_module( inout [vc_trace_nbits-1:0] trace );
-  //begin
-
-  //  $sformat( f_str, "%x", dpath.pc_F );
-  //  ctrl.pipe_ctrl_F.trace_pipe_stage( trace, f_str, 8 );
-
-  //  vc_trace_str( trace, "|" );
-
-  //  ctrl.pipe_ctrl_D.trace_pipe_stage( trace,
-  //                            pisa.disasm(ctrl.inst_D ), 22 );
-
-  //  vc_trace_str( trace, "|" );
-
-  //  ctrl.pipe_ctrl_X.trace_pipe_stage( trace,
-  //                            pisa.disasm_tiny(ctrl.inst_X ), 4 );
-
-  //  vc_trace_str( trace, "|" );
-
-  //  ctrl.pipe_ctrl_M.trace_pipe_stage( trace,
-  //                            pisa.disasm_tiny(ctrl.inst_M ), 4 );
-
-  //  vc_trace_str( trace, "|" );
-
-  //  ctrl.pipe_ctrl_W.trace_pipe_stage( trace,
-  //                            pisa.disasm_tiny(ctrl.inst_W ), 4 );
-
-
-  //end
-  //endtask
 
 endmodule
 

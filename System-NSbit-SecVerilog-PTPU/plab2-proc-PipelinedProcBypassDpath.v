@@ -16,7 +16,8 @@
 module plab2_proc_PipelinedProcBypassDpath
 #(
   parameter p_num_cores = 1,
-  parameter p_core_id   = 0
+  parameter p_core_id   = 0,
+  parameter c_reset_vector = 32'h1000
 )
 (
   input {L} clk,
@@ -42,45 +43,44 @@ module plab2_proc_PipelinedProcBypassDpath
 
   // imul unit ports
 
-  input         {L} mul_req_val_D,
-  output        {L} mul_req_rdy_D,
+  input         {Domain domain} mul_req_val_D,
+  output        {Domain domain} mul_req_rdy_D,
 
-  output        {L} mul_resp_val_X,
-  input         {L} mul_resp_rdy_X,
+  output        {Domain domain} mul_resp_val_X,
+  input         {Domain domain} mul_resp_rdy_X,
 
   // control signals (ctrl->dpath)
 
-  input [1:0]   {L} pc_sel_F,
-  input         {L} reg_en_F,
-  input         {L} reg_en_D,
-  input         {L} reg_en_X,
-  input         {L} reg_en_M,
-  input         {L} reg_en_W,
-  input [1:0]   {L} op0_sel_D,
-  input [2:0]   {L} op1_sel_D,
-  input [1:0]   {L} op0_byp_sel_D,
-  input [1:0]   {L} op1_byp_sel_D,
-  input [1:0]   {L} mfc_sel_D,
-  input [3:0]   {L} alu_fn_X,
-  input         {L} ex_result_sel_X,
-  input         {L} wb_result_sel_M,
-  input [4:0]   {L} rf_waddr_W,
-  input         {L} rf_wen_W,
-  input         {L} stats_en_wen_W,
+  input [1:0]   {Domain domain} pc_sel_F,
+  input         {Domain domain} reg_en_F,
+  input         {Domain domain} reg_en_D,
+  input         {Domain domain} reg_en_X,
+  input         {Domain domain} reg_en_M,
+  input         {Domain domain} reg_en_W,
+  input [1:0]   {Domain domain} op0_sel_D,
+  input [2:0]   {Domain domain} op1_sel_D,
+  input [1:0]   {Domain domain} op0_byp_sel_D,
+  input [1:0]   {Domain domain} op1_byp_sel_D,
+  input [1:0]   {Domain domain} mfc_sel_D,
+  input [3:0]   {Domain domain} alu_fn_X,
+  input         {Domain domain} ex_result_sel_X,
+  input         {Domain domain} wb_result_sel_M,
+  input [4:0]   {Domain domain} rf_waddr_W,
+  input         {Domain domain} rf_wen_W,
+  input         {Domain domain} stats_en_wen_W,
 
   // status signals (dpath->ctrl)
 
   output [31:0] {Domain domain} inst_D,
-  output        {L} br_cond_zero_X,
-  output        {L} br_cond_neg_X,
-  output        {L} br_cond_eq_X,
+  output        {Domain domain} br_cond_zero_X,
+  output        {Domain domain} br_cond_neg_X,
+  output        {Domain domain} br_cond_eq_X,
 
   // stats_en output
 
   output        {Domain domain} stats_en
 );
-
-  localparam c_reset_vector = 32'h1000;
+	
   localparam c_reset_inst   = 32'h00000000;
 
   //--------------------------------------------------------------------
@@ -107,7 +107,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   vc_Incrementer #(32, 4) pc_incr_F
   (
-    .domain (domain),
+    .domain(domain),
     .in   (pc_next_F),
     .out  (pc_plus4_next_F)
   );
@@ -143,11 +143,13 @@ module plab2_proc_PipelinedProcBypassDpath
 
   wire  [31:0] {Domain domain} pc_plus4_D;
   wire  [31:0] {Domain domain} inst_D;
+  wire   [5:0] {Domain domain} inst_op_D;
   wire   [4:0] {Domain domain} inst_rs_D;
   wire   [4:0] {Domain domain} inst_rt_D;
   wire   [4:0] {Domain domain} inst_rd_D;
   wire   [4:0] {Domain domain} inst_shamt_D;
   wire  [31:0] {Domain domain} inst_shamt_zext_D;
+  wire   [5:0] {Domain domain} inst_func_D;
   wire  [15:0] {Domain domain} inst_imm_D;
   wire  [31:0] {Domain domain} inst_imm_sext_D;
   wire  [31:0] {Domain domain} inst_imm_zext_D;
@@ -173,18 +175,19 @@ module plab2_proc_PipelinedProcBypassDpath
     .q      (inst_D)
   );
 
-  //pisa_InstUnpack inst_unpack
-  //(
-  //  .inst     (inst_D),
-  //  .opcode   (),
-  //  .rs       (inst_rs_D),
-  //  .rt       (inst_rt_D),
-  //  .rd       (inst_rd_D),
-  //  .shamt    (inst_shamt_D),
-  //  .func     (),
-  //  .imm      (inst_imm_D),
-  //  .target   (inst_target_D)
-  //);
+  pisa_InstUnpack inst_unpack
+  (
+    .domain   (domain),
+    .inst     (inst_D),
+    .opcode   (inst_op_D),
+    .rs       (inst_rs_D),
+    .rt       (inst_rt_D),
+    .rd       (inst_rd_D),
+    .shamt    (inst_shamt_D),
+    .func     (inst_func_D),
+    .imm      (inst_imm_D),
+    .target   (inst_target_D)
+  );
 
   wire [ 4:0] {Domain domain} rf_raddr0_D = inst_rs_D;
   wire [31:0] {Domain domain} rf_rdata0_D;
@@ -210,6 +213,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   vc_ZeroExtender #(5, 32) shamt_zext_D
   (
+    .domain(domain),
     .in   (inst_shamt_D),
     .out  (inst_shamt_zext_D)
   );
@@ -244,12 +248,14 @@ module plab2_proc_PipelinedProcBypassDpath
 
   vc_SignExtender #(16, 32) imm_sext_D
   (
+    .domain(domain),
     .in   (inst_imm_D),
     .out  (inst_imm_sext_D)
   );
 
   vc_ZeroExtender #(16, 32) imm_zext_D
   (
+    .domain(domain),
     .in   (inst_imm_D),
     .out  (inst_imm_zext_D)
   );
@@ -340,6 +346,7 @@ module plab2_proc_PipelinedProcBypassDpath
   plab1_imul_MulDivReqMsgPack mul_req_msg_pack
   (
     .domain (domain),
+    
     .func   (`PLAB1_IMUL_MULDIV_REQ_MSG_FUNC_MUL),
     .a      (op0_D),
     .b      (op1_D),
@@ -423,6 +430,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   vc_Mux2 #(32) ex_result_sel_mux_X
   (
+    .domain (domain),
     .in0    (alu_result_X),
     .in1    (mul_resp_msg_X),
     .sel    (ex_result_sel_X),
@@ -470,6 +478,7 @@ module plab2_proc_PipelinedProcBypassDpath
 
   vc_Mux2 #(32) wb_result_sel_mux_M
   (
+    .domain (domain),
     .in0    (ex_result_M),
     .in1    (dmem_result_M),
     .sel    (wb_result_sel_M),

@@ -78,19 +78,19 @@
 ; assertions to be verified
 
 (push)
-(assert  (not(leq (join (join (join (Domain reqs_p2_domain) (Domain reqs_p1_domain)) (Domain reqs_p0_domain)) (Domain out_domain))  LOW)))    ; arb_reqs = {reqs_p2, reqs_p1, reqs_p0} @plab4-net-RouterOutputCtrl-Sep.v:41
+(assert  (not(leq (join (join (join (Domain reqs_p2_domain) (Domain reqs_p1_domain)) (Domain reqs_p0_domain)) (Domain out_domain))  (Domain out_domain))))    ; arb_reqs = {reqs_p2, reqs_p1, reqs_p0} @plab4-net-RouterOutputCtrl-Sep.v:41
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (Domain out_domain)  LOW)))    ; arb_reqs = 0 @plab4-net-RouterOutputCtrl-Sep.v:41
+(assert  (not(leq (Domain out_domain)  (Domain out_domain))))    ; arb_reqs = 0 @plab4-net-RouterOutputCtrl-Sep.v:41
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  (join (join (Domain reqs_p2_domain) (Domain reqs_p1_domain)) (Domain reqs_p0_domain)))))    ; assign {grants_p2, grants_p1, grants_p0} = grants @plab4-net-RouterOutputCtrl-Sep.v:42
+(assert  (not(leq (Domain out_domain)  (join (join (Domain reqs_p2_domain) (Domain reqs_p1_domain)) (Domain reqs_p0_domain)))))    ; assign {grants_p2, grants_p1, grants_p0} = grants @plab4-net-RouterOutputCtrl-Sep.v:42
 (check-sat)
 (pop)
 
@@ -108,61 +108,61 @@
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter reqs in module vc_RRArb @plab4-net-RouterOutputCtrl-Sep.v:52
+(assert  (not(leq (Domain out_domain)  LOW)))    ; Instantiate parameter reqs in module vc_RRArb @plab4-net-RouterOutputCtrl-Sep.v:52
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; Instantiate parameter grants in module vc_RRArb @plab4-net-RouterOutputCtrl-Sep.v:52
+(assert  (not(leq LOW  (Domain out_domain))))    ; Instantiate parameter grants in module vc_RRArb @plab4-net-RouterOutputCtrl-Sep.v:52
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq (join (join (Domain reqs_p0_domain) (Domain reqs_p1_domain)) (Domain reqs_p2_domain))  (Domain out_domain))))    ; assign out_val = or (or (grants_p0) (grants_p1)) (grants_p2) @plab4-net-RouterOutputCtrl-Sep.v:63
+(assert  (not(leq (join (join (Domain reqs_p0_domain) (Domain reqs_p1_domain)) (Domain reqs_p2_domain))  (Domain out_domain))))    ; assign out_val = or (or (grants_p0) (grants_p1)) (grants_p2) @plab4-net-RouterOutputCtrl-Sep.v:65
 (check-sat)
 (pop)
 
 
 (push)
-(assert (and (= out_domain reqs_p0_domain)  (not(leq (Domain reqs_p0_domain)  LOW))))    ; xbar_sel = 0 @plab4-net-RouterOutputCtrl-Sep.v:72
+(assert (and (= out_domain reqs_p0_domain)  (not(leq (Domain reqs_p0_domain)  LOW))))    ; xbar_sel = 0 @plab4-net-RouterOutputCtrl-Sep.v:74
 (check-sat)
 (pop)
 
 
 (push)
-(assert (and (= out_domain reqs_p0_domain)  (not(leq (Domain reqs_p0_domain)  LOW))))    ; out_domain = reqs_p0_domain @plab4-net-RouterOutputCtrl-Sep.v:73
+(assert (and (= out_domain reqs_p0_domain)  (not(leq (Domain reqs_p0_domain)  LOW))))    ; out_domain = reqs_p0_domain @plab4-net-RouterOutputCtrl-Sep.v:75
 (check-sat)
 (pop)
 
 
 (push)
-(assert (and (= out_domain reqs_p1_domain)  (not(leq (Domain reqs_p1_domain)  LOW))))    ; xbar_sel = 1 @plab4-net-RouterOutputCtrl-Sep.v:77
+(assert (and (= out_domain reqs_p1_domain)  (not(leq (Domain reqs_p1_domain)  LOW))))    ; xbar_sel = 1 @plab4-net-RouterOutputCtrl-Sep.v:79
 (check-sat)
 (pop)
 
 
 (push)
-(assert (and (= out_domain reqs_p1_domain)  (not(leq (Domain reqs_p1_domain)  LOW))))    ; out_domain = reqs_p1_domain @plab4-net-RouterOutputCtrl-Sep.v:78
+(assert (and (= out_domain reqs_p1_domain)  (not(leq (Domain reqs_p1_domain)  LOW))))    ; out_domain = reqs_p1_domain @plab4-net-RouterOutputCtrl-Sep.v:80
 (check-sat)
 (pop)
 
 
 (push)
-(assert (and (= out_domain reqs_p2_domain)  (not(leq (Domain reqs_p2_domain)  LOW))))    ; xbar_sel = 2 @plab4-net-RouterOutputCtrl-Sep.v:82
+(assert (and (= out_domain reqs_p2_domain)  (not(leq (Domain reqs_p2_domain)  LOW))))    ; xbar_sel = 2 @plab4-net-RouterOutputCtrl-Sep.v:84
 (check-sat)
 (pop)
 
 
 (push)
-(assert (and (= out_domain reqs_p2_domain)  (not(leq (Domain reqs_p2_domain)  LOW))))    ; out_domain = reqs_p2_domain @plab4-net-RouterOutputCtrl-Sep.v:83
+(assert (and (= out_domain reqs_p2_domain)  (not(leq (Domain reqs_p2_domain)  LOW))))    ; out_domain = reqs_p2_domain @plab4-net-RouterOutputCtrl-Sep.v:85
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; out_domain = 0 @plab4-net-RouterOutputCtrl-Sep.v:87
+(assert  (not(leq LOW  LOW)))    ; out_domain = 0 @plab4-net-RouterOutputCtrl-Sep.v:89
 (check-sat)
 (pop)
 

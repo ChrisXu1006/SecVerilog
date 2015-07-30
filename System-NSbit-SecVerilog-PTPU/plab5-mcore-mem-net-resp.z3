@@ -39,6 +39,9 @@
 (assert (not (= HIGH LOW))) ; the lattice cannot clapse
 
 ; variables to be solved
+(declare-fun domain () Int)
+(assert (<= 0  domain))
+(assert (<= domain 1))
 
 ; function that maps 0 to LOW; 1 to HIGH
 (declare-fun LH (Int) Label)
@@ -66,13 +69,55 @@
 ; assertions to be verified
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = p_reset_value @./vc-regs.v:56
+(assert  (not(leq (join (Control domain) (Domain domain))  (Domain domain))))    ; assign mem_msg = {mem_msg_control, mem_msg_data} @plab5-mcore-mem-net-resp.v:78
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = d @./vc-regs.v:56
+(assert  (not(leq (Domain domain)  (Control domain))))    ; assign mem_msg_opaque = mem_msg[(((md)-(1))+($clog2((md)/(8))))+(mo):(((md)-(1))+($clog2((md)/(8))))+(1)] @plab5-mcore-mem-net-resp.v:82
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Control domain)  (Control domain))))    ; assign net_dest = mem_msg_opaque[(mo)-(1)-:ns] @plab5-mcore-mem-net-resp.v:83
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Control domain))))    ; Instantiate parameter type in module plab5_mcore_MemRespCMsgPack @plab5-mcore-mem-net-resp.v:92
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Control domain)  (Control domain))))    ; Instantiate parameter opaque in module plab5_mcore_MemRespCMsgPack @plab5-mcore-mem-net-resp.v:92
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Control domain))))    ; Instantiate parameter len in module plab5_mcore_MemRespCMsgPack @plab5-mcore-mem-net-resp.v:92
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Control domain)  (Control domain))))    ; Instantiate parameter msg in module plab5_mcore_MemRespCMsgPack @plab5-mcore-mem-net-resp.v:92
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign net_payload_data = mem_msg[(md)-(1):0] @plab5-mcore-mem-net-resp.v:101
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign net_msg_data = net_payload_data @plab5-mcore-mem-net-resp.v:121
 (check-sat)
 (pop)
 

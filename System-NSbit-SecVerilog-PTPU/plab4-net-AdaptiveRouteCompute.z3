@@ -39,6 +39,9 @@
 (assert (not (= HIGH LOW))) ; the lattice cannot clapse
 
 ; variables to be solved
+(declare-fun domain () Int)
+(assert (<= 0  domain))
+(assert (<= domain 1))
 
 ; function that maps 0 to LOW; 1 to HIGH
 (declare-fun LH (Int) Label)
@@ -66,103 +69,55 @@
 ; assertions to be verified
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; grants = 0 @vc-RRArb.v:16
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign forw_hops = (dest)-(p_router_id) @plab4-net-AdaptiveRouteCompute.v:46
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; grants = 1 @vc-RRArb.v:17
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign backw_hops = (p_router_id)-(dest) @plab4-net-AdaptiveRouteCompute.v:47
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; grants = 2 @vc-RRArb.v:18
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign forw_weight = ((p_hops_mult)*(forw_hops))+((p_cong_mult)*(num_free_chan0)) @plab4-net-AdaptiveRouteCompute.v:55
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; grants = 4 @vc-RRArb.v:19
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign backw_weight = ((p_hops_mult)*(backw_hops))+((p_cong_mult)*(num_free_chan2)) @plab4-net-AdaptiveRouteCompute.v:57
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; i = ($random())%(2) @vc-RRArb.v:21
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; route = 2 @plab4-net-AdaptiveRouteCompute.v:62
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; grants = 1 @vc-RRArb.v:23
+(assert  (not(leq (join (join (Domain domain) (Domain domain)) (Domain domain))  (Domain domain))))    ; route = 1 @plab4-net-AdaptiveRouteCompute.v:66
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; grants = 2 @vc-RRArb.v:25
+(assert  (not(leq (join (join (Domain domain) (Domain domain)) (Domain domain))  (Domain domain))))    ; route = 0 @plab4-net-AdaptiveRouteCompute.v:66
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; i = ($random())%(2) @vc-RRArb.v:28
+(assert  (not(leq (join (join (Domain domain) (Domain domain)) (join (join (Domain domain) (Domain domain)) (Domain domain)))  (Domain domain))))    ; route = 1 @plab4-net-AdaptiveRouteCompute.v:68
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; grants = 2 @vc-RRArb.v:30
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq LOW  LOW)))    ; grants = 4 @vc-RRArb.v:32
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq LOW  LOW)))    ; i = ($random())%(2) @vc-RRArb.v:35
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq LOW  LOW)))    ; grants = 1 @vc-RRArb.v:37
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq LOW  LOW)))    ; grants = 4 @vc-RRArb.v:39
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq LOW  LOW)))    ; i = ($random())%(3) @vc-RRArb.v:42
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq LOW  LOW)))    ; grants = 1 @vc-RRArb.v:44
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq LOW  LOW)))    ; grants = 2 @vc-RRArb.v:46
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq LOW  LOW)))    ; grants = 4 @vc-RRArb.v:48
+(assert  (not(leq (join (join (Domain domain) (Domain domain)) (join (join (Domain domain) (Domain domain)) (Domain domain)))  (Domain domain))))    ; route = 0 @plab4-net-AdaptiveRouteCompute.v:70
 (check-sat)
 (pop)
 

@@ -63,9 +63,10 @@ module plab5_mcore_MemRespMsgToNetMsg
 )
 (
   input                         {L}              mode,
-  input                         {Control domain} domain,
+  input                         {L}              domain,
   input  [c_mem_msg_cnbits-1:0] {Control domain} mem_msg_control,
   input	 [c_mem_msg_dnbits-1:0]	{Domain  domain} mem_msg_data,
+  input                         {Domain  domain} mem_msg_fail,
 
   output [c_net_msg_cnbits-1:0] {Control domain} net_msg_control,
   output [c_net_msg_dnbits-1:0]	{Domain  domain} net_msg_data
@@ -102,7 +103,7 @@ module plab5_mcore_MemRespMsgToNetMsg
 
   vc_NetMsgPack
   #(
-    .p_payload_nbits  (c_net_payload_cnbits),
+    .p_payload_nbits  (c_net_payload_cnbits+2),
     .p_opaque_nbits   (p_net_opaque_nbits),
     .p_srcdest_nbits  (p_net_srcdest_nbits)
   )
@@ -112,7 +113,7 @@ module plab5_mcore_MemRespMsgToNetMsg
     .dest     (net_dest),
     .src      (p_net_src[ns-1:0]),
     .opaque   (0),
-    .payload  (net_payload_control),
+    .payload  ({domain, mem_msg_fail,net_payload_control}),
 
     .msg      (net_msg_control)
   );

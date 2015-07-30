@@ -39,6 +39,9 @@
 (assert (not (= HIGH LOW))) ; the lattice cannot clapse
 
 ; variables to be solved
+(declare-fun domain () Int)
+(assert (<= 0  domain))
+(assert (<= domain 1))
 
 ; function that maps 0 to LOW; 1 to HIGH
 (declare-fun LH (Int) Label)
@@ -66,13 +69,19 @@
 ; assertions to be verified
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = p_reset_value @./vc-regs.v:56
+(assert  (not(leq (Control domain)  (Control domain))))    ; assign msg[(c)-(1):(l)+(o)] = type @plab5-mcore-memrespcmsgpack.v:33
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = d @./vc-regs.v:56
+(assert  (not(leq (Control domain)  (Control domain))))    ; assign msg[((l)+(o))-(1):l] = opaque @plab5-mcore-memrespcmsgpack.v:34
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Control domain)  (Control domain))))    ; assign msg[(l)-(1):0] = len @plab5-mcore-memrespcmsgpack.v:35
 (check-sat)
 (pop)
 

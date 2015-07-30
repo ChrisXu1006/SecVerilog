@@ -39,6 +39,9 @@
 (assert (not (= HIGH LOW))) ; the lattice cannot clapse
 
 ; variables to be solved
+(declare-fun domain () Int)
+(assert (<= 0  domain))
+(assert (<= domain 1))
 
 ; function that maps 0 to LOW; 1 to HIGH
 (declare-fun LH (Int) Label)
@@ -66,13 +69,25 @@
 ; assertions to be verified
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = p_reset_value @./vc-regs.v:56
+(assert  (not(leq (Control domain)  (Control domain))))    ; assign dest = msg[((((p)-(1))+(o))+(s))+(s):((((p)-(1))+(o))+(s))+(1)] @vc-net-msgsunpack.v:104
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = d @./vc-regs.v:56
+(assert  (not(leq (Control domain)  (Control domain))))    ; assign src = msg[(((p)-(1))+(o))+(s):(((p)-(1))+(o))+(1)] @vc-net-msgsunpack.v:105
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Control domain)  (Control domain))))    ; assign opaque = msg[((p)-(1))+(o):((p)-(1))+(1)] @vc-net-msgsunpack.v:106
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Control domain)  (Control domain))))    ; assign payload = msg[(p)-(1):0] @vc-net-msgsunpack.v:107
 (check-sat)
 (pop)
 

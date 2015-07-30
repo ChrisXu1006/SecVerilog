@@ -66,13 +66,19 @@
 ; assertions to be verified
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = p_reset_value @./vc-regs.v:56
+(assert  (not(leq LOW  LOW)))    ; assign a = msg[63:32] @plab1-imul-msgs.v:87
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = d @./vc-regs.v:56
+(assert  (not(leq LOW  LOW)))    ; assign b = msg[31:0] @plab1-imul-msgs.v:88
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; assign func = msg[66:64] @plab1-imul-msgs.v:89
 (check-sat)
 (pop)
 

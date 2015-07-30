@@ -39,15 +39,9 @@
 (assert (not (= HIGH LOW))) ; the lattice cannot clapse
 
 ; variables to be solved
-(declare-fun in0_domain () Int)
-(assert (<= 0  in0_domain))
-(assert (<= in0_domain 3))
-(declare-fun in1_domain () Int)
-(assert (<= 0  in1_domain))
-(assert (<= in1_domain 3))
-(declare-fun sel () Int)
-(assert (<= 0  sel))
-(assert (<= sel 1))
+(declare-fun domain () Int)
+(assert (<= 0  domain))
+(assert (<= domain 1))
 
 ; function that maps 0 to LOW; 1 to HIGH
 (declare-fun LH (Int) Label)
@@ -75,31 +69,73 @@
 ; assertions to be verified
 
 (push)
-(assert (and (= sel 0)  (not(leq LOW  LOW))))    ; out_domain = in0_domain @vc-mux2-dd.v:30
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign in_go = and (in_rdy) (in_val) @vc-DropUnit.v:40
 (check-sat)
 (pop)
 
 
 (push)
-(assert (and (= sel 0)  (not(leq (Domain in0_domain)  (Domain sel)))))    ; out = in0 @vc-mux2-dd.v:31
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign out_msg = in_msg @vc-DropUnit.v:44
 (check-sat)
 (pop)
 
 
 (push)
-(assert (and (= sel 0) (= sel 1)  (not(leq LOW  LOW))))    ; out_domain = in1_domain @vc-mux2-dd.v:35
+(assert  (not(leq (join (join (Domain domain) (Domain domain)) (Domain domain))  (Domain domain))))    ; next_state = c_state_drop @vc-DropUnit.v:54
 (check-sat)
 (pop)
 
 
 (push)
-(assert (and (= sel 0) (= sel 1)  (not(leq (Domain in1_domain)  (Domain sel)))))    ; out = in1 @vc-mux2-dd.v:36
+(assert  (not(leq (join (join (Domain domain) (Domain domain)) (Domain domain))  (Domain domain))))    ; next_state = c_state_pass @vc-DropUnit.v:56
 (check-sat)
 (pop)
 
 
 (push)
-(assert (and (= sel 0) (= sel 1)  (not(leq LOW  (Domain sel)))))    ; out = {p_nbits{'bx}} @vc-mux2-dd.v:39
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; next_state = c_state_pass @vc-DropUnit.v:63
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; next_state = c_state_drop @vc-DropUnit.v:65
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (join (join (Domain domain) (Domain domain)) (Domain domain))  (Domain domain))))    ; out_val = and (in_val) (!(drop)) @vc-DropUnit.v:77
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; in_rdy = out_rdy @vc-DropUnit.v:78
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; out_val = 0 @vc-DropUnit.v:83
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; in_rdy = 1 @vc-DropUnit.v:84
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  (Domain domain))))    ; state <= c_state_pass @vc-DropUnit.v:94
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; state <= next_state @vc-DropUnit.v:96
 (check-sat)
 (pop)
 

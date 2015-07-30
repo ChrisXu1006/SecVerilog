@@ -65,14 +65,58 @@
 
 ; assertions to be verified
 
+; assertions to be verified
+
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = p_reset_value @./vc-regs.v:56
+(assert  (not(leq LOW  LOW)))    ; grants_int[i] = reqs_int[i] @vc-arbiters.v:146
 (check-sat)
 (pop)
 
 
 (push)
-(assert  (not(leq LOW  LOW)))    ; q = d @./vc-regs.v:56
+(assert  (not(leq LOW  LOW)))    ; grants_int[i] = and (!(kills[i])) (reqs_int[i]) @vc-arbiters.v:146
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; kills[(i)+(1)] = grants_int[i] @vc-arbiters.v:153
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; kills[(i)+(1)] = or (kills[i]) (grants_int[i]) @vc-arbiters.v:153
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; assign kills[0] = 1 @vc-arbiters.v:126
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; assign priority_int = {{p_num_reqs{0}}, priority} @vc-arbiters.v:128
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; assign reqs_int = {reqs, reqs} @vc-arbiters.v:129
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; assign grants = ((grants_int[(p_num_reqs)-(1):0])|(grants_int[((2)*(p_num_reqs))-(1):p_num_reqs]))&({p_num_reqs{~(kin)}}) @vc-arbiters.v:161
+(check-sat)
+(pop)
+
+
+(push)
+(assert  (not(leq LOW  LOW)))    ; assign kout = or (kills[(2)*(p_num_reqs)]) (kin) @vc-arbiters.v:165
 (check-sat)
 (pop)
 

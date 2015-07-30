@@ -39,7 +39,7 @@ module vc_Mux3
 )(
   input                    {L} domain,
   input      [p_nbits-1:0] {Domain domain} in0, in1, in2,
-  input              [1:0] {L} sel,
+  input              [1:0] {Domain domain} sel,
   output reg [p_nbits-1:0] {Domain domain} out
 );
 
@@ -92,7 +92,7 @@ module vc_Mux5
 )(
   input                    {L} domain,
   input      [p_nbits-1:0] {Domain domain} in0, in1, in2, in3, in4,
-  input              [2:0] {L} sel,
+  input              [2:0] {Domain domain} sel,
   output reg [p_nbits-1:0] {Domain domain} out
 );
 

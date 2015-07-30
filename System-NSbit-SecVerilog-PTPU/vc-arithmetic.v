@@ -28,9 +28,10 @@ module vc_SimpleAdder
 #(
   parameter p_nbits = 1
 )(
-  input  [p_nbits-1:0] in0,
-  input  [p_nbits-1:0] in1,
-  output [p_nbits-1:0] out
+  input                {L} domain,
+  input  [p_nbits-1:0] {Domain domain} in0,
+  input  [p_nbits-1:0] {Domain domain} in1,
+  output [p_nbits-1:0] {Domain domain} out
 );
 
   assign out = in0 + in1;
@@ -180,6 +181,23 @@ module vc_GtComparator
 endmodule
 
 //------------------------------------------------------------------------
+// GEtComparator
+//------------------------------------------------------------------------
+
+module vc_GEtComparator
+#(
+    parameter p_nbits = 1
+)(
+    input                 {L}             domain,
+    input   [p_nbits-1:0] {Domain domain} in0,
+    input   [p_nbits-1:0] {Domain domain} in1,
+    output                {Domain domain} out
+);
+    assign out = ( in0 >= in1 );
+
+endmodule 
+
+//------------------------------------------------------------------------
 // LeftLogicalShifter
 //------------------------------------------------------------------------
 
@@ -188,9 +206,10 @@ module vc_LeftLogicalShifter
   parameter p_nbits       = 1,
   parameter p_shamt_nbits = 1 )
 (
-  input        [p_nbits-1:0] in,
-  input  [p_shamt_nbits-1:0] shamt,
-  output       [p_nbits-1:0] out
+  input                      {L} domain,
+  input        [p_nbits-1:0] {Domain domain} in,
+  input  [p_shamt_nbits-1:0] {Domain domain} shamt,
+  output       [p_nbits-1:0] {Domain domain} out
 );
 
   assign out = ( in << shamt );
@@ -206,9 +225,10 @@ module vc_RightLogicalShifter
   parameter p_nbits       = 1,
   parameter p_shamt_nbits = 1
 )(
-  input        [p_nbits-1:0] in,
-  input  [p_shamt_nbits-1:0] shamt,
-  output       [p_nbits-1:0] out
+  input                      {L} domain,
+  input        [p_nbits-1:0] {Domain domain} in,
+  input  [p_shamt_nbits-1:0] {Domain domain} shamt,
+  output       [p_nbits-1:0] {Domain domain} out
 );
 
   assign out = ( in >> shamt );

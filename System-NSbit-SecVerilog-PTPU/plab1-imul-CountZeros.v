@@ -11,8 +11,9 @@
 
 module plab1_imul_CountZeros
 (
- input      [7:0] to_be_counted,
- output reg [3:0] count
+ input            {L} domain,
+ input      [7:0] {Domain domain} to_be_counted,
+ output reg [3:0] {Domain domain} count
 );
 
   always @ (*) begin

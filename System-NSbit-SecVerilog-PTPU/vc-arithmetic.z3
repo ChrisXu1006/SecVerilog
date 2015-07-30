@@ -69,55 +69,7 @@
 ; assertions to be verified
 
 (push)
-(assert  (not(leq (join (Control domain) (Domain domain))  (Domain domain))))    ; assign mem_msg = {mem_msg_control, mem_msg_data} @plab5-mcore-mem-net-resp.v:77
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq (Domain domain)  (Control domain))))    ; assign mem_msg_opaque = mem_msg[(((md)-(1))+($clog2((md)/(8))))+(mo):(((md)-(1))+($clog2((md)/(8))))+(1)] @plab5-mcore-mem-net-resp.v:81
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq (Control domain)  (Control domain))))    ; assign net_dest = mem_msg_opaque[(mo)-(1)-:ns] @plab5-mcore-mem-net-resp.v:82
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq (Domain domain)  (Control domain))))    ; Instantiate parameter type in module plab5_mcore_MemRespCMsgPack @plab5-mcore-mem-net-resp.v:91
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq (Control domain)  (Control domain))))    ; Instantiate parameter opaque in module plab5_mcore_MemRespCMsgPack @plab5-mcore-mem-net-resp.v:91
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq (Domain domain)  (Control domain))))    ; Instantiate parameter len in module plab5_mcore_MemRespCMsgPack @plab5-mcore-mem-net-resp.v:91
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq (Control domain)  (Control domain))))    ; Instantiate parameter msg in module plab5_mcore_MemRespCMsgPack @plab5-mcore-mem-net-resp.v:91
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign net_payload_data = mem_msg[(md)-(1):0] @plab5-mcore-mem-net-resp.v:100
-(check-sat)
-(pop)
-
-
-(push)
-(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign net_msg_data = net_payload_data @plab5-mcore-mem-net-resp.v:120
+(assert  (not(leq (Domain domain)  (Domain domain))))    ; assign out = {{(p_out_nbits)-(p_in_nbits){0}}, in} @vc-arithmetic.v:90
 (check-sat)
 (pop)
 

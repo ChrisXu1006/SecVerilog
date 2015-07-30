@@ -104,6 +104,8 @@ module vc_Crossbar4
   parameter p_nbits = 32
 )
 (
+  input                  {L} domain,
+
   input  [p_nbits-1:0]   in0,
   input  [p_nbits-1:0]   in1,
   input  [p_nbits-1:0]   in2,
@@ -114,10 +116,10 @@ module vc_Crossbar4
   input  [1:0]           sel2,
   input  [1:0]           sel3,
 
-  output [p_nbits-1:0]   out0,
-  output [p_nbits-1:0]   out1,
-  output [p_nbits-1:0]   out2,
-  output [p_nbits-1:0]   out3
+  output [p_nbits-1:0]   {Domain domain} out0,
+  output [p_nbits-1:0]   {Domain domain} out1,
+  output [p_nbits-1:0]   {Domain domain} out2,
+  output [p_nbits-1:0]   {Domain domain} out3
 );
 
   vc_Mux4#(p_nbits) out0_mux

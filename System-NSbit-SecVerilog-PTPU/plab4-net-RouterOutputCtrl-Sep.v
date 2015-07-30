@@ -35,8 +35,8 @@ module plab4_net_RouterOutputCtrl_sep
 
 	//  only when out_rdy is high, combine reqs into a single wire
 	//  otherwise, we set input to arbiters to be low
-	wire [2:0]	arb_reqs;
-	wire [2:0]	grants;
+	wire [2:0]	{Domain out_domain} arb_reqs;
+	wire [2:0]	{Domain out_domain} grants;
 
 	assign arb_reqs = ( out_rdy ? {reqs_p2, reqs_p1, reqs_p0} : 3'h0 );
 	assign {grants_p2, grants_p1, grants_p0} = grants;
@@ -53,6 +53,8 @@ module plab4_net_RouterOutputCtrl_sep
 	(
 		.clk    (clk),
 		.reset  (reset),
+
+        .domain (domain),
 
 		.reqs   (arb_reqs),
 		.grants (grants)
