@@ -18,14 +18,6 @@
 (assert (forall ((x Label) (y Label) (z Label)) (implies (and (leq x y) (leq x z)) (leq x (meet y z)))))
 (assert (forall ((x Label) (y Label)) (and (leq (meet x y) x) (leq (meet x y) y))))
 (assert (forall ((x Label) (y Label)) (= (meet x y) (meet y x))))
-; convert int to bool
-(declare-fun IBOOL (Int) Bool)
-(assert (forall ((x Int))
-    (and
-        (implies (= x 0) (= (IBOOL x) false))
-        (implies (not (= x 0)) (= (IBOOL x) true))
-    )
-))
 
 ; lattice elements
 (declare-fun LOW () Label)
@@ -52,16 +44,40 @@
 (assert (= (Domain 2) LOW))
 (assert (= (Domain 3) HIGH))
 
-; functio that maps 0 to D1; 1 to LOW
+; function that maps 0 to D1; 1 to D2; 2 to LOW; 3 to HIGH
 (declare-fun Control (Int) Label)
 (assert (= (Control 0) D1))
 (assert (= (Control 1) D2))
+(assert (= (Control 2) LOW))
+(assert (= (Control 3) HIGH))
 
-; function that maps 0 to Domain L0; 1 to Domain L1; .....
-(declare-fun SEL (Int) Label)
-(assert (= (SEL 0) (Domain L0)))
-(assert (= (SEL 1) (Domain L1)))
-(assert (= (SEL 2) (Domain L2)))
+; function for data signals
+(declare-fun Data (Int) Label)
+(assert (= (Data 0) D1))
+(assert (= (Data 1) D2))
+(assert (= (Data 2) LOW))
+(assert (= (Data 3) HIGH))
+
+; function for control signals
+(declare-fun Ctrl (Int) Label)
+(assert (= (Ctrl 0) D1))
+(assert (= (Ctrl 1) D2))
+(assert (= (Ctrl 2) LOW))
+(assert (= (Ctrl 3) HIGH))
+
+; function for NS signals
+(declare-fun Ns (Int) Label)
+(assert (= (Ns 0) LOW))
+(assert (= (Ns 1) LOW))
+(assert (= (Ns 2) LOW))
+(assert (= (Ns 3) HIGH))
+
+; function for address signals
+(declare-fun Addr (Int) Label)
+(assert (= (Addr 0) LOW))
+(assert (= (Addr 1) LOW))
+(assert (= (Addr 2) LOW))
+(assert (= (Addr 3) HIGH))
 
 ; assertions to be verified
 

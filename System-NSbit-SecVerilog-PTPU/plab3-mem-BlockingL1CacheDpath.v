@@ -1,5 +1,5 @@
 //=========================================================================
-// Alternative Blocking Cache Datapath
+// Alternative Blocking Cache Domainpath
 //=========================================================================
 
 `ifndef PLAB3_MEM_BLOCKING_L1_CACHE_DPATH_V
@@ -8,6 +8,7 @@
 `include "vc-mem-msgs.v"
 `include "vc-arithmetic.v"
 `include "vc-muxes.v"
+`include "vc-regs.v"
 `include "vc-srams.v"
 
 module plab3_mem_BlockingL1CacheDpath
@@ -123,7 +124,7 @@ module plab3_mem_BlockingL1CacheDpath
   wire [`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw)-1:0]   {Domain domain} cachereq_type_reg_out;
   wire [`VC_MEM_REQ_MSG_OPAQUE_NBITS(o,abw,dbw)-1:0] {Domain domain} cachereq_opaque_reg_out;
 
-  vc_EnResetReg #(`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw), 0) cachereq_type_reg
+  vc_EnResetReg_Domain #(`VC_MEM_REQ_MSG_TYPE_NBITS(o,abw,dbw), 0) cachereq_type_reg
   (
     .clk    (clk),
     .reset  (reset),
@@ -133,7 +134,7 @@ module plab3_mem_BlockingL1CacheDpath
     .q      (cachereq_type_reg_out)
   );
 
-  vc_EnResetReg #(`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw), 0) cachereq_addr_reg
+  vc_EnResetReg_Domain #(`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw), 0) cachereq_addr_reg
   (
     .clk    (clk),
     .reset  (reset),
@@ -143,7 +144,7 @@ module plab3_mem_BlockingL1CacheDpath
     .q      (cachereq_addr_reg_out)
   );
 
-  vc_EnResetReg #(`VC_MEM_REQ_MSG_OPAQUE_NBITS(o,abw,dbw), 0) cachereq_opaque_reg
+  vc_EnResetReg_Domain #(`VC_MEM_REQ_MSG_OPAQUE_NBITS(o,abw,dbw), 0) cachereq_opaque_reg
   (
     .clk    (clk),
     .reset  (reset),
@@ -236,15 +237,17 @@ module plab3_mem_BlockingL1CacheDpath
   assign cachereq_idx = cachereq_addr_reg_out[4+p_idx_shamt +: 3];
 
   // Tag array
-  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] {Domain domain} tag_array_0_read_out;
+  wire                                             {L}                 tag_0_domain;
+  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] {Domain tag_0_domain} tag_array_0_out;
 
-  vc_CombinationalSRAM_1rw #(`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw),nblocks/2) tag_array_0
+  vc_CombinationalSRAM_1rw_Domain #(`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw),nblocks/2) tag_array_0
   (
     .clk           (clk),
     .reset         (reset),
     .in_domain     (domain),
     .read_addr     (cachereq_idx),
-    .read_data     (tag_array_0_read_out),
+    .read_data     (tag_array_0_out),
+    .out_domain    (tag_0_domain),
     .write_en      (tag_array_0_wen),
     .read_en       (tag_array_0_ren),
     .write_byte_en (4'b1111),
@@ -253,15 +256,17 @@ module plab3_mem_BlockingL1CacheDpath
   );
 
   // Tag array 1
-  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] {Domain domain} tag_array_1_read_out;
+  wire                                             {L}                 tag_1_domain;
+  wire [`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-1:0] {Domain tag_1_domain} tag_array_1_out;
 
-  vc_CombinationalSRAM_1rw #(`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw),nblocks/2) tag_array_1
+  vc_CombinationalSRAM_1rw_Domain #(`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw),nblocks/2) tag_array_1
   (
     .clk           (clk),
     .reset         (reset),
     .in_domain     (domain),
     .read_addr     (cachereq_idx),
-    .read_data     (tag_array_1_read_out),
+    .read_data     (tag_array_1_out),
+    .out_domain    (tag_1_domain),
     .write_en      (tag_array_1_wen),
     .read_en       (tag_array_1_ren),
     .write_byte_en (4'b1111),
@@ -269,9 +274,12 @@ module plab3_mem_BlockingL1CacheDpath
     .write_data    ( { 4'h0, cachereq_tag } )
   );
 
-  wire [clw-1:0] {Domain domain} data_array_read_out;
+  wire           {L}                data_domain;
+  wire [clw-1:0] {Domain domain}      data_array_read_out;
+  wire [clw-1:0] {Domain data_domain} data_array_out;
 
-  // Data array
+  assign data_array_read_out = (data_domain == domain) ? data_array_read_out : 0;
+  // Domain array
   vc_CombinationalSRAM_1rw #(clw, nblocks) data_array
   (
     .clk           (clk),
@@ -281,7 +289,8 @@ module plab3_mem_BlockingL1CacheDpath
     // it's just a matter of how the cachelines are actually organized in
     // the data_array
     .read_addr     ( { cachereq_idx, way_sel } ),
-    .read_data     (data_array_read_out),
+    .read_data     (data_array_out),
+    .out_domain    (data_domain),
     .write_en      (data_array_wen),
     .read_en       (data_array_ren),
     .write_byte_en (data_array_wben),
@@ -289,23 +298,25 @@ module plab3_mem_BlockingL1CacheDpath
     .write_data    (refill_mux_out)
   );
 
+  reg {Domain domain} tag_match_0;
+  reg {Domain domain} tag_match_1;
   // Eq comparator to check for tag matching (tag_compare_0)
-  vc_EqComparator #(`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-4) tag_compare_0
-  (
-    .domain (domain),
-    .in0 (cachereq_tag),
-    .in1 (tag_array_0_read_out[27:0]),
-    .out (tag_match_0)
-  );
+  
+  always @(*) begin
+    if ( cacehreq_tag == tag_array_0_out[27:0] )
+       tag_match_0 = 1'b1;
+    else
+       tag_match_0 = 1'b0;
+  end
 
   // Eq comparator to check for tag matching (tag_compare_1)
-  vc_EqComparator #(`VC_MEM_REQ_MSG_ADDR_NBITS(o,abw,dbw)-4) tag_compare_1
-  (
-    .domain (domain),
-    .in0 (cachereq_tag),
-    .in1 (tag_array_1_read_out[27:0]),
-    .out (tag_match_1)
-  );
+
+  always @(*) begin
+    if ( cachereq_tag == tag_array_1_out[27:0] )
+       tag_match_1 = 1'b1;
+    else
+        tag_match_1 = 1'b0;
+  end
 
   // Mux that selects between the ways for requesting from memory
   wire [27:0]    {Domain domain} way_sel_mux_out;
